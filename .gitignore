@@ -1,0 +1,11 @@
+# Hem backend hem frontend içindeki node_modules klasörlerini engeller
+**/node_modules/
+
+# Derleme (build) çıktılarını engeller
+.next/
+dist/
+build/
+
+# Gizli ayar dosyalarını engeller
+.env
+.env.local

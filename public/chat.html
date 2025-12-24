@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Talk2 Chat</title>
+    <link rel="stylesheet" href="/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Nickname Modal -->
+        <div id="nickname-overlay" class="overlay">
+            <div class="modal">
+                <div class="modal-icon"><i class="fas fa-satellite"></i></div>
+                <h2 data-i18n="modalTitle">Talk2'ya Girin</h2>
+                <p><span data-i18n="modalText">odayı katılmak için bir takma ad seçin:</span> <strong id="room-display"></strong></p>
+                <form id="nickname-form">
+                    <input type="text" id="nickname-input" placeholder="örn. KozmikGezgin" maxlength="15" required autocomplete="off" data-i18n-placeholder="placeholderNickname">
+                    <button type="submit" data-i18n="btnConnect">Bağlan</button>
+                    <button type="button" id="random-nickname" data-i18n="btnRandom">Rastgele Oluştur</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Confirm Modal -->
+        <div id="confirm-overlay" class="overlay hidden">
+            <div class="modal confirm-modal">
+                <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
+                <h3 id="confirm-title">Onay</h3>
+                <p id="confirm-text">Bu işlemi yapmak istediğine emin misin?</p>
+                <div class="modal-actions">
+                    <button id="confirm-cancel-btn" class="secondary-btn">İptal</button>
+                    <button id="confirm-yes-btn" class="danger-btn">Evet, Sil</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header class="chat-header">
+            <a href="/" class="logo-link">
+                <div class="logo">
+                    <i class="fas fa-satellite"></i>
+                    <span>Talk2</span>
+                </div>
+            </a>
+            <div class="room-info">
+                <span class="room-badge"><i class="fas fa-hashtag"></i><span id="room-name-header"></span></span>
+                <span class="user-count-badge"><i class="fas fa-users"></i><span id="user-count">0</span></span>
+            </div>
+            <div class="header-controls">
+                <button id="lang-toggle" class="lang-btn">TR</button>
+                <button id="logout-btn" class="icon-btn" title="Çıkış Yap">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <button id="toggle-sidebar" class="toggle-sidebar-btn" title="Kullanıcıları Göster">
+                    <i class="fas fa-users"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="chat-wrapper">
+            <!-- Chat Area -->
+            <div class="chat-main">
+                <!-- System Banner -->
+                <div class="system-banner">
+                    <i class="fas fa-meteor"></i> <span data-i18n="systemBanner">Bu odadaki veriler her 24 saatte bir silinir.</span>
+                </div>
+
+                <!-- Chat Container -->
+                <main class="chat-container">
+                    <div id="messages" class="messages-list"></div>
+                    <div id="typing-indicator" class="typing-indicator hidden"></div>
+                </main>
+
+                <!-- Input Area -->
+                <footer class="input-area">
+                    <form id="chat-form">
+                        <button type="button" id="emoji-btn" title="Emoji"><i class="fas fa-smile"></i></button>
+                        <button type="button" id="upload-btn" title="Resim Yükle"><i class="fas fa-image"></i></button>
+                        <input type="file" id="image-input" accept="image/*" hidden>
+                        <input type="text" id="message-input" placeholder="Bir mesaj yazın..." autocomplete="off" data-i18n-placeholder="placeholderMessage">
+                        <button type="submit" id="send-btn"><i class="fas fa-paper-plane"></i></button>
+                    </form>
+                </footer>
+            </div>
+
+            <!-- Users Sidebar -->
+            <aside id="users-sidebar" class="users-sidebar">
+                <div class="sidebar-header">
+                    <h3><i class="fas fa-users"></i> <span data-i18n="sidebarTitle">Çevrimiçi</span></h3>
+                    <span id="sidebar-user-count" class="sidebar-count">0</span>
+                </div>
+                
+                <!-- Clear Button -->
+                <div class="sidebar-actions">
+                    <button id="clear-msgs-btn" class="danger-btn"><i class="fas fa-trash-alt"></i> <span data-i18n="btnClearMyMsgs">Mesajlarımı Temizle</span></button>
+                </div>
+
+                <ul id="users-list" class="users-list"></ul>
+                
+                <div class="sidebar-footer">
+                     <small>Dev: <a href="https://github.com/zveloxy" target="_blank" style="color:var(--text-secondary)">Veloxy</a></small>
+                </div>
+            </aside>
+        </div>
+
+        <!-- Emoji Picker -->
+        <div id="emoji-picker" class="emoji-picker hidden">
+            <div class="emoji-grid">
+                <span>😀</span><span>😂</span><span>😍</span><span>🤔</span><span>😎</span>
+                <span>👍</span><span>👎</span><span>❤️</span><span>🔥</span><span>💯</span>
+                <span>🎉</span><span>🚀</span><span>✨</span><span>💀</span><span>👀</span>
+                <span>🤣</span><span>😏</span><span>🥲</span><span>😈</span><span>🤯</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/client.js"></script>
+</body>
+</html>
