@@ -270,9 +270,8 @@ cron.schedule('0 * * * *', () => {
 
 // --- Start Server ---
 // --- Start Server ---
-// Use PORT env if provided, otherwise 0 lets the OS pick a random free port
-const PORT = process.env.PORT || 0;
+// Use PORT env if provided, otherwise default to 3000
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    const address = server.address();
-    console.log(`Server running on port ${address.port}`);
+    console.log(`Server running on port ${PORT}`);
 });
