@@ -99,6 +99,15 @@ const emojiPicker = document.getElementById('emoji-picker');
 const clearMsgsBtn = document.getElementById('clear-msgs-btn');
 const langToggleBtn = document.getElementById('lang-toggle');
 
+// New elements for features
+const shareLinkBtn = document.getElementById('share-link-btn');
+const soundToggleBtn = document.getElementById('sound-toggle-btn');
+const replyPreview = document.getElementById('reply-preview');
+const replyToName = document.getElementById('reply-to-name');
+const replyToText = document.getElementById('reply-to-text');
+const cancelReplyBtn = document.getElementById('cancel-reply');
+const toast = document.getElementById('toast');
+
 // Confirm Modal State
 let pendingConfirmAction = null;
 
@@ -106,6 +115,11 @@ let pendingConfirmAction = null;
 let typingTimeout = null;
 let isTyping = false;
 let typingUsers = {};
+
+// New feature states
+let soundEnabled = localStorage.getItem('talk2_sound') !== 'false';
+let replyingTo = null; // { id, nickname, text }
+let notificationSound = null;
 
 // --- Initialization ---
 if (roomNameHeader) roomNameHeader.textContent = roomId;
@@ -299,18 +313,100 @@ if (clearMsgsBtn) {
     });
 }
 
-// ... (Toggle Sidebar, Emoji Picker code remains same)
+// --- NEW FEATURES ---
+
+// Share Link Button
+if (shareLinkBtn) {
+    shareLinkBtn.addEventListener('click', () => {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            showToast(currentLang === 'tr' ? 'Link kopyalandı!' : 'Link copied!');
+        }).catch(() => {
+            showToast(currentLang === 'tr' ? 'Kopyalama başarısız' : 'Copy failed');
+        });
+    });
+}
+
+// Sound Toggle Button
+if (soundToggleBtn) {
+    updateSoundButtonIcon();
+    soundToggleBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('talk2_sound', soundEnabled);
+        updateSoundButtonIcon();
+        showToast(soundEnabled 
+            ? (currentLang === 'tr' ? 'Ses açık' : 'Sound on') 
+            : (currentLang === 'tr' ? 'Ses kapalı' : 'Sound off'));
+    });
+}
+
+function updateSoundButtonIcon() {
+    if (soundToggleBtn) {
+        const icon = soundToggleBtn.querySelector('i');
+        if (soundEnabled) {
+            icon.className = 'fas fa-volume-up';
+            soundToggleBtn.classList.remove('muted');
+        } else {
+            icon.className = 'fas fa-volume-mute';
+            soundToggleBtn.classList.add('muted');
+        }
+    }
+}
+
+// Cancel Reply
+if (cancelReplyBtn) {
+    cancelReplyBtn.addEventListener('click', () => {
+        cancelReply();
+    });
+}
+
+function cancelReply() {
+    replyingTo = null;
+    if (replyPreview) replyPreview.classList.add('hidden');
+}
+
+function setReply(msgId, msgNickname, msgText) {
+    replyingTo = { id: msgId, nickname: msgNickname, text: msgText };
+    if (replyToName) replyToName.textContent = msgNickname;
+    if (replyToText) replyToText.textContent = msgText.substring(0, 50) + (msgText.length > 50 ? '...' : '');
+    if (replyPreview) replyPreview.classList.remove('hidden');
+    messageInput.focus();
+}
+
+// Expose to window
+window.setReply = setReply;
+
+// Toast Notification
+function showToast(message, duration = 2000) {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove('hidden');
+    setTimeout(() => {
+        toast.classList.add('hidden');
+    }, duration);
+}
+
+// Notification Sound
+function playNotificationSound() {
+    if (!soundEnabled) return;
+    if (!notificationSound) {
+        notificationSound = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdH2FgYWFe3BrbXV8gYKChHpwbm10eoCAhIN6cXFvdHqAgIODeXJycHR6gH+DgnhycnB0eoB/goF3c3Jwc3p/f4KBd3NycHN6gH+CgHdzc3Bzent/gn93c3Nwc3l6f4GAd3NzcXN5e36Bf3dzcnFzeHt+gX93c3JxdHh7foB+d3RycXR4e35/fnZ0cnF0eHt9fn52dHJxdHh7fX5+dnRycXR4e31+fnZ1c3F0d3t9fn52dHNxdHd7fH5+dnV0cXR3e3x+fnZ1dHF1eHt9fn53dXRxdXh7fX5+d3V0cXV4e31+fnZ1dHF1eHt8fn52dXRxdXh7fX5+d3V0cnd4e31+f3Z1dHJ2eHt9fn92dXRydnh7fX5/dnV0cnZ4e31+f3Z1dHJ2eHt8fn92dXRydnh7fX5/dnV0cnZ4e31+f3Z1dHJ2eHt9fn92dXRydnh7fX5/dnV0cnZ5e31+f3Z1dHJ3eXt9fn92dXVydnl7fH5/dnV1cnd5e3x+f3Z1dXJ3eXt9fn93dXVyd3l7fX5/d3V1cnh5e31+f3d1dXJ4eXt9fn93dXVyeHl7fX9/d3V1cnh5fH1+f3d2dXJ4eXx9fn93dnVyeHl8fX9/d3Z1cnh5fH1/f3d2dXJ4eXx9f393dnVzeHl9fX9/d3Z1c3h5fX1/f3d2dXN4eX19f393dnVzeHl9fX9/d3Z2c3h5fX1/f3d2dnN4eX19f393dnZzeHl9fX9/d3Z2c3h5fX1/f3d2dnN4eX19f393dnd0eHl9fX9/d3Z3dHh5fX1/f3d2');
+    }
+    notificationSound.currentTime = 0;
+    notificationSound.volume = 0.5;
+    notificationSound.play().catch(() => {});
+}
 
 function showConfirm(message, onConfirm) {
     const t = translations[currentLang] || translations['en'];
     confirmText.textContent = message;
-    confirmTitle.textContent = currentLang === 'tr' ? 'Onay' : 'Confirm'; // Or use translation key
+    confirmTitle.textContent = currentLang === 'tr' ? 'Onay' : 'Confirm';
     confirmYesBtn.textContent = t.btnConfirm || 'Yes, Delete';
     confirmCancelBtn.textContent = t.btnCancel || 'Cancel';
     
     pendingConfirmAction = onConfirm;
     confirmModal.classList.remove('hidden');
-    confirmModal.style.display = 'flex'; // Ensure flex display
+    confirmModal.style.display = 'flex';
 }
 
 // ... (Socket Events code remains same)
@@ -367,6 +463,11 @@ socket.on('history', (messages) => {
 socket.on('message', (msg) => {
     addMessageToDOM(msg);
     scrollToBottom();
+    
+    // Play notification sound for messages from others
+    if (msg.nickname !== nickname) {
+        playNotificationSound();
+    }
 });
 
 socket.on('messageDeleted', (msgId) => {
@@ -449,12 +550,24 @@ function joinRoom() {
 }
 
 function sendMessage(content, type) {
-    socket.emit('message', {
+    const msgData = {
         room: roomId,
         nickname: nickname,
         content: content,
         type: type
-    });
+    };
+    
+    // Include reply data if replying
+    if (replyingTo) {
+        msgData.replyTo = {
+            id: replyingTo.id,
+            nickname: replyingTo.nickname,
+            text: replyingTo.text
+        };
+    }
+    
+    socket.emit('message', msgData);
+    cancelReply(); // Clear reply after sending
 }
 
 // ... (existing code)
