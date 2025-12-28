@@ -1,11 +1,44 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const multer = require('multer');
-const path = require('path');
+// --- Startup Logging for cPanel Debug ---
 const fs = require('fs');
-const cron = require('node-cron');
-const db = require('./database');
+const path = require('path');
+
+const LOG_FILE = path.join(__dirname, 'startup.log');
+
+function log(message) {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${message}\n`;
+    fs.appendFileSync(LOG_FILE, logMessage);
+    console.log(message);
+}
+
+// Clear old log on startup
+fs.writeFileSync(LOG_FILE, `=== Server Starting at ${new Date().toISOString()} ===\n`);
+
+log('Loading modules...');
+
+try {
+    const express = require('express');
+    log('✓ express loaded');
+    
+    const http = require('http');
+    log('✓ http loaded');
+    
+    const { Server } = require('socket.io');
+    log('✓ socket.io loaded');
+    
+    const multer = require('multer');
+    log('✓ multer loaded');
+    
+    const cron = require('node-cron');
+    log('✓ node-cron loaded');
+    
+    log('Loading database...');
+    const db = require('./database');
+    log('✓ database loaded');
+    
+    log('All modules loaded successfully!');
+
+// --- Rest of the application wrapped in try-catch ---
 
 const app = express();
 const server = http.createServer(app);
@@ -269,9 +302,23 @@ cron.schedule('0 * * * *', () => {
 });
 
 // --- Start Server ---
-// --- Start Server ---
 // Use PORT env if provided, otherwise default to 3000
 const PORT = process.env.PORT || 3000;
+
+log(`Attempting to start server on port ${PORT}...`);
+
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    log(`✓ Server running on port ${PORT}`);
 });
+
+server.on('error', (err) => {
+    log(`✗ Server error: ${err.message}`);
+    log(err.stack);
+});
+
+} catch (err) {
+    // This catches any errors during module loading or initialization
+    log(`✗ FATAL ERROR: ${err.message}`);
+    log(err.stack);
+    process.exit(1);
+}
