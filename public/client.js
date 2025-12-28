@@ -362,15 +362,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize Language
     detectLanguage();
-});
 
-function stopTyping() {
-    if (isTyping) {
-        isTyping = false;
-        socket.emit('typing', false);
+    function stopTyping() {
+        if (isTyping) {
+            isTyping = false;
+            socket.emit('typing', false);
+        }
+        clearTimeout(typingTimeout);
     }
-    clearTimeout(typingTimeout);
-}
 
 // Typing indicator
     // Typing indicator
