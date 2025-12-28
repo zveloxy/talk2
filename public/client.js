@@ -446,13 +446,17 @@ socket.on('messageRead', (data) => {
 
 // Sound Toggle
 // Nickname Form
-nicknameForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const val = nicknameInput.value.trim();
-    if (val) {
-        setNickname(val);
-    }
-});
+if (nicknameForm) {
+    nicknameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const val = nicknameInput.value.trim();
+        if (val) {
+            setNickname(val);
+        }
+    });
+} else {
+    console.error("Nickname form not found!");
+}
 
 randomBtn.addEventListener('click', () => {
     if (currentLang === 'tr') {
