@@ -294,16 +294,64 @@ if (logoutBtn) {
     });
 }
 
-// Language Toggle
-if (langToggleBtn) {
-    langToggleBtn.addEventListener('click', () => {
-        currentLang = currentLang === 'tr' ? 'en' : 'tr';
-        localStorage.setItem('antigravity_lang', currentLang);
+// Language Selector
+const langSelect = document.getElementById('lang-select');
+if (langSelect) {
+    // Set initial value
+    langSelect.value = currentLang;
+    
+    langSelect.addEventListener('change', (e) => {
+        currentLang = e.target.value;
+        localStorage.setItem('talk2_lang', currentLang);
         applyLanguage(currentLang);
     });
 }
 
-// Nickname Form
+// Read Receipts Observer
+const readMessages = new Set();
+window.msgObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            const div = entry.target;
+            const msgId = div.id.replace('msg-', '');
+            if (!readMessages.has(msgId) && document.visibilityState === 'visible') {
+                socket.emit('markRead', msgId);
+                readMessages.add(msgId);
+                // Stop observing once read
+                window.msgObserver.unobserve(div);
+            }
+        }
+    });
+}, { threshold: 0.5 });
+
+// Handle visibility change to trigger reads for currently visible messages
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+        const visibleMessages = document.querySelectorAll('.message.other');
+        visibleMessages.forEach(msg => {
+            const rect = msg.getBoundingClientRect();
+            if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
+                 const msgId = msg.id.replace('msg-', '');
+                 if (!readMessages.has(msgId)) {
+                     socket.emit('markRead', msgId);
+                     readMessages.add(msgId);
+                     if (window.msgObserver) window.msgObserver.unobserve(msg);
+                 }
+            }
+        });
+    }
+});
+
+socket.on('messageRead', (data) => {
+    const { msgId } = data;
+    const statusEl = document.getElementById(`read-${msgId}`);
+    if (statusEl) {
+        statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #4ade80;"></i>';
+    }
+});
+
+// Sound Toggle
+if (soundToggleBtn) {
 nicknameForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const val = nicknameInput.value.trim();
@@ -727,7 +775,8 @@ function addMessageToDOM(msg) {
                    </button>
                    <button class="delete-msg-btn" onclick="deleteMessage('${msg.id}')" title="${deleteTitle}">
                         <i class="fas fa-times"></i>
-                   </button>`
+                   </button>
+                   <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayNames}</span>
                    <span class="time">${time}</span>
                    <button class="reply-msg-btn" onclick="setReply('${msg.id}', '${escapeHtml(msg.nickname)}', '${escapedText}')" title="${replyTitle}">
@@ -739,6 +788,17 @@ function addMessageToDOM(msg) {
     `;
     
     messagesList.appendChild(div);
+
+    // Read Receipt Logic
+    if (!isSelf) {
+        // Observe this message to mark as read
+        if (window.msgObserver) {
+            window.msgObserver.observe(div);
+        }
+    } else {
+        // If it's my message and already read (server should tell us, but for now ephemeral)
+        // We'll rely on real-time updates.
+    }
 }
 
 function addSystemMessage(data) {

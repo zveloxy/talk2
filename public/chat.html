@@ -7,6 +7,15 @@
     <link rel="stylesheet" href="/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
 </head>
 <body>
     <div id="app">
@@ -56,7 +65,13 @@
                 <button id="sound-toggle-btn" class="icon-btn" title="Bildirim Sesi">
                     <i class="fas fa-volume-up"></i>
                 </button>
-                <button id="lang-toggle" class="lang-btn">TR</button>
+                <select id="lang-select" class="lang-select">
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="tr">🇹🇷 TR</option>
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="ru">🇷🇺 RU</option>
+                    <option value="ph">🇵🇭 PH</option>
+                </select>
                 <button id="logout-btn" class="icon-btn" title="Çıkış Yap">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>

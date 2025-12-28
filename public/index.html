@@ -4,8 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talk2 - Anonymous Chat</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#6366f1">
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js');
+            });
+        }
+    </script>
     <style>
         :root {
             --bg-primary: #0a0a0f;
@@ -585,6 +595,14 @@
 
         <div class="stats-strip">
             <div class="stat-item">
+                <div class="stat-val" id="active-rooms">-</div>
+                <div class="stat-lbl" data-i18n="statActiveRooms">Active Rooms</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-val" id="online-users">-</div>
+                <div class="stat-lbl" data-i18n="statOnlineUsers">Online Users</div>
+            </div>
+            <div class="stat-item">
                 <div class="stat-val">24h</div>
                 <div class="stat-lbl" data-i18n="statRet">Data Retention</div>
             </div>
@@ -710,6 +728,8 @@
                 step3Desc: "Chat, share images. Every 24 hours, the room wipes itself clean.",
                 features: "Features",
                 faq: "FAQ",
+                statActiveRooms: "Active Rooms",
+                statOnlineUsers: "Online Users",
                 statRet: "Data Retention",
                 statEnc: "Standard Encryption",
                 statLogs: "Logs Stored",
@@ -749,7 +769,9 @@
                 step3Title: "Yok Ol",
                 step3Desc: "Sohbet et, resim paylaş. Her 24 saatte bir her şey silinir.",
                 features: "Özellikler",
-                faq: "SSS",
+                faq: "S.S.S",
+                statActiveRooms: "Aktif Odalar",
+                statOnlineUsers: "Çevrimiçi",
                 statRet: "Veri Saklama",
                 statEnc: "Standart Şifreleme",
                 statLogs: "Log Kaydı",
@@ -790,6 +812,8 @@
                 step3Desc: "Mag-chat, magbahagi ng larawan. Bawat 24 oras, nililinis ang lahat.",
                 features: "Mga Feature",
                 faq: "FAQ",
+                statActiveRooms: "Mga Aktibong Room",
+                statOnlineUsers: "Online Users",
                 statRet: "Data Retention",
                 statEnc: "Standard Encryption",
                 statLogs: "Logs Stored",
@@ -830,6 +854,8 @@
                 step3Desc: "Chatten, Bilder teilen. Alle 24 Stunden wird alles gelöscht.",
                 features: "Funktionen",
                 faq: "FAQ",
+                statActiveRooms: "Aktive Räume",
+                statOnlineUsers: "Online",
                 statRet: "Datenspeicherung",
                 statEnc: "Standardverschlüsselung",
                 statLogs: "Gespeicherte Logs",
@@ -870,6 +896,8 @@
                 step3Desc: "Общайтесь, делитесь изображениями. Каждые 24 часа всё очищается.",
                 features: "Возможности",
                 faq: "ЧАВО",
+                statActiveRooms: "Активные Комнаты",
+                statOnlineUsers: "Онлайн",
                 statRet: "Хранение данных",
                 statEnc: "Стандартное шифрование",
                 statLogs: "Хранимые логи",
@@ -963,6 +991,22 @@
             applyLanguage(lang);
         });
         
+        // Live Stats Fetcher
+        async function updateStats() {
+            try {
+                const res = await fetch('/api/stats');
+                const data = await res.json();
+                const activeRoomsEl = document.getElementById('active-rooms');
+                const onlineUsersEl = document.getElementById('online-users');
+                if (activeRoomsEl) activeRoomsEl.innerText = data.rooms.toLocaleString();
+                if (onlineUsersEl) onlineUsersEl.innerText = data.users.toLocaleString();
+            } catch (e) {
+                console.error("Failed to fetch stats", e);
+            }
+        }
+        setInterval(updateStats, 10000); // Every 10 seconds
+        updateStats(); // Initial call
+
         detectLanguage();
 
         document.getElementById('room-form').addEventListener('submit', (e) => {

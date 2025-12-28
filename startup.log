@@ -1,0 +1,12 @@
+=== Server Starting at 2025-12-28T23:06:12.262Z ===
+[2025-12-28T23:06:12.268Z] Loading modules...
+[2025-12-28T23:06:12.924Z] ✓ express loaded
+[2025-12-28T23:06:12.924Z] ✓ http loaded
+[2025-12-28T23:06:13.137Z] ✓ socket.io loaded
+[2025-12-28T23:06:13.199Z] ✓ multer loaded
+[2025-12-28T23:06:13.260Z] ✓ node-cron loaded
+[2025-12-28T23:06:13.260Z] Loading database...
+[2025-12-28T23:06:13.261Z] ✓ database loaded
+[2025-12-28T23:06:13.261Z] All modules loaded successfully!
+[2025-12-28T23:06:13.266Z] Attempting to start server on port 3000...
+[2025-12-28T23:06:13.270Z] ✓ Server running on port 3000

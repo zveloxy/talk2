@@ -88,6 +88,13 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
     res.json({ url: '/uploads/' + req.file.filename });
 });
 
+// API Stats
+app.get('/api/stats', (req, res) => {
+    const activeRooms = Object.keys(roomUsers).length;
+    const activeUsers = Object.keys(socketToUser).length;
+    res.json({ rooms: activeRooms, users: activeUsers });
+});
+
 // Serve the chat page for any room (must be after static and api routes)
 app.get('/:room', (req, res) => {
     const room = req.params.room;
