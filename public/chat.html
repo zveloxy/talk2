@@ -25,7 +25,7 @@
                 <div class="modal-icon"><i class="fas fa-satellite"></i></div>
                 <h2 data-i18n="modalTitle">Talk2'ya Girin</h2>
                 <p><span data-i18n="modalText">odayı katılmak için bir takma ad seçin:</span> <strong id="room-display"></strong></p>
-                <form id="nickname-form">
+                <form id="nickname-form" onsubmit="return false;">
                     <input type="text" id="nickname-input" placeholder="örn. KozmikGezgin" maxlength="15" required autocomplete="off" data-i18n-placeholder="placeholderNickname">
                     <button type="submit" data-i18n="btnConnect">Bağlan</button>
                     <button type="button" id="random-nickname" data-i18n="btnRandom">Rastgele Oluştur</button>
@@ -128,7 +128,7 @@
                             <i class="fas fa-times"></i>
                         </button>
                     </div>
-                    <form id="chat-form">
+                    <form id="chat-form" onsubmit="return false;">
                         <button type="button" id="emoji-btn" title="Emoji"><i class="fas fa-smile"></i></button>
                         <button type="button" id="upload-btn" title="Resim Yükle"><i class="fas fa-image"></i></button>
                         <input type="file" id="image-input" accept="image/*" hidden>

@@ -317,178 +317,85 @@ async function detectLanguage() {
     applyLanguage(currentLang);
 }
 
-// Initial detection call
-detectLanguage();
+// --- Event Listeners & Initialization ---
 
-
-applyLanguage(currentLang);
-
-// Check nickname
-if (nickname) {
-    modal.style.display = 'none';
-    joinRoom();
-} else {
-    modal.style.display = 'flex';
-}
-
-// --- Event Listeners ---
-
-// Confirm Modal Listeners
-if (confirmCancelBtn) {
-    confirmCancelBtn.addEventListener('click', () => {
-        confirmModal.classList.add('hidden');
-        pendingConfirmAction = null;
-    });
-}
-
-if (confirmYesBtn) {
-    confirmYesBtn.addEventListener('click', () => {
-        if (pendingConfirmAction) {
-            pendingConfirmAction();
-        }
-        confirmModal.classList.add('hidden');
-        pendingConfirmAction = null;
-    });
-}
-
-// Logout
-if (logoutBtn) {
-    logoutBtn.addEventListener('click', () => {
-        if(confirm(currentLang === 'tr' ? 'Çıkış yapmak istiyor musunuz?' : 'Do you want to logout?')) {
-            localStorage.removeItem('antigravity_nickname');
-            localStorage.removeItem('antigravity_userid');
-            window.location.href = '/';
-        }
-    });
-}
-
-// Language Selector
-const langSelect = document.getElementById('lang-select');
-if (langSelect) {
-    // Set initial value
-    langSelect.value = currentLang;
+document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM loaded, initializing Talk2 client...");
     
-    langSelect.addEventListener('change', (e) => {
-        currentLang = e.target.value;
-        localStorage.setItem('talk2_lang', currentLang);
-        applyLanguage(currentLang);
-    });
-}
-
-// Expiry
-if (expirySelect) {
-    expirySelect.addEventListener('change', (e) => {
-        socket.emit('setExpiry', parseInt(e.target.value));
-    });
-}
-
-socket.on('roomConfig', (config) => {
-    if (config.expiry && expirySelect) {
-        expirySelect.value = config.expiry;
+    // --- Elements Re-selection (Safety) ---
+    // We re-select inside here to be 100% sure
+    const modal = document.getElementById('nickname-overlay');
+    const nicknameForm = document.getElementById('nickname-form');
+    const nicknameInput = document.getElementById('nickname-input');
+    const randomBtn = document.getElementById('random-nickname'); // Might be null?
+    
+    // Check Nickname 
+    if (nickname) {
+        if(modal) modal.style.display = 'none';
+        joinRoom();
+    } else {
+        if(modal) modal.style.display = 'flex';
     }
-});
 
-// Sound Toggle
-if (soundToggleBtn) {
-    updateSoundButtonIcon();
-    soundToggleBtn.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        localStorage.setItem('talk2_sound', soundEnabled);
-        updateSoundButtonIcon();
-        const t = translations[currentLang] || translations['en'];
-        const msg = soundEnabled ? (currentLang === 'tr' ? 'Ses Açık' : 'Sound On') : (currentLang === 'tr' ? 'Ses Kapalı' : 'Sound Off');
-        showToast(msg);
-    });
-}
-
-// Read Receipts Observer
-const readMessages = new Set();
-window.msgObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            const div = entry.target;
-            const msgId = div.id.replace('msg-', '');
-            if (!readMessages.has(msgId) && document.visibilityState === 'visible') {
-                socket.emit('markRead', msgId);
-                readMessages.add(msgId);
-                // Stop observing once read
-                window.msgObserver.unobserve(div);
+    // --- Nickname Form ---
+    if (nicknameForm) {
+        console.log("Nickname form found.");
+        nicknameForm.addEventListener('submit', (e) => {
+            console.log("Nickname submit triggered");
+            e.preventDefault(); // SUPER IMPORTANT
+            const val = nicknameInput.value.trim();
+            if (val) {
+                setNickname(val);
             }
-        }
-    });
-}, { threshold: 0.5 });
+            return false;
+        });
+    } else {
+        console.error("Critical: Nickname form not found!");
+    }
 
-// Handle visibility change to trigger reads for currently visible messages
-document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-        const visibleMessages = document.querySelectorAll('.message.other');
-        visibleMessages.forEach(msg => {
-            const rect = msg.getBoundingClientRect();
-            if (rect.top >= 0 && rect.bottom <= window.innerHeight) {
-                 const msgId = msg.id.replace('msg-', '');
-                 if (!readMessages.has(msgId)) {
-                     socket.emit('markRead', msgId);
-                     readMessages.add(msgId);
-                     if (window.msgObserver) window.msgObserver.unobserve(msg);
-                 }
+    // --- Chat Form ---
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    
+    if (chatForm) {
+        console.log("Chat form found.");
+        chatForm.addEventListener('submit', (e) => {
+            console.log("Chat submit triggered");
+            e.preventDefault(); // SUPER IMPORTANT
+            const content = messageInput.value.trim();
+            if (content) {
+                sendMessage(content, 'text');
+                messageInput.value = '';
+                stopTyping();
+            }
+            return false;
+        });
+    } else {
+        console.error("Critical: Chat form not found!");
+    }
+    
+    // Random Nickname
+    if (randomBtn) {
+        randomBtn.addEventListener('click', () => {
+            if (currentLang === 'tr') {
+                const adjectives = ['Kozmik', 'Yildiz', 'Ay', 'Bulutsu', 'Kuantum', 'Siber', 'Neon'];
+                const nouns = ['Gezgin', 'Serseri', 'Pilot', 'Hayalet', 'Anka', 'Kuzgun'];
+                const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                nicknameInput.value = adj + noun + Math.floor(Math.random() * 100);
+            } else {
+                const adjectives = ['Cosmic', 'Stellar', 'Lunar', 'Nebula', 'Quantum', 'Cyber', 'Neon'];
+                const nouns = ['Voyager', 'Drifter', 'Pilot', 'Ghost', 'Phoenix', 'Raven'];
+                const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+                const noun = nouns[Math.floor(Math.random() * nouns.length)];
+                nicknameInput.value = adj + noun + Math.floor(Math.random() * 100);
             }
         });
     }
+
+    // Initialize Language
+    detectLanguage();
 });
-
-socket.on('messageRead', (data) => {
-    const { msgId } = data;
-    const statusEl = document.getElementById(`read-${msgId}`);
-    if (statusEl) {
-        statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #4ade80;"></i>';
-    }
-});
-
-// Sound Toggle
-// Nickname Form
-if (nicknameForm) {
-    nicknameForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const val = nicknameInput.value.trim();
-        if (val) {
-            setNickname(val);
-        }
-    });
-} else {
-    console.error("Nickname form not found!");
-}
-
-randomBtn.addEventListener('click', () => {
-    if (currentLang === 'tr') {
-        const adjectives = ['Kozmik', 'Yildiz', 'Ay', 'Bulutsu', 'Kuantum', 'Siber', 'Neon'];
-        const nouns = ['Gezgin', 'Serseri', 'Pilot', 'Hayalet', 'Anka', 'Kuzgun'];
-        const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-        const noun = nouns[Math.floor(Math.random() * nouns.length)];
-        nicknameInput.value = adj + noun + Math.floor(Math.random() * 100);
-    } else {
-        const adjectives = ['Cosmic', 'Stellar', 'Lunar', 'Nebula', 'Quantum', 'Cyber', 'Neon'];
-        const nouns = ['Voyager', 'Drifter', 'Pilot', 'Ghost', 'Phoenix', 'Raven'];
-        const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
-        const noun = nouns[Math.floor(Math.random() * nouns.length)];
-        nicknameInput.value = adj + noun + Math.floor(Math.random() * 100);
-    }
-});
-
-// Chat Form
-// Chat Form
-if (chatForm) {
-    chatForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const content = messageInput.value.trim();
-        if (content) {
-            sendMessage(content, 'text');
-            messageInput.value = '';
-            stopTyping();
-        }
-    });
-} else {
-    console.error("Chat form not found!");
-}
 
 // Typing indicator
 messageInput.addEventListener('input', () => {
