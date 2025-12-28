@@ -307,6 +307,19 @@ if (langSelect) {
     });
 }
 
+// Sound Toggle
+if (soundToggleBtn) {
+    updateSoundButtonIcon();
+    soundToggleBtn.addEventListener('click', () => {
+        soundEnabled = !soundEnabled;
+        localStorage.setItem('talk2_sound', soundEnabled);
+        updateSoundButtonIcon();
+        const t = translations[currentLang] || translations['en'];
+        const msg = soundEnabled ? (currentLang === 'tr' ? 'Ses Açık' : 'Sound On') : (currentLang === 'tr' ? 'Ses Kapalı' : 'Sound Off');
+        showToast(msg);
+    });
+}
+
 // Read Receipts Observer
 const readMessages = new Set();
 window.msgObserver = new IntersectionObserver((entries) => {
@@ -351,7 +364,7 @@ socket.on('messageRead', (data) => {
 });
 
 // Sound Toggle
-if (soundToggleBtn) {
+// Nickname Form
 nicknameForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const val = nicknameInput.value.trim();
