@@ -529,6 +529,8 @@
                 <select id="lang-select">
                     <option value="en">🇺🇸 EN</option>
                     <option value="tr">🇹🇷 TR</option>
+                    <option value="de">🇩🇪 DE</option>
+                    <option value="ru">🇷🇺 RU</option>
                     <option value="ph">🇵🇭 PH</option>
                 </select>
             </div>
@@ -810,6 +812,86 @@
                 fLightTitle: "Lightweight",
                 fLightDesc: "Walang mabibigat na frameworks. Pure vanilla JS.",
                 rooms: "mga room"
+            },
+            de: {
+                title: "Talk2 - Anonymer Chat",
+                heroBadge: "100% Anonym",
+                heroTitle: "Private Chats die<br><span>Verschwinden</span>",
+                heroDesc: "Chatten Sie frei ohne Spuren zu hinterlassen. Erstellen Sie einen Raum, teilen Sie Nachrichten und Bilder, alles wird nach 24 Stunden automatisch gelöscht. Keine Anmeldung erforderlich.",
+                btnEnter: 'Chat Starten <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                popular: "Beliebte Räume:",
+                howItWorks: "So funktioniert's",
+                howDesc: "Einfach im Design. Sicher als Standard.",
+                step1Title: "Raum Wählen",
+                step1Desc: "Geben Sie einen Raumnamen ein. Wenn er nicht existiert, wird er sofort erstellt.",
+                step2Title: "Alias Wählen",
+                step2Desc: "Kein Konto. Wählen Sie einen temporären Namen und Sie sind dabei.",
+                step3Title: "Verschwinden",
+                step3Desc: "Chatten, Bilder teilen. Alle 24 Stunden wird alles gelöscht.",
+                features: "Funktionen",
+                faq: "FAQ",
+                statRet: "Datenspeicherung",
+                statEnc: "Standardverschlüsselung",
+                statLogs: "Gespeicherte Logs",
+                fIdentTitle: "Anonyme Identität",
+                fIdentDesc: "Wir wissen nicht wer Sie sind, und wir wollen es nicht wissen.",
+                fAutoTitle: "Auto-Löschung",
+                fAutoDesc: "Die Datenbank wird stündlich automatisch bereinigt.",
+                fRealTitle: "Echtzeit-Socket",
+                fRealDesc: "Mit Socket.io für blitzschnelle Nachrichten. Tippanzeigen inklusive.",
+                fMediaTitle: "Medien-Support",
+                fMediaDesc: "Drag & Drop für Bilder. Sie werden mit den Nachrichten gelöscht.",
+                fRespTitle: "Responsives UI",
+                fRespDesc: "Dark-Theme Interface, das auf jedem Gerät gut aussieht.",
+                fOpenTitle: "Open Source",
+                fOpenDesc: "Der Code ist transparent. Verifizierung ist besser als Vertrauen.",
+                fSecureTitle: "Sichere Übertragung",
+                fSecureDesc: "Alle Daten werden über HTTPS/WSS übertragen.",
+                fGlobalTitle: "Globale Reichweite",
+                fGlobalDesc: "Optimiert für schnelle Verbindungen weltweit.",
+                fLightTitle: "Leichtgewichtig",
+                fLightDesc: "Keine schweren Frameworks. Pures Vanilla JS.",
+                rooms: "Räume"
+            },
+            ru: {
+                title: "Talk2 - Анонимный Чат",
+                heroBadge: "100% Анонимно",
+                heroTitle: "Приватные Чаты<br><span>Которые Исчезают</span>",
+                heroDesc: "Общайтесь свободно, не оставляя следов. Создайте комнату, делитесь сообщениями и изображениями — всё автоматически удаляется через 24 часа. Регистрация не требуется.",
+                btnEnter: 'Начать Чат <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                popular: "Популярные комнаты:",
+                howItWorks: "Как это работает",
+                howDesc: "Просто по дизайну. Безопасно по умолчанию.",
+                step1Title: "Выберите Комнату",
+                step1Desc: "Введите название комнаты. Если её нет, она будет создана мгновенно.",
+                step2Title: "Выберите Псевдоним",
+                step2Desc: "Без аккаунта. Просто выберите временное имя и вы внутри.",
+                step3Title: "Исчезните",
+                step3Desc: "Общайтесь, делитесь изображениями. Каждые 24 часа всё очищается.",
+                features: "Возможности",
+                faq: "ЧАВО",
+                statRet: "Хранение данных",
+                statEnc: "Стандартное шифрование",
+                statLogs: "Хранимые логи",
+                fIdentTitle: "Анонимная Личность",
+                fIdentDesc: "Мы не знаем кто вы, и не хотим знать.",
+                fAutoTitle: "Авто-Удаление",
+                fAutoDesc: "База данных автоматически очищается каждый час.",
+                fRealTitle: "Реальное Время",
+                fRealDesc: "На Socket.io для мгновенных сообщений. Индикаторы набора включены.",
+                fMediaTitle: "Медиа Поддержка",
+                fMediaDesc: "Перетаскивайте изображения. Удаляются вместе с сообщениями.",
+                fRespTitle: "Адаптивный UI",
+                fRespDesc: "Тёмная тема, отлично выглядит на любом устройстве.",
+                fOpenTitle: "Открытый Код",
+                fOpenDesc: "Код прозрачен. Проверка лучше доверия.",
+                fSecureTitle: "Безопасная Передача",
+                fSecureDesc: "Все данные передаются через HTTPS/WSS.",
+                fGlobalTitle: "Глобальный Охват",
+                fGlobalDesc: "Оптимизировано для быстрых соединений по всему миру.",
+                fLightTitle: "Легковесный",
+                fLightDesc: "Без тяжёлых фреймворков. Чистый Vanilla JS.",
+                rooms: "комнаты"
             }
         };
 
@@ -827,6 +909,10 @@
                         lang = 'tr';
                     } else if (data.country_code === 'PH') {
                         lang = 'ph';
+                    } else if (data.country_code === 'DE' || data.country_code === 'AT' || data.country_code === 'CH') {
+                        lang = 'de';
+                    } else if (data.country_code === 'RU') {
+                        lang = 'ru';
                     } else {
                         lang = 'en';
                     }
@@ -836,6 +922,10 @@
                         lang = 'tr';
                     } else if (navigator.language.startsWith('fil') || navigator.language.startsWith('tl')) {
                         lang = 'ph';
+                    } else if (navigator.language.startsWith('de')) {
+                        lang = 'de';
+                    } else if (navigator.language.startsWith('ru')) {
+                        lang = 'ru';
                     } else {
                         lang = 'en';
                     }

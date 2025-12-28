@@ -167,7 +167,7 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message', (msgData) => {
-        const { room, nickname, content, type } = msgData;
+        const { room, nickname, content, type, replyTo } = msgData;
         const timestamp = Date.now();
         
         const msg = {
@@ -176,7 +176,8 @@ io.on('connection', (socket) => {
             content: type === 'text' ? content : null,
             image_path: type === 'image' ? content : null,
             type,
-            timestamp
+            timestamp,
+            replyTo: replyTo || null // Store reply reference
         };
 
         // Save to DB

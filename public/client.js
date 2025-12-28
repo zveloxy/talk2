@@ -592,33 +592,53 @@ function addMessageToDOM(msg) {
     const time = new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
     let contentHtml = '';
+    let msgTextForReply = '';
+    
     if (msg.type === 'image') {
         const imgPath = msg.image_path || msg.content;
         contentHtml = `<img src="${imgPath}" alt="Image" onclick="window.open(this.src, '_blank')" loading="lazy" />`;
+        msgTextForReply = '[Image]';
     } else {
         const textContent = msg.content || '';
         const safeText = document.createElement('div');
         safeText.innerText = textContent;
         contentHtml = safeText.innerHTML;
+        msgTextForReply = textContent;
     }
 
     const t = translations[currentLang] || translations['en'];
-    const youLabel = isSelf ? 'Sen' : escapeHtml(msg.nickname); // Default to 'Sen' for self if using TR, but better to use t.you
-    
-    // Fix: Use dynamic labels
     const displayNames = isSelf ? (currentLang === 'tr' ? 'Sen' : 'You') : escapeHtml(msg.nickname);
     const deleteTitle = currentLang === 'tr' ? 'Sil' : 'Delete';
+    const replyTitle = currentLang === 'tr' ? 'Yanıtla' : 'Reply';
+    
+    // Build quoted reply HTML if this message is a reply
+    let quotedReplyHtml = '';
+    if (msg.replyTo) {
+        const replyNick = escapeHtml(msg.replyTo.nickname);
+        const replyText = escapeHtml(msg.replyTo.text || '[Image]').substring(0, 40);
+        quotedReplyHtml = `<div class="quoted-reply"><strong>${replyNick}:</strong> ${replyText}</div>`;
+    }
+    
+    // Escape msgTextForReply for onclick
+    const escapedText = msgTextForReply.replace(/'/g, "\\'").replace(/"/g, "&quot;").substring(0, 100);
 
     div.innerHTML = `
+        ${quotedReplyHtml}
         <div class="meta">
             ${isSelf 
                 ? `<span class="time">${time}</span>
                    <span class="nickname">${displayNames}</span>
+                   <button class="reply-msg-btn" onclick="setReply('${msg.id}', '${escapeHtml(msg.nickname)}', '${escapedText}')" title="${replyTitle}">
+                        <i class="fas fa-reply"></i>
+                   </button>
                    <button class="delete-msg-btn" onclick="deleteMessage('${msg.id}')" title="${deleteTitle}">
                         <i class="fas fa-times"></i>
                    </button>`
                 : `<span class="nickname">${displayNames}</span>
-                   <span class="time">${time}</span>`
+                   <span class="time">${time}</span>
+                   <button class="reply-msg-btn" onclick="setReply('${msg.id}', '${escapeHtml(msg.nickname)}', '${escapedText}')" title="${replyTitle}">
+                        <i class="fas fa-reply"></i>
+                   </button>`
             }
         </div>
         <div class="body">${contentHtml}</div>
