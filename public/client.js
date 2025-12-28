@@ -1,9 +1,16 @@
-const socket = io();
+let socket;
+
+try {
+    socket = io();
+} catch (e) {
+    console.error("Socket.io failed to initialize:", e);
+    // Continue execution so we can verify if io is missing
+}
 
 // State
 let nickname = localStorage.getItem('antigravity_nickname');
 let userId = localStorage.getItem('antigravity_userid');
-let currentLang = localStorage.getItem('antigravity_lang') || 'en'; // Changed default to 'en'
+let currentLang = localStorage.getItem('antigravity_lang') || 'en';
 
 // Generate User ID if not exists
 if (!userId) {
@@ -294,8 +301,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const modal = document.getElementById('nickname-overlay');
     const nicknameForm = document.getElementById('nickname-form');
     const nicknameInput = document.getElementById('nickname-input');
-    const randomBtn = document.getElementById('random-nickname'); // Might be null?
+    const randomBtn = document.getElementById('random-nickname'); 
     
+    // Critical: Check if socket loaded
+    if (typeof io === 'undefined' || !socket) {
+        alert("Critical Error: Cannot connect to server. Socket.io library not loaded. Please check your network or server configuration.");
+        return;
+    }
+
     // Check Nickname 
     if (nickname) {
         if(modal) modal.style.display = 'none';
