@@ -20,6 +20,7 @@ build/
 # Environment variables
 .env
 .env.local
+.secret
 
 # OS Files
 .DS_Store

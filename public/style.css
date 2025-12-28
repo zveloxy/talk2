@@ -829,8 +829,56 @@ body {
     font-size: 0.9rem;
 }
 
-.toast.hidden {
-    display: none;
+
+/* Expiry Modal */
+.expiry-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin: 1.5rem 0;
+}
+
+.expiry-option {
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.75rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.expiry-option:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.expiry-option.active {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Header Controls Improvements */
+.header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+@media (max-width: 600px) {
+    .header-controls {
+        gap: 0.25rem;
+    }
+    .icon-btn, .lang-select {
+        padding: 0.4rem;
+        font-size: 0.9rem;
+    }
+    .room-info {
+        display: none; 
+    }
 }
 
 @keyframes toastIn {

@@ -46,6 +46,23 @@
             </div>
         </div>
 
+        <!-- Expiry Modal -->
+        <div id="expiry-overlay" class="overlay hidden">
+            <div class="modal">
+                <div class="modal-icon"><i class="fas fa-hourglass-half"></i></div>
+                <h3 data-i18n="expiryTitle">Mesaj Süresi</h3>
+                <p data-i18n="expiryDesc">Bu odadaki mesajların ne kadar süre sonra silineceğini seçin.</p>
+                <div class="expiry-options">
+                    <button class="expiry-option" data-value="1">1 Saat</button>
+                    <button class="expiry-option" data-value="6">6 Saat</button>
+                    <button class="expiry-option" data-value="12">12 Saat</button>
+                    <button class="expiry-option active" data-value="24">24 Saat</button>
+                    <button class="expiry-option" data-value="168">7 Gün</button>
+                </div>
+                <button id="expiry-close-btn" class="secondary-btn" style="margin-top: 1rem;">Kapat</button>
+            </div>
+        </div>
+
         <!-- Header -->
         <header class="chat-header">
             <a href="/" class="logo-link">
@@ -72,16 +89,9 @@
                     <option value="ru">🇷🇺 RU</option>
                     <option value="ph">🇵🇭 PH</option>
                 </select>
-                <div class="expiry-control">
-                    <i class="fas fa-history" title="Message Expiry"></i>
-                    <select id="expiry-select" class="expiry-select" title="Set message expiry time">
-                        <option value="1">1h</option>
-                        <option value="6">6h</option>
-                        <option value="12">12h</option>
-                        <option value="24" selected>24h</option>
-                        <option value="168">7d</option>
-                    </select>
-                </div>
+                <button id="expiry-btn" class="icon-btn" title="Mesaj Süresi">
+                    <i class="fas fa-history"></i>
+                </button>
                 <button id="logout-btn" class="icon-btn" title="Çıkış Yap">
                     <i class="fas fa-sign-out-alt"></i>
                 </button>

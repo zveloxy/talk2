@@ -39,7 +39,9 @@ const translations = {
         fileTooBig: 'Dosya çok büyük (max 5MB)',
         confirmTitle: 'Emin misin?',
         btnCancel: 'İptal',
-        btnConfirm: 'Evet, Sil'
+        btnConfirm: 'Evet, Sil',
+        expiryTitle: 'Mesaj Süresi',
+        expiryDesc: 'Bu odadaki mesajların silinme süresini seçin.'
     },
     en: {
         modalTitle: 'Enter Talk2',
@@ -65,7 +67,9 @@ const translations = {
         fileTooBig: 'File too large (max 5MB)',
         confirmTitle: 'Are you sure?',
         btnCancel: 'Cancel',
-        btnConfirm: 'Yes, Delete'
+        btnConfirm: 'Yes, Delete',
+        expiryTitle: 'Message Expiry',
+        expiryDesc: 'Choose how long messages last in this room.'
     },
     de: {
         modalTitle: 'Talk2 Betreten',
@@ -91,7 +95,9 @@ const translations = {
         fileTooBig: 'Datei zu groß (max 5MB)',
         confirmTitle: 'Sind Sie sicher?',
         btnCancel: 'Abbrechen',
-        btnConfirm: 'Ja, Löschen'
+        btnConfirm: 'Ja, Löschen',
+        expiryTitle: 'Nachrichtenablauf',
+        expiryDesc: 'Wählen Sie, wie lange Nachrichten gespeichert bleiben.'
     },
     ru: {
         modalTitle: 'Войти в Talk2',
@@ -143,7 +149,9 @@ const translations = {
         fileTooBig: 'Masyadong malaki ang file (max 5MB)',
         confirmTitle: 'Sigurado ka ba?',
         btnCancel: 'Kanselahin',
-        btnConfirm: 'Oo, Burahin'
+        btnConfirm: 'Oo, Burahin',
+        expiryTitle: 'Tagal ng Mensahe',
+        expiryDesc: 'Pumili kung gaano katagal mananatili ang mga mensahe.'
     }
 };
 
@@ -158,12 +166,15 @@ const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
 const nicknameForm = document.getElementById('nickname-form');
 const nicknameInput = document.getElementById('nickname-input');
 const randomBtn = document.getElementById('random-nickname');
-const messagesList = document.getElementById('messages');
+
 const chatForm = document.getElementById('chat-form');
 const messageInput = document.getElementById('message-input');
-const imageInput = document.getElementById('image-input');
-const uploadBtn = document.getElementById('upload-btn');
+const sendBtn = document.getElementById('send-btn');
+
+const messagesList = document.getElementById('messages');
 const roomNameHeader = document.getElementById('room-name-header');
+const userCountSpan = document.getElementById('user-count');
+
 const roomDisplay = document.getElementById('room-display');
 const userCount = document.getElementById('user-count');
 const sidebarUserCount = document.getElementById('sidebar-user-count');
@@ -172,6 +183,7 @@ const toggleSidebarBtn = document.getElementById('toggle-sidebar');
 const logoutBtn = document.getElementById('logout-btn');
 const usersSidebar = document.getElementById('users-sidebar');
 const typingIndicator = document.getElementById('typing-indicator');
+
 const emojiBtn = document.getElementById('emoji-btn');
 const emojiPicker = document.getElementById('emoji-picker');
 const clearMsgsBtn = document.getElementById('clear-msgs-btn');
@@ -185,6 +197,62 @@ const replyToName = document.getElementById('reply-to-name');
 const replyToText = document.getElementById('reply-to-text');
 const cancelReplyBtn = document.getElementById('cancel-reply');
 const toast = document.getElementById('toast');
+
+const expiryBtn = document.getElementById('expiry-btn');
+const expiryOverlay = document.getElementById('expiry-overlay');
+const expiryCloseBtn = document.getElementById('expiry-close-btn');
+const expiryOptions = document.querySelectorAll('.expiry-option');
+
+// Expiry Logic
+if (expiryBtn && expiryOverlay) {
+    expiryBtn.addEventListener('click', () => {
+        expiryOverlay.classList.remove('hidden');
+        expiryOverlay.style.display = 'flex';
+    });
+
+    expiryCloseBtn.addEventListener('click', () => {
+        expiryOverlay.classList.add('hidden');
+        expiryOverlay.style.display = 'none';
+    });
+    
+    // Close on click outside
+    expiryOverlay.addEventListener('click', (e) => {
+        if (e.target === expiryOverlay) {
+            expiryOverlay.classList.add('hidden');
+            expiryOverlay.style.display = 'none';
+        }
+    });
+
+    expiryOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            // Remove active class from all
+            expiryOptions.forEach(o => o.classList.remove('active'));
+            // Add to clicked
+            opt.classList.add('active');
+            
+            const hours = parseInt(opt.getAttribute('data-value'));
+            socket.emit('setExpiry', hours);
+            
+            // Close modal after selection
+            setTimeout(() => {
+                expiryOverlay.classList.add('hidden');
+                expiryOverlay.style.display = 'none';
+            }, 300);
+        });
+    });
+}
+// Update expiry selection from server config
+socket.on('roomConfig', (config) => {
+    if (config.expiry) {
+        expiryOptions.forEach(opt => {
+            if (parseInt(opt.getAttribute('data-value')) === config.expiry) {
+                opt.classList.add('active');
+            } else {
+                opt.classList.remove('active');
+            }
+        });
+    }
+});
 
 // Confirm Modal State
 let pendingConfirmAction = null;
