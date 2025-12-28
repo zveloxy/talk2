@@ -156,52 +156,19 @@ const translations = {
 };
 
 // Elements
-const modal = document.getElementById('nickname-overlay');
-const confirmModal = document.getElementById('confirm-overlay');
-const confirmTitle = document.getElementById('confirm-title');
-const confirmText = document.getElementById('confirm-text');
-const confirmYesBtn = document.getElementById('confirm-yes-btn');
-const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
+// --- Global Element References (Initialized in DOMContentLoaded) ---
+let modal, confirmModal, confirmTitle, confirmText, confirmYesBtn, confirmCancelBtn;
+let nicknameForm, nicknameInput, randomBtn;
+let chatForm, messageInput, sendBtn;
+let messagesList, roomNameHeader, userCountSpan;
+let roomDisplay, userCount, sidebarUserCount, usersList, toggleSidebarBtn, logoutBtn, usersSidebar, typingIndicator;
+let emojiBtn, emojiPicker, clearMsgsBtn, langToggleBtn;
+let shareLinkBtn, soundToggleBtn, replyPreview, replyToName, replyToText, cancelReplyBtn, toast;
+let expiryBtn, expiryOverlay, expiryCloseBtn, expiryOptions;
+let langSelect, expirySelect;
 
-const nicknameForm = document.getElementById('nickname-form');
-const nicknameInput = document.getElementById('nickname-input');
-const randomBtn = document.getElementById('random-nickname');
-
-const chatForm = document.getElementById('chat-form');
-const messageInput = document.getElementById('message-input');
-const sendBtn = document.getElementById('send-btn');
-
-const messagesList = document.getElementById('messages');
-const roomNameHeader = document.getElementById('room-name-header');
-const userCountSpan = document.getElementById('user-count');
-
-const roomDisplay = document.getElementById('room-display');
-const userCount = document.getElementById('user-count');
-const sidebarUserCount = document.getElementById('sidebar-user-count');
-const usersList = document.getElementById('users-list');
-const toggleSidebarBtn = document.getElementById('toggle-sidebar');
-const logoutBtn = document.getElementById('logout-btn');
-const usersSidebar = document.getElementById('users-sidebar');
-const typingIndicator = document.getElementById('typing-indicator');
-
-const emojiBtn = document.getElementById('emoji-btn');
-const emojiPicker = document.getElementById('emoji-picker');
-const clearMsgsBtn = document.getElementById('clear-msgs-btn');
-const langToggleBtn = document.getElementById('lang-toggle');
-
-// New elements for features
-const shareLinkBtn = document.getElementById('share-link-btn');
-const soundToggleBtn = document.getElementById('sound-toggle-btn');
-const replyPreview = document.getElementById('reply-preview');
-const replyToName = document.getElementById('reply-to-name');
-const replyToText = document.getElementById('reply-to-text');
-const cancelReplyBtn = document.getElementById('cancel-reply');
-const toast = document.getElementById('toast');
-
-const expiryBtn = document.getElementById('expiry-btn');
-const expiryOverlay = document.getElementById('expiry-overlay');
-const expiryCloseBtn = document.getElementById('expiry-close-btn');
-const expiryOptions = document.querySelectorAll('.expiry-option');
+// Expiry Logic
+// Moved inside DOMContentLoaded to ensure elements exist
 
 // Expiry Logic
 if (expiryBtn && expiryOverlay) {
@@ -397,17 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
     detectLanguage();
 });
 
-// Typing indicator
-messageInput.addEventListener('input', () => {
-    if (!isTyping) {
-        isTyping = true;
-        socket.emit('typing', true);
-    }
-    
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(stopTyping, 1500);
-});
-
 function stopTyping() {
     if (isTyping) {
         isTyping = false;
@@ -416,81 +372,99 @@ function stopTyping() {
     clearTimeout(typingTimeout);
 }
 
-// Image Upload
-uploadBtn.addEventListener('click', () => imageInput.click());
-
-imageInput.addEventListener('change', async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-        alert(translations[currentLang].fileTooBig);
-        return;
+// Typing indicator
+    // Typing indicator
+    if (messageInput) {
+        messageInput.addEventListener('input', () => {
+            if (!isTyping) {
+                isTyping = true;
+                socket.emit('typing', true);
+            }
+            
+            clearTimeout(typingTimeout);
+            typingTimeout = setTimeout(stopTyping, 1500);
+        });
     }
 
-    const formData = new FormData();
-    formData.append('image', file);
+    // Image Upload
+    const uploadBtn = document.getElementById('upload-btn'); // Local ref
+    const imageInput = document.getElementById('image-input'); // Local ref
+    
+    if (uploadBtn && imageInput) {
+        uploadBtn.addEventListener('click', () => imageInput.click());
+        imageInput.addEventListener('change', async (e) => {
+             // ... existing image logic ...
+             const file = e.target.files[0];
+            if (!file) return;
 
-    uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    uploadBtn.disabled = true;
+            if (file.size > 5 * 1024 * 1024) {
+                alert(translations[currentLang].fileTooBig);
+                return;
+            }
 
-    try {
-        const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData
+            const formData = new FormData();
+            formData.append('image', file);
+
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            uploadBtn.disabled = true;
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Upload failed');
+                
+                const data = await response.json();
+                sendMessage(data.url, 'image');
+                
+                imageInput.value = '';
+            } catch (err) {
+                console.error(err);
+                alert(translations[currentLang].uploadError);
+            } finally {
+                uploadBtn.innerHTML = '<i class="fas fa-image"></i>';
+                uploadBtn.disabled = false;
+            }
         });
-        
-        if (!response.ok) throw new Error('Upload failed');
-        
-        const data = await response.json();
-        sendMessage(data.url, 'image');
-        
-        imageInput.value = '';
-    } catch (err) {
-        console.error(err);
-        alert(translations[currentLang].uploadError);
-    } finally {
-        uploadBtn.innerHTML = '<i class="fas fa-image"></i>';
-        uploadBtn.disabled = false;
+    }
+    
+    // Clear My Messages
+    if (clearMsgsBtn) {
+        clearMsgsBtn.addEventListener('click', () => {
+             const t = translations[currentLang] || translations['en'];
+             showConfirm(t.confirmClear, () => {
+                 socket.emit('clearUserMessages');
+             });
+        });
+    }
+
+    // Share Link Button
+    if (shareLinkBtn) {
+        shareLinkBtn.addEventListener('click', () => {
+            const url = window.location.href;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast(currentLang === 'tr' ? 'Link kopyalandı!' : 'Link copied!');
+            }).catch(() => {
+                showToast(currentLang === 'tr' ? 'Kopyalama başarısız' : 'Copy failed');
+            });
+        });
+    }
+
+    // Sound Toggle Button
+    if (soundToggleBtn) {
+        updateSoundButtonIcon();
+        soundToggleBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('talk2_sound', soundEnabled);
+            updateSoundButtonIcon();
+            showToast(soundEnabled 
+                ? (currentLang === 'tr' ? 'Ses açık' : 'Sound on') 
+                : (currentLang === 'tr' ? 'Ses kapalı' : 'Sound off'));
+        });
     }
 });
-
-// Clear My Messages
-if (clearMsgsBtn) {
-    clearMsgsBtn.addEventListener('click', () => {
-        const t = translations[currentLang] || translations['en'];
-        showConfirm(t.confirmClear, () => {
-            socket.emit('clearUserMessages');
-        });
-    });
-}
-
-// --- NEW FEATURES ---
-
-// Share Link Button
-if (shareLinkBtn) {
-    shareLinkBtn.addEventListener('click', () => {
-        const url = window.location.href;
-        navigator.clipboard.writeText(url).then(() => {
-            showToast(currentLang === 'tr' ? 'Link kopyalandı!' : 'Link copied!');
-        }).catch(() => {
-            showToast(currentLang === 'tr' ? 'Kopyalama başarısız' : 'Copy failed');
-        });
-    });
-}
-
-// Sound Toggle Button
-if (soundToggleBtn) {
-    updateSoundButtonIcon();
-    soundToggleBtn.addEventListener('click', () => {
-        soundEnabled = !soundEnabled;
-        localStorage.setItem('talk2_sound', soundEnabled);
-        updateSoundButtonIcon();
-        showToast(soundEnabled 
-            ? (currentLang === 'tr' ? 'Ses açık' : 'Sound on') 
-            : (currentLang === 'tr' ? 'Ses kapalı' : 'Sound off'));
-    });
-}
 
 function updateSoundButtonIcon() {
     if (soundToggleBtn) {
