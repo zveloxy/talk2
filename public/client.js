@@ -387,14 +387,13 @@ function stopTyping() {
     }
 
     // Image Upload
-    const uploadBtn = document.getElementById('upload-btn'); // Local ref
-    const imageInput = document.getElementById('image-input'); // Local ref
+    const uploadBtn = document.getElementById('upload-btn');
+    const imageInput = document.getElementById('image-input');
     
     if (uploadBtn && imageInput) {
         uploadBtn.addEventListener('click', () => imageInput.click());
         imageInput.addEventListener('change', async (e) => {
-             // ... existing image logic ...
-             const file = e.target.files[0];
+            const file = e.target.files[0];
             if (!file) return;
 
             if (file.size > 5 * 1024 * 1024) {
