@@ -16,7 +16,7 @@ const roomId = window.location.pathname.replace('/', '') || 'general';
 // Translations
 const translations = {
     tr: {
-        modalTitle: 'Boşluğa Girin',
+        modalTitle: 'Talk2\'ya Girin',
         modalText: 'odasına katılmak için bir takma ad seçin:',
         placeholderNickname: 'örn. KozmikGezgin',
         btnConnect: 'Bağlan',
@@ -36,10 +36,13 @@ const translations = {
         myMsgsCleared: 'Kendi mesajların temizlendi.',
         cleared: 'temizlendi',
         uploadError: 'Yükleme hatası',
-        fileTooBig: 'Dosya çok büyük (max 5MB)'
+        fileTooBig: 'Dosya çok büyük (max 5MB)',
+        confirmTitle: 'Emin misin?',
+        btnCancel: 'İptal',
+        btnConfirm: 'Evet, Sil'
     },
     en: {
-        modalTitle: 'Enter the Void',
+        modalTitle: 'Enter Talk2',
         modalText: 'Choose an alias to join:',
         placeholderNickname: 'e.g. CosmicTraveler',
         btnConnect: 'Connect',
@@ -59,13 +62,88 @@ const translations = {
         myMsgsCleared: 'Your messages have been cleared.',
         cleared: 'cleared',
         uploadError: 'Upload failed',
-        myMsgsCleared: 'Your messages have been cleared.',
-        cleared: 'cleared',
-        uploadError: 'Upload failed',
         fileTooBig: 'File too large (max 5MB)',
         confirmTitle: 'Are you sure?',
         btnCancel: 'Cancel',
         btnConfirm: 'Yes, Delete'
+    },
+    de: {
+        modalTitle: 'Talk2 Betreten',
+        modalText: 'Wählen Sie einen Namen zum Beitreten:',
+        placeholderNickname: 'z.B. KosmosReiser',
+        btnConnect: 'Verbinden',
+        btnRandom: 'Zufällig Generieren',
+        systemBanner: 'Daten in diesem Raum werden alle 24 Stunden gelöscht.',
+        placeholderMessage: 'Nachricht eingeben...',
+        sidebarTitle: 'Online',
+        btnClearMyMsgs: 'Meine Nachrichten Löschen',
+        confirmClear: 'Sind Sie sicher, dass Sie NUR Ihre Nachrichten löschen möchten?',
+        confirmDelete: 'Möchten Sie diese Nachricht löschen?',
+        msgJoined: 'ist beigetreten',
+        msgLeft: 'hat den Raum verlassen',
+        you: '(du)',
+        typing1: 'tippt...',
+        typingSomeone: 'Jemand tippt...',
+        typingMany: 'Mehrere Personen tippen...',
+        myMsgsCleared: 'Ihre Nachrichten wurden gelöscht.',
+        cleared: 'gelöscht',
+        uploadError: 'Upload fehlgeschlagen',
+        fileTooBig: 'Datei zu groß (max 5MB)',
+        confirmTitle: 'Sind Sie sicher?',
+        btnCancel: 'Abbrechen',
+        btnConfirm: 'Ja, Löschen'
+    },
+    ru: {
+        modalTitle: 'Войти в Talk2',
+        modalText: 'Выберите псевдоним для входа:',
+        placeholderNickname: 'напр. КосмоПутник',
+        btnConnect: 'Подключиться',
+        btnRandom: 'Случайный Ник',
+        systemBanner: 'Данные в этой комнате очищаются каждые 24 часа.',
+        placeholderMessage: 'Введите сообщение...',
+        sidebarTitle: 'Онлайн',
+        btnClearMyMsgs: 'Удалить Мои Сообщения',
+        confirmClear: 'Вы уверены, что хотите удалить ТОЛЬКО свои сообщения?',
+        confirmDelete: 'Хотите удалить это сообщение?',
+        msgJoined: 'присоединился',
+        msgLeft: 'покинул комнату',
+        you: '(вы)',
+        typing1: 'печатает...',
+        typingSomeone: 'Кто-то печатает...',
+        typingMany: 'Несколько человек печатают...',
+        myMsgsCleared: 'Ваши сообщения удалены.',
+        cleared: 'очищено',
+        uploadError: 'Ошибка загрузки',
+        fileTooBig: 'Файл слишком большой (макс 5МБ)',
+        confirmTitle: 'Вы уверены?',
+        btnCancel: 'Отмена',
+        btnConfirm: 'Да, Удалить'
+    },
+    ph: {
+        modalTitle: 'Pumasok sa Talk2',
+        modalText: 'Pumili ng palayaw para sumali:',
+        placeholderNickname: 'hal. KosmikManlalakbay',
+        btnConnect: 'Kumonekta',
+        btnRandom: 'Random na Pangalan',
+        systemBanner: 'Nililinis ang data sa room na ito tuwing 24 oras.',
+        placeholderMessage: 'Mag-type ng mensahe...',
+        sidebarTitle: 'Online',
+        btnClearMyMsgs: 'Burahin ang Aking Mga Mensahe',
+        confirmClear: 'Sigurado ka bang gusto mong burahin LAMANG ang iyong mga mensahe?',
+        confirmDelete: 'Gusto mo bang burahin ang mensaheng ito?',
+        msgJoined: 'sumali sa room',
+        msgLeft: 'umalis sa room',
+        you: '(ikaw)',
+        typing1: 'nagta-type...',
+        typingSomeone: 'May nagta-type...',
+        typingMany: 'Maraming nagta-type...',
+        myMsgsCleared: 'Nabura na ang iyong mga mensahe.',
+        cleared: 'na-clear',
+        uploadError: 'Nabigo ang upload',
+        fileTooBig: 'Masyadong malaki ang file (max 5MB)',
+        confirmTitle: 'Sigurado ka ba?',
+        btnCancel: 'Kanselahin',
+        btnConfirm: 'Oo, Burahin'
     }
 };
 
@@ -128,7 +206,7 @@ if (roomDisplay) roomDisplay.textContent = '#' + roomId;
 // IP & Language Detection
 async function detectLanguage() {
     // Check localStorage first
-    let storedLang = localStorage.getItem('antigravity_lang');
+    let storedLang = localStorage.getItem('talk2_lang');
     
     if (!storedLang) {
         try {
@@ -137,18 +215,34 @@ async function detectLanguage() {
             const data = await res.json();
             if (data.country_code === 'TR') {
                 storedLang = 'tr';
+            } else if (data.country_code === 'DE' || data.country_code === 'AT' || data.country_code === 'CH') {
+                storedLang = 'de';
+            } else if (data.country_code === 'RU') {
+                storedLang = 'ru';
+            } else if (data.country_code === 'PH') {
+                storedLang = 'ph';
             } else {
                 storedLang = 'en';
             }
         } catch (e) {
-            console.error("IP check failed, defaulting to EN/TR based on browser");
-            storedLang = navigator.language.startsWith('tr') ? 'tr' : 'en';
+            console.error("IP check failed, defaulting based on browser");
+            if (navigator.language.startsWith('tr')) {
+                storedLang = 'tr';
+            } else if (navigator.language.startsWith('de')) {
+                storedLang = 'de';
+            } else if (navigator.language.startsWith('ru')) {
+                storedLang = 'ru';
+            } else if (navigator.language.startsWith('fil') || navigator.language.startsWith('tl')) {
+                storedLang = 'ph';
+            } else {
+                storedLang = 'en';
+            }
         }
-        localStorage.setItem('antigravity_lang', storedLang);
+        localStorage.setItem('talk2_lang', storedLang);
     }
     
     currentLang = storedLang;
-    const supportedLangs = ['en', 'tr'];
+    const supportedLangs = ['en', 'tr', 'de', 'ru', 'ph'];
     if (!supportedLangs.includes(currentLang)) {
         currentLang = 'en';
     }
