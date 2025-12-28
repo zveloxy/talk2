@@ -50,6 +50,12 @@
                 <span class="user-count-badge"><i class="fas fa-users"></i><span id="user-count">0</span></span>
             </div>
             <div class="header-controls">
+                <button id="share-link-btn" class="icon-btn" title="Linki Paylaş">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button id="sound-toggle-btn" class="icon-btn" title="Bildirim Sesi">
+                    <i class="fas fa-volume-up"></i>
+                </button>
                 <button id="lang-toggle" class="lang-btn">TR</button>
                 <button id="logout-btn" class="icon-btn" title="Çıkış Yap">
                     <i class="fas fa-sign-out-alt"></i>
@@ -77,6 +83,16 @@
 
                 <!-- Input Area -->
                 <footer class="input-area">
+                    <!-- Reply Preview -->
+                    <div id="reply-preview" class="reply-preview hidden">
+                        <div class="reply-info">
+                            <i class="fas fa-reply"></i>
+                            <span id="reply-to-name"></span>: <span id="reply-to-text"></span>
+                        </div>
+                        <button type="button" id="cancel-reply" class="cancel-reply-btn">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
                     <form id="chat-form">
                         <button type="button" id="emoji-btn" title="Emoji"><i class="fas fa-smile"></i></button>
                         <button type="button" id="upload-btn" title="Resim Yükle"><i class="fas fa-image"></i></button>
@@ -86,6 +102,9 @@
                     </form>
                 </footer>
             </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast hidden"></div>
 
             <!-- Users Sidebar -->
             <aside id="users-sidebar" class="users-sidebar">
