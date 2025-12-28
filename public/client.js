@@ -471,15 +471,20 @@ randomBtn.addEventListener('click', () => {
 });
 
 // Chat Form
-chatForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const content = messageInput.value.trim();
-    if (content) {
-        sendMessage(content, 'text');
-        messageInput.value = '';
-        stopTyping();
-    }
-});
+// Chat Form
+if (chatForm) {
+    chatForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const content = messageInput.value.trim();
+        if (content) {
+            sendMessage(content, 'text');
+            messageInput.value = '';
+            stopTyping();
+        }
+    });
+} else {
+    console.error("Chat form not found!");
+}
 
 // Typing indicator
 messageInput.addEventListener('input', () => {
