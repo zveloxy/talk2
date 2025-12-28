@@ -20,14 +20,14 @@ class SimpleDB {
             this.cache = JSON.parse(data);
         } catch (err) {
             console.error("DB Read Error:", err);
-            this.cache = { messages: [] };
+            this.cache = { messages: [], rooms: {} };
         }
+        if (!this.cache.rooms) this.cache.rooms = {};
         return this.cache;
     }
 
     _write(data) {
         this.cache = data;
-        // Async write to avoid blocking too much, but for safety in this demo sync is fine or simplistic async
         fs.writeFile(DB_FILE, JSON.stringify(data, null, 2), (err) => {
             if (err) console.error("DB Write Error:", err);
         });
@@ -35,7 +35,6 @@ class SimpleDB {
 
     addMessage(msg) {
         const db = this._read();
-        // Add ID
         msg.id = Date.now() + Math.random().toString(36).substr(2, 9);
         db.messages.push(msg);
         this._write(db);
@@ -49,19 +48,18 @@ class SimpleDB {
             const deletedMsg = db.messages[index];
             db.messages.splice(index, 1);
             this._write(db);
-            return deletedMsg; // Return the full object
+            return deletedMsg;
         }
-        return null; // Return null if not found
+        return null;
     }
 
     deleteMessagesByNickname(roomId, nickname) {
         const db = this._read();
         const initialLen = db.messages.length;
         db.messages = db.messages.filter(m => !(m.room_id === roomId && m.nickname === nickname));
-        
         if (db.messages.length !== initialLen) {
             this._write(db);
-            return true; // Messages were deleted
+            return true;
         }
         return false;
     }
@@ -81,21 +79,42 @@ class SimpleDB {
         const db = this._read();
         return db.messages
             .filter(m => m.room_id === roomId)
-            .sort((a, b) => a.timestamp - b.timestamp); // Oldest first for chat history
+            .sort((a, b) => a.timestamp - b.timestamp);
+    }
+    
+    setRoomExpiry(roomId, hours) {
+        const db = this._read();
+        if (!db.rooms) db.rooms = {};
+        if (!db.rooms[roomId]) db.rooms[roomId] = {};
+        db.rooms[roomId].expiry = hours;
+        this._write(db);
+        return hours;
+    }
+    
+    getRoomExpiry(roomId) {
+        const db = this._read();
+        if (db.rooms && db.rooms[roomId] && db.rooms[roomId].expiry) {
+            return db.rooms[roomId].expiry;
+        }
+        return null;
     }
 
-    cleanup(retentionMs) {
-        const cutoff = Date.now() - retentionMs;
+    cleanup(defaultRetentionMs) {
+        const now = Date.now();
         const db = this._read();
         
         const initialCount = db.messages.length;
-        
-        // Filter messages to keep
         const keptMessages = [];
         const discardedMessages = [];
         
         db.messages.forEach(m => {
-            if (m.timestamp > cutoff) {
+            let retention = defaultRetentionMs;
+            // Check if room has custom expiry
+            if (db.rooms && db.rooms[m.room_id] && db.rooms[m.room_id].expiry) {
+                retention = db.rooms[m.room_id].expiry * 60 * 60 * 1000;
+            }
+            
+            if (now - m.timestamp < retention) {
                 keptMessages.push(m);
             } else {
                 discardedMessages.push(m);
@@ -108,7 +127,7 @@ class SimpleDB {
             console.log(`Cleaned up ${discardedMessages.length} messages.`);
         }
         
-        return discardedMessages; // Return deleted msgs to check for file deletion
+        return discardedMessages;
     }
 }
 

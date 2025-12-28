@@ -170,6 +170,14 @@ io.on('connection', (socket) => {
                 nickname: nickname,
                 timestamp: Date.now()
             });
+            
+            // Send room config to the joining user
+            const expiry = db.getRoomExpiry(roomId) || 24;
+            socket.emit('roomConfig', { expiry });
+        } else {
+            // Also send to reconnecting user
+            const expiry = db.getRoomExpiry(roomId) || 24;
+            socket.emit('roomConfig', { expiry });
         }
     });
 
@@ -252,6 +260,29 @@ io.on('connection', (socket) => {
                     isTyping: isTyping
                 });
             }
+        }
+    });
+
+    socket.on('markRead', (msgId) => {
+        const user = socketToUser[socket.id];
+        const room = user ? user.roomId : null;
+        if (room) {
+            // In a real app we would update DB
+            // db.markMessageRead(msgId, user.nickname);
+            io.to(room).emit('messageRead', { msgId, reader: user.nickname });
+        }
+    });
+
+
+
+    socket.on('setExpiry', (hours) => {
+        const user = socketToUser[socket.id];
+        if (user && user.roomId) {
+             db.setRoomExpiry(user.roomId, hours);
+             io.to(user.roomId).emit('roomConfig', { expiry: hours });
+             // io.to(user.roomId).emit('system', { type: 'info', content: `Message expiry set to ${hours} hours` }); 
+             // System message might be annoying if frequent, but good for feedback.
+             // Let's rely on roomConfig update for UI.
         }
     });
 

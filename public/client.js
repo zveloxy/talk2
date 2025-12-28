@@ -307,6 +307,19 @@ if (langSelect) {
     });
 }
 
+// Expiry
+if (expirySelect) {
+    expirySelect.addEventListener('change', (e) => {
+        socket.emit('setExpiry', parseInt(e.target.value));
+    });
+}
+
+socket.on('roomConfig', (config) => {
+    if (config.expiry && expirySelect) {
+        expirySelect.value = config.expiry;
+    }
+});
+
 // Sound Toggle
 if (soundToggleBtn) {
     updateSoundButtonIcon();
