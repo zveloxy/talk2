@@ -107,12 +107,13 @@ app.use(express.static(path.join(__dirname, 'public'), {
 }));
 app.use(express.json());
 
+const os = require('os');
+
 // --- File Upload Setup (Multer) ---
 // --- Encrypted File Handling ---
 
-// 1. Temporary storage for incoming uploads (before encryption)
-const TEMP_DIR = path.join(__dirname, 'storage', 'temp');
-if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+// 1. Use system temp directory for reliability
+const TEMP_DIR = os.tmpdir();
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -123,7 +124,10 @@ const storage = multer.diskStorage({
         cb(null, uniqueSuffix + path.extname(file.originalname));
     }
 });
-const upload = multer({ storage: storage });
+const upload = multer({ 
+    storage: storage,
+    limits: { fileSize: 200 * 1024 * 1024 } // 200MB limit at middleware level
+});
 
 // 2. Encryption Helper (File -> Encrypted File)
 function encryptFile(inputPath, outputPath, cb) {
@@ -169,26 +173,30 @@ function deleteFileByUrl(url) {
 }
 
 // 3. Upload Route (Encrypts and saves)
-app.post('/api/upload', upload.single('file'), (req, res) => {
-    if (!req.file) return res.status(400).send('No file uploaded.');
-
-    const tempPath = req.file.path;
-    const finalFilename = req.file.filename + '.enc'; // Add .enc extension
-    const finalPath = path.join(UPLOAD_DIR, finalFilename);
-
-    encryptFile(tempPath, finalPath, (err) => {
-        // Always delete temp file
-        fs.unlink(tempPath, () => {});
-
+app.post('/api/upload', (req, res) => {
+    upload.single('file')(req, res, (err) => {
         if (err) {
-            console.error("Encryption error:", err);
-            return res.status(500).send("Encryption failed");
+            console.error("Multer upload error:", err);
+            return res.status(500).json({ error: "Upload failed", details: err.message });
         }
+        
+        if (!req.file) return res.status(400).send('No file uploaded.');
 
-        // Return the API URL that will decrypt it on the fly
-        // We strip .enc for the URL to keep it looking clean, or keep it?
-        // Let's keep it simple: The URL is /api/file/filename.enc
-        res.json({ url: '/api/file/' + finalFilename });
+        const tempPath = req.file.path;
+        const finalFilename = req.file.filename + '.enc'; // Add .enc extension
+        const finalPath = path.join(UPLOAD_DIR, finalFilename);
+
+        encryptFile(tempPath, finalPath, (err) => {
+            // Always delete temp file (using fs.unlink to avoid callback nesting hell if simple)
+            fs.unlink(tempPath, () => {});
+
+            if (err) {
+                console.error("Encryption error:", err);
+                return res.status(500).send("Encryption failed");
+            }
+
+            res.json({ url: '/api/file/' + finalFilename });
+        });
     });
 });
 
