@@ -2,7 +2,7 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <title>Talk2 - Anonymous Chat</title>
         <link rel="stylesheet" href="style.css">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -48,6 +48,7 @@
                 overflow-x: hidden;
                 overflow-y: auto;
                 line-height: 1.6;
+                touch-action: manipulation;
             }
 
             /* Animated Background */
@@ -501,9 +502,14 @@
 
             @media (max-width: 768px) {
                 .hero h1 { font-size: 2.5rem; }
-                .steps { grid-template-columns: 1fr; gap: 3rem; }
+                .steps { grid-template-columns: 1fr; gap: 3rem; padding: 0 1rem; }
                 .steps::before { display: none; }
-                .stats-strip { flex-direction: column; gap: 2rem; }
+                .stats-strip { 
+                    flex-direction: column; 
+                    gap: 3rem; 
+                    margin-top: 3rem; 
+                    padding: 3rem 1rem; 
+                }
                 .room-input-container { flex-direction: column; }
                 .room-input-container button { padding: 1rem; }
                 .header-nav { display: none; } /* Hide nav links on mobile */

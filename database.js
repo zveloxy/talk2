@@ -193,6 +193,10 @@ class SimpleDB {
         
         return discardedMessages;
     }
+
+    getKey() {
+        return ENCRYPTION_KEY;
+    }
 }
 
 module.exports = new SimpleDB();

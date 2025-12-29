@@ -43,6 +43,10 @@ try {
     log('Loading database...');
     const db = require('./database');
     log('✓ database loaded');
+    // The database module is now loaded outside the try block for key initialization
+    // log('Loading database...');
+    // const db = require('./database');
+    // log('✓ database loaded');
     
     log('All modules loaded successfully!');
 
@@ -51,10 +55,17 @@ try {
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+// db and fs are already loaded above
+const crypto = require('crypto');
 
-// --- Configuration ---
-const UPLOAD_DIR = path.join(__dirname, 'public/uploads');
-const RETENTION_MS = 24 * 60 * 60 * 1000; // 24 hours
+// Use hidden storage for encrypted files
+const UPLOAD_DIR = path.join(__dirname, 'storage', 'uploads');
+if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+}
+
+const ENCRYPTION_KEY = db.getKey(); // Get key from DB logic
+const IV_LENGTH = 16; // 24 hours
 const DISCONNECT_GRACE_PERIOD = 5000; // 5 seconds wait before announcing leave
 
 // Track users in rooms: { roomId: { userId: { id, nickname, socketId, ... } } }
@@ -97,9 +108,15 @@ app.use(express.static(path.join(__dirname, 'public'), {
 app.use(express.json());
 
 // --- File Upload Setup (Multer) ---
+// --- Encrypted File Handling ---
+
+// 1. Temporary storage for incoming uploads (before encryption)
+const TEMP_DIR = path.join(__dirname, 'storage', 'temp');
+if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, UPLOAD_DIR);
+        cb(null, TEMP_DIR);
     },
     filename: function (req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -108,14 +125,110 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// --- Routes ---
+// 2. Encryption Helper (File -> Encrypted File)
+function encryptFile(inputPath, outputPath, cb) {
+    const iv = crypto.randomBytes(IV_LENGTH);
+    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+    
+    const input = fs.createReadStream(inputPath);
+    const output = fs.createWriteStream(outputPath);
 
-// Handle file upload API
-app.post('/api/upload', upload.single('file'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded.');
+    // Write IV first
+    output.write(iv);
+
+    input.pipe(cipher).pipe(output);
+
+    output.on('finish', () => {
+        cb(null);
+    });
+    output.on('error', (err) => {
+        cb(err);
+    });
+    output.on('error', (err) => {
+        cb(err);
+    });
+}
+
+// Helper to delete file by URL (handles encrypted and legacy paths)
+function deleteFileByUrl(url) {
+    if (!url) return;
+    
+    // New Encrypted Files
+    if (url.startsWith('/api/file/')) {
+        const filename = url.replace('/api/file/', '');
+        const fullPath = path.join(UPLOAD_DIR, filename);
+        fs.unlink(fullPath, (err) => {
+            if (err && err.code !== 'ENOENT') console.error("Failed to delete encrypted file:", fullPath, err);
+        });
+    } else {
+        // Legacy Public Files
+        const relativePath = url.startsWith('/') ? url.substring(1) : url;
+        const fullPath = path.join(__dirname, 'public', relativePath);
+        fs.unlink(fullPath, (err) => {
+            if (err && err.code !== 'ENOENT') console.error("Failed to delete legacy file:", fullPath, err);
+        });
     }
-    res.json({ url: '/uploads/' + req.file.filename });
+}
+
+// 3. Upload Route (Encrypts and saves)
+app.post('/api/upload', upload.single('file'), (req, res) => {
+    if (!req.file) return res.status(400).send('No file uploaded.');
+
+    const tempPath = req.file.path;
+    const finalFilename = req.file.filename + '.enc'; // Add .enc extension
+    const finalPath = path.join(UPLOAD_DIR, finalFilename);
+
+    encryptFile(tempPath, finalPath, (err) => {
+        // Always delete temp file
+        fs.unlink(tempPath, () => {});
+
+        if (err) {
+            console.error("Encryption error:", err);
+            return res.status(500).send("Encryption failed");
+        }
+
+        // Return the API URL that will decrypt it on the fly
+        // We strip .enc for the URL to keep it looking clean, or keep it?
+        // Let's keep it simple: The URL is /api/file/filename.enc
+        res.json({ url: '/api/file/' + finalFilename });
+    });
+});
+
+// 4. Decryption Route (serves the file)
+app.get('/api/file/:filename', (req, res) => {
+    const filename = req.params.filename;
+    const filePath = path.join(UPLOAD_DIR, filename);
+
+    if (!fs.existsSync(filePath)) return res.status(404).send('File not found');
+
+    // Simple Decryption Stream
+    // 1. Read first 16 bytes for IV
+    const readStream = fs.createReadStream(filePath, { start: 0, end: IV_LENGTH - 1 });
+    
+    let iv;
+    readStream.on('data', (chunk) => {
+        iv = chunk;
+    });
+
+    readStream.on('end', () => {
+        if (!iv || iv.length !== IV_LENGTH) return res.status(500).send('Corrupt file');
+
+        const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+        const fileStream = fs.createReadStream(filePath, { start: IV_LENGTH }); // Skip IV
+
+        // Guess content type based on original extension (stored in filename before .enc)
+        // e.g. 12345.png.enc
+        const originalExt = path.extname(filename.replace('.enc', ''));
+        if (originalExt === '.png') res.type('image/png');
+        else if (originalExt === '.jpg' || originalExt === '.jpeg') res.type('image/jpeg');
+        else if (originalExt === '.gif') res.type('image/gif');
+        else if (originalExt === '.webm') res.type('video/webm');
+        else if (originalExt === '.mp4') res.type('video/mp4');
+        else if (originalExt === '.mp3') res.type('audio/mpeg');
+        else res.type('application/octet-stream');
+
+        fileStream.pipe(decipher).pipe(res);
+    });
 });
 
 // API Stats
@@ -249,11 +362,7 @@ io.on('connection', (socket) => {
                     (deletedMsg.type === 'audio' && deletedMsg.audio_path) ||
                     (deletedMsg.type === 'video' && deletedMsg.video_path)) {
                     const filePath = deletedMsg.type === 'image' ? deletedMsg.image_path : (deletedMsg.type === 'audio' ? deletedMsg.audio_path : deletedMsg.video_path);
-                    const relativePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-                    const fullPath = path.join(__dirname, 'public', relativePath);
-                    fs.unlink(fullPath, (err) => {
-                         if (err && err.code !== 'ENOENT') console.error("Failed to delete file:", fullPath, err);
-                    });
+                    deleteFileByUrl(filePath);
                 }
 
                 io.to(room).emit('messageDeleted', msgId);
@@ -372,12 +481,7 @@ cron.schedule('0 * * * *', () => {
             (msg.type === 'audio' && msg.audio_path) ||
             (msg.type === 'video' && msg.video_path)) {
             const filePath = msg.type === 'image' ? msg.image_path : (msg.type === 'audio' ? msg.audio_path : msg.video_path);
-            const relativePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
-            const fullPath = path.join(__dirname, 'public', relativePath);
-            
-            fs.unlink(fullPath, (err) => {
-                if (err && err.code !== 'ENOENT') console.error("Failed to delete file:", fullPath, err);
-            });
+            deleteFileByUrl(filePath);
         }
     });
 });
