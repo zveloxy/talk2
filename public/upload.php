@@ -94,8 +94,8 @@ try {
         throw new Exception('Failed to write file');
     }
     
-    // Success
-    echo json_encode(['url' => '/api/file/' . $filename]);
+    // Success - Return direct PHP URL
+    echo json_encode(['url' => '/file.php?name=' . $filename]);
     
 } catch (Exception $e) {
     http_response_code(500);
