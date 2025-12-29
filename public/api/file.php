@@ -1,7 +1,7 @@
 <?php
 // file.php - Encrypted File Decryption Handler
-$SECRET_FILE = __DIR__ . '/../../.secret';
-$STORAGE_DIR = __DIR__ . '/../../storage/uploads/';
+$SECRET_FILE = '/home/talk2/public_html/talk2/.secret';
+$STORAGE_DIR = '/home/talk2/public_html/talk2/storage/uploads/';
 
 // Get filename from URL
 $filename = isset($_GET['name']) ? basename($_GET['name']) : '';

@@ -2,9 +2,9 @@
 // upload.php - Encrypted File Upload Handler for cPanel
 header('Content-Type: application/json');
 
-// Configuration - Paths relative to public folder
-$STORAGE_DIR = __DIR__ . '/../storage/uploads/';
-$SECRET_FILE = __DIR__ . '/../.secret';
+// Configuration - ABSOLUTE PATHS for cPanel
+$STORAGE_DIR = '/home/talk2/public_html/talk2/storage/uploads/';
+$SECRET_FILE = '/home/talk2/public_html/talk2/.secret';
 $MAX_SIZE = 200 * 1024 * 1024; // 200MB
 
 // DEBUG MODE - Remove after testing
