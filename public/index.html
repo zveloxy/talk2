@@ -772,460 +772,83 @@
         </footer>
 
         <script>
-            const translations = {
-                en: {
-                    title: "Talk2 - Anonymous Chat",
-                    heroBadge: "100% Anonymous",
-                    heroTitle: "Private Chats That<br><span>Disappear</span>",
-                    heroDesc: "Chat freely without leaving a trace. Create a room, share messages and images, and everything auto-deletes after 24 hours. No sign-up required.",
-                    btnEnter: 'Start Chatting <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Popular rooms:",
-                    howItWorks: "How it Works",
-                    howDesc: "Simple by design. Secure by default.",
-                    step1Title: "Choose a Room",
-                    step1Desc: "Enter any room name. If it doesn't exist, it's created instantly just for you.",
-                    step2Title: "Pick an Alias",
-                    step2Desc: "No accounts. Just pick a temporary nickname and you're in.",
-                    step3Title: "Vanish",
-                    step3Desc: "Chat, share images. Every 24 hours, the room wipes itself clean.",
-                    features: "Features",
-                    faq: "FAQ",
-                    statActiveRooms: "Active Rooms",
-                    statOnlineUsers: "Online Users",
-                    statRet: "Data Retention",
-                    statEnc: "Standard Encryption",
-                    statLogs: "Logs Stored",
-                    fIdentTitle: "Anonymous Identity",
-                    fIdentDesc: "We don't know who you are, and we don't want to.",
-                    fAutoTitle: "Auto-Destruct",
-                    fAutoDesc: "A cron job rigorously cleans the database and file system every hour.",
-                    fRealTitle: "Real-Time Socket",
-                    fRealDesc: "Built on Socket.io for millisecond-latency messaging. Typing indicators included.",
-                    fMediaTitle: "Media Support",
-                    fMediaDesc: "Drag and drop images. They are uploaded securely and deleted along with messages.",
-                    fRespTitle: "Responsive UI",
-                    fRespDesc: "A dark-themed, glassmorphic interface that looks beautiful on any device.",
-                    fOpenTitle: "Open Source",
-                    fOpenDesc: "The code is transparent. Verification is better than trust.",
-                    fSecureTitle: "Secure Transport",
-                    fSecureDesc: "All data is transmitted via HTTPS/WSS standards to prevent interception.",
-                    fGlobalTitle: "Global Reach",
-                    fGlobalDesc: "Optimized for low-latency connections worldwide using lightweight protocols.",
-                    fLightTitle: "Lightweight",
-                    fLightDesc: "No bloated frameworks. Pure vanilla JS for maximum performance.",
-                    rooms: "rooms"
-                },
-                tr: {
-                    title: "Talk2 - Anonim Sohbet",
-                    heroBadge: "%100 Anonim",
-                    heroTitle: "Kaybolan<br><span>Özel Sohbetler</span>",
-                    heroDesc: "İz bırakmadan sohbet edin. Oda oluşturun, mesaj ve resim paylaşın. 24 saat sonra her şey otomatik silinir. Kayıt gerekmez.",
-                    btnEnter: 'Sohbete Başla <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Popüler odalar:",
-                    howItWorks: "Nasıl Çalışır",
-                    howDesc: "Tasarımı basit. Doğası gereği güvenli.",
-                    step1Title: "Oda Seç",
-                    step1Desc: "Herhangi bir oda adı girin. Yoksa, anında oluşturulur.",
-                    step2Title: "Takma Ad Seç",
-                    step2Desc: "Hesap yok. Sadece geçici bir isim seç ve katıl.",
-                    step3Title: "Yok Ol",
-                    step3Desc: "Sohbet et, resim paylaş. Her 24 saatte bir her şey silinir.",
-                    features: "Özellikler",
-                    faq: "S.S.S",
-                    statActiveRooms: "Aktif Odalar",
-                    statOnlineUsers: "Çevrimiçi",
-                    statRet: "Veri Saklama",
-                    statEnc: "Standart Şifreleme",
-                    statLogs: "Log Kaydı",
-                    fIdentTitle: "Anonim Kimlik",
-                    fIdentDesc: "Kim olduğunu bilmiyoruz ve bilmek de istemiyoruz.",
-                    fAutoTitle: "Oto-İmha",
-                    fAutoDesc: "Silici botlar her saat başı veritabanını temizler.",
-                    fRealTitle: "Gerçek Zamanlı",
-                    fRealDesc: "Milisaniyelik gecikme ile Socket.io altyapısı. Yazıyor göstergeleri dahil.",
-                    fMediaTitle: "Medya Desteği",
-                    fMediaDesc: "Sürükle bırak ile resim yükle. Mesajlarla birlikte güvenli bir şekilde silinirler.",
-                    fRespTitle: "Duyarlı Arayüz",
-                    fRespDesc: "Her cihazda harika görünen karanlık temalı, 'glassmorphic' bir arayüz.",
-                    fOpenTitle: "Açık Kaynak",
-                    fOpenDesc: "Kod şeffaftır. Doğrulama güvenmekten iyidir.",
-                    fSecureTitle: "Güvenli İletim",
-                    fSecureDesc: "Tüm veriler müdahaleyi önlemek için HTTPS/WSS standartlarıyla iletilir.",
-                    fGlobalTitle: "Küresel Erişim",
-                    fGlobalDesc: "Dünya çapında düşük gecikme için hafif protokollerle optimize edildi.",
-                    fLightTitle: "Hafif Yapı",
-                    fLightDesc: "Şişirilmiş frameworkler yok. Maksimum performans için saf Vanilla JS.",
-                    rooms: "odalar"
-                },
-                ph: {
-                    title: "Talk2 - Anonymous Chat",
-                    heroBadge: "100% Anonymous",
-                    heroTitle: "Mga Pribadong Chat na<br><span>Nawawala</span>",
-                    heroDesc: "Mag-chat nang malaya. Gumawa ng room, magbahagi ng mga mensahe at larawan. Lahat ay awtomatikong mabubura pagkatapos ng 24 na oras. Walang sign-up.",
-                    btnEnter: 'Magsimulang Mag-chat <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Mga sikat na room:",
-                    howItWorks: "Paano Ito Gumagana",
-                    howDesc: "Simple sa disenyo. Ligtas bilang default.",
-                    step1Title: "Pumili ng Room",
-                    step1Desc: "Maglagay ng pangalan ng room. Kung wala ito, agad itong nagagawa.",
-                    step2Title: "Pumili ng Palayaw",
-                    step2Desc: "Walang account. Pumili lang ng pansamantalang pangalan at pasok ka na.",
-                    step3Title: "Mawala",
-                    step3Desc: "Mag-chat, magbahagi ng larawan. Bawat 24 oras, nililinis ang lahat.",
-                    features: "Mga Feature",
-                    faq: "FAQ",
-                    statActiveRooms: "Mga Aktibong Room",
-                    statOnlineUsers: "Online Users",
-                    statRet: "Data Retention",
-                    statEnc: "Standard Encryption",
-                    statLogs: "Logs Stored",
-                    fIdentTitle: "Anonymous Identity",
-                    fIdentDesc: "Hindi namin alam kung sino ka, at ayaw naming malaman.",
-                    fAutoTitle: "Auto-Destruct",
-                    fAutoDesc: "Awtomatikong nililinis ang database bawat oras.",
-                    fRealTitle: "Real-Time Socket",
-                    fRealDesc: "Gamit ang Socket.io para sa mabilis na messaging. May typing indicators.",
-                    fMediaTitle: "Media Support",
-                    fMediaDesc: "Drag and drop ng mga larawan. Mabubura kasama ng mga mensahe.",
-                    fRespTitle: "Responsive UI",
-                    fRespDesc: "Dark-themed interface na maganda sa kahit anong device.",
-                    fOpenTitle: "Open Source",
-                    fOpenDesc: "Transparent ang code. Verification ay mas mabuti kaysa tiwala.",
-                    fSecureTitle: "Secure Transport",
-                    fSecureDesc: "Lahat ng data ay naipapadala sa pamamagitan ng HTTPS/WSS.",
-                    fGlobalTitle: "Global Reach",
-                    fGlobalDesc: "Optimized para sa mabilis na koneksyon sa buong mundo.",
-                    fLightTitle: "Lightweight",
-                    fLightDesc: "Walang mabibigat na frameworks. Pure vanilla JS.",
-                    rooms: "mga room"
-                },
-                de: {
-                    title: "Talk2 - Anonymer Chat",
-                    heroBadge: "100% Anonym",
-                    heroTitle: "Private Chats die<br><span>Verschwinden</span>",
-                    heroDesc: "Chatten Sie frei ohne Spuren zu hinterlassen. Erstellen Sie einen Raum, teilen Sie Nachrichten und Bilder, alles wird nach 24 Stunden automatisch gelöscht. Keine Anmeldung erforderlich.",
-                    btnEnter: 'Chat Starten <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Beliebte Räume:",
-                    howItWorks: "So funktioniert's",
-                    howDesc: "Einfach im Design. Sicher als Standard.",
-                    step1Title: "Raum Wählen",
-                    step1Desc: "Geben Sie einen Raumnamen ein. Wenn er nicht existiert, wird er sofort erstellt.",
-                    step2Title: "Alias Wählen",
-                    step2Desc: "Kein Konto. Wählen Sie einen temporären Namen und Sie sind dabei.",
-                    step3Title: "Verschwinden",
-                    step3Desc: "Chatten, Bilder teilen. Alle 24 Stunden wird alles gelöscht.",
-                    features: "Funktionen",
-                    faq: "FAQ",
-                    statActiveRooms: "Aktive Räume",
-                    statOnlineUsers: "Online",
-                    statRet: "Datenspeicherung",
-                    statEnc: "Standardverschlüsselung",
-                    statLogs: "Gespeicherte Logs",
-                    fIdentTitle: "Anonyme Identität",
-                    fIdentDesc: "Wir wissen nicht wer Sie sind, und wir wollen es nicht wissen.",
-                    fAutoTitle: "Auto-Löschung",
-                    fAutoDesc: "Die Datenbank wird stündlich automatisch bereinigt.",
-                    fRealTitle: "Echtzeit-Socket",
-                    fRealDesc: "Mit Socket.io für blitzschnelle Nachrichten. Tippanzeigen inklusive.",
-                    fMediaTitle: "Medien-Support",
-                    fMediaDesc: "Drag & Drop für Bilder. Sie werden mit den Nachrichten gelöscht.",
-                    fRespTitle: "Responsives UI",
-                    fRespDesc: "Dark-Theme Interface, das auf jedem Gerät gut aussieht.",
-                    fOpenTitle: "Open Source",
-                    fOpenDesc: "Der Code ist transparent. Verifizierung ist besser als Vertrauen.",
-                    fSecureTitle: "Sichere Übertragung",
-                    fSecureDesc: "Alle Daten werden über HTTPS/WSS übertragen.",
-                    fGlobalTitle: "Globale Reichweite",
-                    fGlobalDesc: "Optimiert für schnelle Verbindungen weltweit.",
-                    fLightTitle: "Leichtgewichtig",
-                    fLightDesc: "Keine schweren Frameworks. Pures Vanilla JS.",
-                    rooms: "Räume"
-                },
-                ru: {
-                    title: "Talk2 - Анонимный Чат",
-                    heroBadge: "100% Анонимно",
-                    heroTitle: "Приватные Чаты<br><span>Которые Исчезают</span>",
-                    heroDesc: "Общайтесь свободно, не оставляя следов. Создайте комнату, делитесь сообщениями и изображениями — всё автоматически удаляется через 24 часа. Регистрация не требуется.",
-                    btnEnter: 'Начать Чат <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Популярные комнаты:",
-                    howItWorks: "Как это работает",
-                    howDesc: "Просто по дизайну. Безопасно по умолчанию.",
-                    step1Title: "Выберите Комнату",
-                    step1Desc: "Введите название комнаты. Если её нет, она будет создана мгновенно.",
-                    step2Title: "Выберите Псевдоним",
-                    step2Desc: "Без аккаунта. Просто выберите временное имя и вы внутри.",
-                    step3Title: "Исчезните",
-                    step3Desc: "Общайтесь, делитесь изображениями. Каждые 24 часа всё очищается.",
-                    features: "Возможности",
-                    faq: "ЧАВО",
-                    statActiveRooms: "Активные Комнаты",
-                    statOnlineUsers: "Онлайн",
-                    statRet: "Хранение данных",
-                    statEnc: "Стандартное шифрование",
-                    statLogs: "Хранимые логи",
-                    fIdentTitle: "Анонимная Личность",
-                    fIdentDesc: "Мы не знаем кто вы, и не хотим знать.",
-                    fAutoTitle: "Авто-Удаление",
-                    fAutoDesc: "База данных автоматически очищается каждый час.",
-                    fRealTitle: "Реальное Время",
-                    fRealDesc: "На Socket.io для мгновенных сообщений. Индикаторы набора включены.",
-                    fMediaTitle: "Медиа Поддержка",
-                    fMediaDesc: "Перетаскивайте изображения. Удаляются вместе с сообщениями.",
-                    fRespTitle: "Адаптивный UI",
-                    fRespDesc: "Тёмная тема, отлично выглядит на любом устройстве.",
-                    fOpenTitle: "Открытый Код",
-                    fOpenDesc: "Код прозрачен. Проверка лучше доверия.",
-                    fSecureTitle: "Безопасная Передача",
-                    fSecureDesc: "Все данные передаются через HTTPS/WSS.",
-                    fGlobalTitle: "Глобальный Охват",
-                    fGlobalDesc: "Оптимизировано для быстрых соединений по всему миру.",
-                    fLightTitle: "Легковесный",
-                    fLightDesc: "Без тяжёлых фреймворков. Чистый Vanilla JS.",
-                    rooms: "комнаты"
-                },
-                es: {
-                    title: "Talk2 - Chat Anónimo",
-                    heroBadge: "100% Anónimo",
-                    heroTitle: "Chats Privados Que<br><span>Desaparecen</span>",
-                    heroDesc: "Chatea libremente sin dejar rastro. Crea una sala, comparte mensajes e imágenes, y todo se borra automáticamente en 24 horas. Sin registro.",
-                    btnEnter: 'Empezar a Chatear <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Salas populares:",
-                    howItWorks: "Cómo Funciona",
-                    howDesc: "Simple por diseño. Seguro por defecto.",
-                    step1Title: "Elige una Sala",
-                    step1Desc: "Ingresa cualquier nombre. Si no existe, se crea al instante.",
-                    step2Title: "Elige un Alias",
-                    step2Desc: "Sin cuentas. Solo elige un apodo temporal y ya está.",
-                    step3Title: "Desaparece",
-                    step3Desc: "Chatea, comparte imágenes. Cada 24 horas, todo se limpia.",
-                    features: "Características",
-                    faq: "Preguntas Frecuentes",
-                    statActiveRooms: "Salas Activas",
-                    statOnlineUsers: "Usuarios Online",
-                    statRet: "Retención de Datos",
-                    statEnc: "Cifrado Estándar",
-                    statLogs: "Logs Almacenados",
-                    fIdentTitle: "Identidad Anónima",
-                    fIdentDesc: "No sabemos quién eres, y no queremos saberlo.",
-                    fAutoTitle: "Auto-Destrucción",
-                    fAutoDesc: "La base de datos se limpia automáticamente cada hora.",
-                    fRealTitle: "Socket en Tiempo Real",
-                    fRealDesc: "Construido con Socket.io para mensajes instantáneos.",
-                    fMediaTitle: "Soporte de Medios",
-                    fMediaDesc: "Arrastra y suelta imágenes. Se eliminan con los mensajes.",
-                    fRespTitle: "UI Responsiva",
-                    fRespDesc: "Tema oscuro que se ve genial en cualquier dispositivo.",
-                    fOpenTitle: "Código Abierto",
-                    fOpenDesc: "El código es transparente. Verificar es mejor que confiar.",
-                    fSecureTitle: "Transporte Seguro",
-                    fSecureDesc: "Todos los datos se transmiten vía HTTPS/WSS.",
-                    fGlobalTitle: "Alcance Global",
-                    fGlobalDesc: "Optimizado para conexiones rápidas en todo el mundo.",
-                    fLightTitle: "Ligero",
-                    fLightDesc: "Sin frameworks pesados. Vanilla JS puro.",
-                    rooms: "salas"
-                },
-                fr: {
-                    title: "Talk2 - Chat Anonyme",
-                    heroBadge: "100% Anonyme",
-                    heroTitle: "Chats Privés Qui<br><span>Disparaissent</span>",
-                    heroDesc: "Chattez librement sans laisser de trace. Créez une salle, partagez messages et images, tout est supprimé en 24 heures. Sans inscription.",
-                    btnEnter: 'Commencer à Chatter <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Salles populaires:",
-                    howItWorks: "Comment ça Marche",
-                    howDesc: "Simple par design. Sécurisé par défaut.",
-                    step1Title: "Choisir une Salle",
-                    step1Desc: "Entrez n'importe quel nom. Si elle n'existe pas, elle est créée.",
-                    step2Title: "Choisir un Alias",
-                    step2Desc: "Pas de compte. Choisissez un pseudo temporaire et c'est parti.",
-                    step3Title: "Disparaître",
-                    step3Desc: "Chattez, partagez des images. Toutes les 24h, tout est effacé.",
-                    features: "Fonctionnalités",
-                    faq: "FAQ",
-                    statActiveRooms: "Salles Actives",
-                    statOnlineUsers: "Utilisateurs En Ligne",
-                    statRet: "Rétention des Données",
-                    statEnc: "Chiffrement Standard",
-                    statLogs: "Logs Stockés",
-                    fIdentTitle: "Identité Anonyme",
-                    fIdentDesc: "Nous ne savons pas qui vous êtes, et nous ne voulons pas le savoir.",
-                    fAutoTitle: "Auto-Destruction",
-                    fAutoDesc: "La base de données est nettoyée toutes les heures.",
-                    fRealTitle: "Socket Temps Réel",
-                    fRealDesc: "Construit avec Socket.io pour des messages instantanés.",
-                    fMediaTitle: "Support Médias",
-                    fMediaDesc: "Glissez-déposez des images. Supprimées avec les messages.",
-                    fRespTitle: "UI Responsive",
-                    fRespDesc: "Thème sombre magnifique sur tout appareil.",
-                    fOpenTitle: "Open Source",
-                    fOpenDesc: "Le code est transparent. Vérifier vaut mieux que faire confiance.",
-                    fSecureTitle: "Transport Sécurisé",
-                    fSecureDesc: "Toutes les données transitent via HTTPS/WSS.",
-                    fGlobalTitle: "Portée Mondiale",
-                    fGlobalDesc: "Optimisé pour des connexions rapides dans le monde entier.",
-                    fLightTitle: "Léger",
-                    fLightDesc: "Pas de frameworks lourds. Vanilla JS pur.",
-                    rooms: "salles"
-                },
-                it: {
-                    title: "Talk2 - Chat Anonima",
-                    heroBadge: "100% Anonimo",
-                    heroTitle: "Chat Private Che<br><span>Scompaiono</span>",
-                    heroDesc: "Chatta liberamente senza lasciare tracce. Crea una stanza, condividi messaggi e immagini, tutto si cancella in 24 ore. Nessuna registrazione.",
-                    btnEnter: 'Inizia a Chattare <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Stanze popolari:",
-                    howItWorks: "Come Funziona",
-                    howDesc: "Semplice per design. Sicuro di default.",
-                    step1Title: "Scegli una Stanza",
-                    step1Desc: "Inserisci un nome qualsiasi. Se non esiste, viene creata.",
-                    step2Title: "Scegli un Alias",
-                    step2Desc: "Nessun account. Scegli un nickname temporaneo e sei dentro.",
-                    step3Title: "Scomparire",
-                    step3Desc: "Chatta, condividi immagini. Ogni 24 ore, tutto viene pulito.",
-                    features: "Funzionalità",
-                    faq: "FAQ",
-                    statActiveRooms: "Stanze Attive",
-                    statOnlineUsers: "Utenti Online",
-                    statRet: "Conservazione Dati",
-                    statEnc: "Crittografia Standard",
-                    statLogs: "Log Memorizzati",
-                    fIdentTitle: "Identità Anonima",
-                    fIdentDesc: "Non sappiamo chi sei, e non vogliamo saperlo.",
-                    fAutoTitle: "Auto-Distruzione",
-                    fAutoDesc: "Il database viene pulito automaticamente ogni ora.",
-                    fRealTitle: "Socket Real-Time",
-                    fRealDesc: "Costruito con Socket.io per messaggi istantanei.",
-                    fMediaTitle: "Supporto Media",
-                    fMediaDesc: "Trascina e rilascia immagini. Eliminate con i messaggi.",
-                    fRespTitle: "UI Responsive",
-                    fRespDesc: "Tema scuro bellissimo su qualsiasi dispositivo.",
-                    fOpenTitle: "Open Source",
-                    fOpenDesc: "Il codice è trasparente. Verificare è meglio che fidarsi.",
-                    fSecureTitle: "Trasporto Sicuro",
-                    fSecureDesc: "Tutti i dati sono trasmessi via HTTPS/WSS.",
-                    fGlobalTitle: "Portata Globale",
-                    fGlobalDesc: "Ottimizzato per connessioni veloci in tutto il mondo.",
-                    fLightTitle: "Leggero",
-                    fLightDesc: "Nessun framework pesante. Vanilla JS puro.",
-                    rooms: "stanze"
-                },
-                pt: {
-                    title: "Talk2 - Chat Anônimo",
-                    heroBadge: "100% Anônimo",
-                    heroTitle: "Chats Privados Que<br><span>Desaparecem</span>",
-                    heroDesc: "Converse livremente sem deixar rastros. Crie uma sala, compartilhe mensagens e imagens, tudo é apagado em 24 horas. Sem cadastro.",
-                    btnEnter: 'Começar a Conversar <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                    popular: "Salas populares:",
-                    howItWorks: "Como Funciona",
-                    howDesc: "Simples por design. Seguro por padrão.",
-                    step1Title: "Escolha uma Sala",
-                    step1Desc: "Digite qualquer nome. Se não existir, é criada na hora.",
-                    step2Title: "Escolha um Apelido",
-                    step2Desc: "Sem conta. Escolha um apelido temporário e pronto.",
-                    step3Title: "Desapareça",
-                    step3Desc: "Converse, compartilhe imagens. A cada 24 horas, tudo é limpo.",
-                    features: "Recursos",
-                    faq: "Perguntas Frequentes",
-                    statActiveRooms: "Salas Ativas",
-                    statOnlineUsers: "Usuários Online",
-                    statRet: "Retenção de Dados",
-                    statEnc: "Criptografia Padrão",
-                    statLogs: "Logs Armazenados",
-                    fIdentTitle: "Identidade Anônima",
-                    fIdentDesc: "Não sabemos quem você é, e não queremos saber.",
-                    fAutoTitle: "Auto-Destruição",
-                    fAutoDesc: "O banco de dados é limpo automaticamente a cada hora.",
-                    fRealTitle: "Socket Tempo Real",
-                    fRealDesc: "Construído com Socket.io para mensagens instantâneas.",
-                    fMediaTitle: "Suporte a Mídia",
-                    fMediaDesc: "Arraste e solte imagens. Deletadas com as mensagens.",
-                    fRespTitle: "UI Responsiva",
-                    fRespDesc: "Tema escuro lindo em qualquer dispositivo.",
-                    fOpenTitle: "Código Aberto",
-                    fOpenDesc: "O código é transparente. Verificar é melhor que confiar.",
-                    fSecureTitle: "Transporte Seguro",
-                    fSecureDesc: "Todos os dados são transmitidos via HTTPS/WSS.",
-                    fGlobalTitle: "Alcance Global",
-                    fGlobalDesc: "Otimizado para conexões rápidas no mundo todo.",
-                    fLightTitle: "Leve",
-                    fLightDesc: "Sem frameworks pesados. Vanilla JS puro.",
-                    rooms: "salas"
-                }
-            };
 
-            // IP Detection & Language Setup
+
+            // Translations are now loaded via JSON fetch
+            // Translations Cache
+            const loadedTranslations = {};
+
+            // --- Language Detection & Loading ---
             async function detectLanguage() {
-                // Check localStorage first
-                let lang = localStorage.getItem('talk2_lang');
+                let storedLang = localStorage.getItem('talk2_lang');
                 
-                if (!lang) {
+                if (!storedLang) {
                     try {
-                        // Fetch IP info
                         const res = await fetch('https://ipapi.co/json/');
                         const data = await res.json();
-                        if (data.country_code === 'TR') {
-                            lang = 'tr';
-                        } else if (data.country_code === 'PH') {
-                            lang = 'ph';
-                        } else if (data.country_code === 'DE' || data.country_code === 'AT' || data.country_code === 'CH') {
-                            lang = 'de';
-                        } else if (data.country_code === 'RU') {
-                            lang = 'ru';
-                        } else if (['ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'VE'].includes(data.country_code)) {
-                            lang = 'es';
-                        } else if (['FR', 'BE', 'CA'].includes(data.country_code)) {
-                            lang = 'fr';
-                        } else if (data.country_code === 'IT') {
-                            lang = 'it';
-                        } else if (['BR', 'PT'].includes(data.country_code)) {
-                            lang = 'pt';
-                        } else {
-                            lang = 'en';
-                        }
+                        if (data.country_code === 'TR') storedLang = 'tr';
+                        else if (['DE', 'AT', 'CH'].includes(data.country_code)) storedLang = 'de';
+                        else if (data.country_code === 'RU') storedLang = 'ru';
+                        else if (data.country_code === 'PH') storedLang = 'ph';
+                        else if (['ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'VE'].includes(data.country_code)) storedLang = 'es';
+                        else if (['FR', 'BE', 'CA'].includes(data.country_code)) storedLang = 'fr';
+                        else if (data.country_code === 'IT') storedLang = 'it';
+                        else if (['BR', 'PT'].includes(data.country_code)) storedLang = 'pt';
+                        else storedLang = 'en';
                     } catch (e) {
-                        console.error("IP check failed, defaulting based on browser");
                         const nav = navigator.language.toLowerCase();
-                        if (nav.startsWith('tr')) {
-                            lang = 'tr';
-                        } else if (nav.startsWith('fil') || nav.startsWith('tl')) {
-                            lang = 'ph';
-                        } else if (nav.startsWith('de')) {
-                            lang = 'de';
-                        } else if (nav.startsWith('ru')) {
-                            lang = 'ru';
-                        } else if (nav.startsWith('es')) {
-                            lang = 'es';
-                        } else if (nav.startsWith('fr')) {
-                            lang = 'fr';
-                        } else if (nav.startsWith('it')) {
-                            lang = 'it';
-                        } else if (nav.startsWith('pt')) {
-                            lang = 'pt';
-                        } else {
-                            lang = 'en';
-                        }
+                        if (nav.startsWith('tr')) storedLang = 'tr';
+                        else if (nav.startsWith('de')) storedLang = 'de';
+                        else if (nav.startsWith('ru')) storedLang = 'ru';
+                        else if (nav.startsWith('fil') || nav.startsWith('tl')) storedLang = 'ph';
+                        else if (nav.startsWith('es')) storedLang = 'es';
+                        else if (nav.startsWith('fr')) storedLang = 'fr';
+                        else if (nav.startsWith('it')) storedLang = 'it';
+                        else if (nav.startsWith('pt')) storedLang = 'pt';
+                        else storedLang = 'en';
                     }
-                    localStorage.setItem('talk2_lang', lang);
+                    localStorage.setItem('talk2_lang', storedLang);
                 }
-                applyLanguage(lang);
                 
-                // Update dropdown display
-                setTimeout(() => updateLangDisplay(lang), 100);
+                // Initial update for dropdown
+                updateLangDisplay(storedLang);
+
+                // Load Language
+                await loadLanguage(storedLang);
             }
 
-            function applyLanguage(lang) {
-                const t = translations[lang];
-                if (!t) return;
+            async function loadLanguage(lang) {
+                if (loadedTranslations[lang]) {
+                    applyTranslations(lang, loadedTranslations[lang]);
+                    return;
+                }
 
+                try {
+                    const res = await fetch(`/locales/${lang}.json`);
+                    if (!res.ok) throw new Error(`Failed to load ${lang}`);
+                    const translations = await res.json();
+                    loadedTranslations[lang] = translations;
+                    applyTranslations(lang, translations);
+                } catch (e) {
+                    console.error('Translation load error:', e);
+                    if (lang !== 'en') loadLanguage('en');
+                }
+            }
+
+            function applyTranslations(lang, t) {
                 document.title = t.title;
                 
-                // Replaces all elements with data-i18n attribute
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.getAttribute('data-i18n');
                     if (t[key]) {
                         el.innerHTML = t[key];
                     }
                 });
+            }
+
+            // Wrapper for existing calls
+            function applyLanguage(lang) {
+                loadLanguage(lang);
             }
 
             // Language Dropdown Handlers

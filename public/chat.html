@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talk2 Chat</title>
-    <link rel="stylesheet" href="/style.css?v=8">
+    <link rel="stylesheet" href="/style.css?v=10">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
@@ -142,12 +142,15 @@
                         </button>
                     </div>
                     <form id="chat-form" onsubmit="return false;">
-                        <button type="button" id="emoji-btn" title="Emoji"><i class="fas fa-smile"></i></button>
-                        <button type="button" id="upload-btn" title="Resim Yükle"><i class="fas fa-image"></i></button>
-                        <input type="file" id="image-input" accept="image/*" hidden>
-                        <input type="text" id="message-input" placeholder="Bir mesaj yazın..." autocomplete="off" data-i18n-placeholder="placeholderMessage">
+                    <div class="input-wrapper">
+                        <button type="button" id="emoji-btn" class="icon-btn"><i class="far fa-smile"></i></button>
+                        <button type="button" id="upload-btn" class="icon-btn"><i class="fas fa-paperclip"></i></button>
+                        <input type="file" id="image-input" accept="image/*,video/*" style="display: none;">
+                        <input type="text" id="message-input" autocomplete="off" data-i18n-placeholder="placeholderMessage">
+
                         <button type="submit" id="send-btn"><i class="fas fa-paper-plane"></i></button>
-                    </form>
+                    </div>
+                </form>
                 </footer>
             </div>
 
@@ -159,6 +162,7 @@
                 <div class="sidebar-header">
                     <h3><i class="fas fa-users"></i> <span data-i18n="sidebarTitle">Online</span></h3>
                     <span id="sidebar-user-count" class="sidebar-count">0</span>
+                    <button id="close-sidebar-btn" class="icon-btn close-sidebar" style="display: none;"><i class="fas fa-times"></i></button>
                 </div>
                 
                 <!-- Clear Button -->
@@ -186,6 +190,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=14"></script>
+    <script src="/client.js?v=22"></script>
 </body>
 </html>

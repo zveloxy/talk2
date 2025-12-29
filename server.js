@@ -110,8 +110,8 @@ const upload = multer({ storage: storage });
 
 // --- Routes ---
 
-// Handle image upload API
-app.post('/api/upload', upload.single('image'), (req, res) => {
+// Handle file upload API
+app.post('/api/upload', upload.single('file'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
     }
@@ -222,6 +222,8 @@ io.on('connection', (socket) => {
             nickname,
             content: type === 'text' ? content : null,
             image_path: type === 'image' ? content : null,
+            audio_path: type === 'audio' ? content : null,
+            video_path: type === 'video' ? content : null,
             type,
             timestamp,
             replyTo: replyTo || null // Store reply reference
@@ -242,9 +244,12 @@ io.on('connection', (socket) => {
         if (room) {
             const deletedMsg = db.deleteMessage(msgId);
             if (deletedMsg) {
-                // If it was an image, delete the file
-                if (deletedMsg.type === 'image' && deletedMsg.image_path) {
-                    const relativePath = deletedMsg.image_path.startsWith('/') ? deletedMsg.image_path.substring(1) : deletedMsg.image_path;
+                // If it was media, delete the file
+                if ((deletedMsg.type === 'image' && deletedMsg.image_path) || 
+                    (deletedMsg.type === 'audio' && deletedMsg.audio_path) ||
+                    (deletedMsg.type === 'video' && deletedMsg.video_path)) {
+                    const filePath = deletedMsg.type === 'image' ? deletedMsg.image_path : (deletedMsg.type === 'audio' ? deletedMsg.audio_path : deletedMsg.video_path);
+                    const relativePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
                     const fullPath = path.join(__dirname, 'public', relativePath);
                     fs.unlink(fullPath, (err) => {
                          if (err && err.code !== 'ENOENT') console.error("Failed to delete file:", fullPath, err);
@@ -363,8 +368,11 @@ cron.schedule('0 * * * *', () => {
     const deletedMessages = db.cleanup(RETENTION_MS);
 
     deletedMessages.forEach(msg => {
-        if (msg.type === 'image' && msg.image_path) {
-            const relativePath = msg.image_path.startsWith('/') ? msg.image_path.substring(1) : msg.image_path;
+        if ((msg.type === 'image' && msg.image_path) || 
+            (msg.type === 'audio' && msg.audio_path) ||
+            (msg.type === 'video' && msg.video_path)) {
+            const filePath = msg.type === 'image' ? msg.image_path : (msg.type === 'audio' ? msg.audio_path : msg.video_path);
+            const relativePath = filePath.startsWith('/') ? filePath.substring(1) : filePath;
             const fullPath = path.join(__dirname, 'public', relativePath);
             
             fs.unlink(fullPath, (err) => {

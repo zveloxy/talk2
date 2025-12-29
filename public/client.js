@@ -35,265 +35,16 @@ if (!userId) {
 
 const roomId = window.location.pathname.replace('/', '') || 'general';
 
-// Translations
-const translations = {
-    tr: {
-        modalTitle: 'Talk2\'ya Girin',
-        modalText: 'odasına katılmak için bir takma ad seçin:',
-        placeholderNickname: 'örn. KozmikGezgin',
-        btnConnect: 'Bağlan',
-        btnRandom: 'Rastgele Oluştur',
-        systemBanner: 'Bu odadaki veriler her 24 saatte bir silinir.',
-        placeholderMessage: 'Bir mesaj yazın...',
-        sidebarTitle: 'Çevrimiçi',
-        btnClearMyMsgs: 'Mesajlarımı Temizle',
-        confirmClear: 'Sadece kendi mesajlarını silmek istediğine emin misin?',
-        confirmDelete: 'Bu mesajı silmek istiyor musunuz?',
-        msgJoined: 'odaya katıldı',
-        msgLeft: 'odadan ayrıldı',
-        you: '(sen)',
-        typing1: 'yazıyor...',
-        typingSomeone: 'Biri yazıyor...',
-        typingMany: 'Birkaç kişi yazıyor...',
-        myMsgsCleared: 'Kendi mesajların temizlendi.',
-        cleared: 'temizlendi',
-        uploadError: 'Yükleme hatası',
-        fileTooBig: 'Dosya çok büyük (max 5MB)',
-        confirmTitle: 'Emin misin?',
-        btnCancel: 'İptal',
-        btnConfirm: 'Evet, Sil',
-        expiryTitle: 'Mesaj Süresi',
-        expiryDesc: 'Bu odadaki mesajların silinme süresini seçin.'
-    },
-    en: {
-        modalTitle: 'Enter Talk2',
-        modalText: 'Choose an alias to join:',
-        placeholderNickname: 'e.g. CosmicTraveler',
-        btnConnect: 'Connect',
-        btnRandom: 'Generate Random',
-        systemBanner: 'Data in this room is cleared every 24 hours.',
-        placeholderMessage: 'Type a message...',
-        sidebarTitle: 'Online',
-        btnClearMyMsgs: 'Clear My Messages',
-        confirmClear: 'Are you sure you want to clear ONLY your messages?',
-        confirmDelete: 'Do you want to delete this message?',
-        msgJoined: 'joined the room',
-        msgLeft: 'left the room',
-        you: '(you)',
-        typing1: 'is typing...',
-        typingSomeone: 'Someone is typing...',
-        typingMany: 'Several people are typing...',
-        myMsgsCleared: 'Your messages have been cleared.',
-        cleared: 'cleared',
-        uploadError: 'Upload failed',
-        fileTooBig: 'File too large (max 5MB)',
-        confirmTitle: 'Are you sure?',
-        btnCancel: 'Cancel',
-        btnConfirm: 'Yes, Delete',
-        expiryTitle: 'Message Expiry',
-        expiryDesc: 'Choose how long messages last in this room.'
-    },
-    de: {
-        modalTitle: 'Talk2 Betreten',
-        modalText: 'Wählen Sie einen Namen zum Beitreten:',
-        placeholderNickname: 'z.B. KosmosReiser',
-        btnConnect: 'Verbinden',
-        btnRandom: 'Zufällig Generieren',
-        systemBanner: 'Daten in diesem Raum werden alle 24 Stunden gelöscht.',
-        placeholderMessage: 'Nachricht eingeben...',
-        sidebarTitle: 'Online',
-        btnClearMyMsgs: 'Meine Nachrichten Löschen',
-        confirmClear: 'Sind Sie sicher, dass Sie NUR Ihre Nachrichten löschen möchten?',
-        confirmDelete: 'Möchten Sie diese Nachricht löschen?',
-        msgJoined: 'ist beigetreten',
-        msgLeft: 'hat den Raum verlassen',
-        you: '(du)',
-        typing1: 'tippt...',
-        typingSomeone: 'Jemand tippt...',
-        typingMany: 'Mehrere Personen tippen...',
-        myMsgsCleared: 'Ihre Nachrichten wurden gelöscht.',
-        cleared: 'gelöscht',
-        uploadError: 'Upload fehlgeschlagen',
-        fileTooBig: 'Datei zu groß (max 5MB)',
-        confirmTitle: 'Sind Sie sicher?',
-        btnCancel: 'Abbrechen',
-        btnConfirm: 'Ja, Löschen',
-        expiryTitle: 'Nachrichtenablauf',
-        expiryDesc: 'Wählen Sie, wie lange Nachrichten gespeichert bleiben.'
-    },
-    ru: {
-        modalTitle: 'Войти в Talk2',
-        modalText: 'Выберите псевдоним для входа:',
-        placeholderNickname: 'напр. КосмоПутник',
-        btnConnect: 'Подключиться',
-        btnRandom: 'Случайный Ник',
-        systemBanner: 'Данные в этой комнате очищаются каждые 24 часа.',
-        placeholderMessage: 'Введите сообщение...',
-        sidebarTitle: 'Онлайн',
-        btnClearMyMsgs: 'Удалить Мои Сообщения',
-        confirmClear: 'Вы уверены, что хотите удалить ТОЛЬКО свои сообщения?',
-        confirmDelete: 'Хотите удалить это сообщение?',
-        msgJoined: 'присоединился',
-        msgLeft: 'покинул комнату',
-        you: '(вы)',
-        typing1: 'печатает...',
-        typingSomeone: 'Кто-то печатает...',
-        typingMany: 'Несколько человек печатают...',
-        myMsgsCleared: 'Ваши сообщения удалены.',
-        cleared: 'очищено',
-        uploadError: 'Ошибка загрузки',
-        fileTooBig: 'Файл слишком большой (макс 5МБ)',
-        confirmTitle: 'Вы уверены?',
-        btnCancel: 'Отмена',
-        btnConfirm: 'Да, Удалить'
-    },
-    ph: {
-        modalTitle: 'Pumasok sa Talk2',
-        modalText: 'Pumili ng palayaw para sumali:',
-        placeholderNickname: 'hal. KosmikManlalakbay',
-        btnConnect: 'Kumonekta',
-        btnRandom: 'Random na Pangalan',
-        systemBanner: 'Nililinis ang data sa room na ito tuwing 24 oras.',
-        placeholderMessage: 'Mag-type ng mensahe...',
-        sidebarTitle: 'Online',
-        btnClearMyMsgs: 'Burahin ang Aking Mga Mensahe',
-        confirmClear: 'Sigurado ka bang gusto mong burahin LAMANG ang iyong mga mensahe?',
-        confirmDelete: 'Gusto mo bang burahin ang mensaheng ito?',
-        msgJoined: 'sumali sa room',
-        msgLeft: 'umalis sa room',
-        you: '(ikaw)',
-        typing1: 'nagta-type...',
-        typingSomeone: 'May nagta-type...',
-        typingMany: 'Maraming nagta-type...',
-        myMsgsCleared: 'Nabura na ang iyong mga mensahe.',
-        cleared: 'na-clear',
-        uploadError: 'Nabigo ang upload',
-        fileTooBig: 'Masyadong malaki ang file (max 5MB)',
-        confirmTitle: 'Sigurado ka ba?',
-        btnCancel: 'Kanselahin',
-        btnConfirm: 'Oo, Burahin',
-        expiryTitle: 'Tagal ng Mensahe',
-        expiryDesc: 'Pumili kung gaano katagal mananatili ang mga mensahe.'
-    },
-    es: {
-        modalTitle: 'Entrar a Talk2',
-        modalText: 'Elige un apodo para unirte:',
-        placeholderNickname: 'ej. ViajeroCosmico',
-        btnConnect: 'Conectar',
-        btnRandom: 'Generar Aleatorio',
-        systemBanner: 'Los datos de esta sala se borran cada 24 horas.',
-        placeholderMessage: 'Escribe un mensaje...',
-        sidebarTitle: 'En línea',
-        btnClearMyMsgs: 'Borrar Mis Mensajes',
-        confirmClear: '¿Seguro que quieres borrar SOLO tus mensajes?',
-        confirmDelete: '¿Quieres eliminar este mensaje?',
-        msgJoined: 'se unió a la sala',
-        msgLeft: 'salió de la sala',
-        you: '(tú)',
-        typing1: 'escribiendo...',
-        typingSomeone: 'Alguien está escribiendo...',
-        typingMany: 'Varias personas están escribiendo...',
-        myMsgsCleared: 'Tus mensajes han sido borrados.',
-        cleared: 'borrado',
-        uploadError: 'Error al subir',
-        fileTooBig: 'Archivo demasiado grande (máx 5MB)',
-        confirmTitle: '¿Estás seguro?',
-        btnCancel: 'Cancelar',
-        btnConfirm: 'Sí, Eliminar',
-        expiryTitle: 'Duración del Mensaje',
-        expiryDesc: 'Elige cuánto tiempo duran los mensajes.'
-    },
-    fr: {
-        modalTitle: 'Entrer dans Talk2',
-        modalText: 'Choisissez un pseudo pour rejoindre:',
-        placeholderNickname: 'ex. VoyageurCosmique',
-        btnConnect: 'Connecter',
-        btnRandom: 'Générer Aléatoire',
-        systemBanner: 'Les données de cette salle sont effacées toutes les 24 heures.',
-        placeholderMessage: 'Tapez un message...',
-        sidebarTitle: 'En ligne',
-        btnClearMyMsgs: 'Effacer Mes Messages',
-        confirmClear: 'Êtes-vous sûr de vouloir effacer SEULEMENT vos messages?',
-        confirmDelete: 'Voulez-vous supprimer ce message?',
-        msgJoined: 'a rejoint la salle',
-        msgLeft: 'a quitté la salle',
-        you: '(vous)',
-        typing1: 'écrit...',
-        typingSomeone: 'Quelqu\'un écrit...',
-        typingMany: 'Plusieurs personnes écrivent...',
-        myMsgsCleared: 'Vos messages ont été effacés.',
-        cleared: 'effacé',
-        uploadError: 'Échec du téléchargement',
-        fileTooBig: 'Fichier trop volumineux (max 5Mo)',
-        confirmTitle: 'Êtes-vous sûr?',
-        btnCancel: 'Annuler',
-        btnConfirm: 'Oui, Supprimer',
-        expiryTitle: 'Durée des Messages',
-        expiryDesc: 'Choisissez combien de temps les messages restent.'
-    },
-    it: {
-        modalTitle: 'Entra in Talk2',
-        modalText: 'Scegli un nickname per unirti:',
-        placeholderNickname: 'es. ViaggiatoreCosmico',
-        btnConnect: 'Connetti',
-        btnRandom: 'Genera Casuale',
-        systemBanner: 'I dati in questa stanza vengono cancellati ogni 24 ore.',
-        placeholderMessage: 'Scrivi un messaggio...',
-        sidebarTitle: 'Online',
-        btnClearMyMsgs: 'Cancella I Miei Messaggi',
-        confirmClear: 'Sei sicuro di voler cancellare SOLO i tuoi messaggi?',
-        confirmDelete: 'Vuoi eliminare questo messaggio?',
-        msgJoined: 'è entrato nella stanza',
-        msgLeft: 'ha lasciato la stanza',
-        you: '(tu)',
-        typing1: 'sta scrivendo...',
-        typingSomeone: 'Qualcuno sta scrivendo...',
-        typingMany: 'Più persone stanno scrivendo...',
-        myMsgsCleared: 'I tuoi messaggi sono stati cancellati.',
-        cleared: 'cancellato',
-        uploadError: 'Caricamento fallito',
-        fileTooBig: 'File troppo grande (max 5MB)',
-        confirmTitle: 'Sei sicuro?',
-        btnCancel: 'Annulla',
-        btnConfirm: 'Sì, Elimina',
-        expiryTitle: 'Durata Messaggio',
-        expiryDesc: 'Scegli quanto tempo durano i messaggi.'
-    },
-    pt: {
-        modalTitle: 'Entrar no Talk2',
-        modalText: 'Escolha um apelido para entrar:',
-        placeholderNickname: 'ex. ViajanteCósmico',
-        btnConnect: 'Conectar',
-        btnRandom: 'Gerar Aleatório',
-        systemBanner: 'Os dados desta sala são limpos a cada 24 horas.',
-        placeholderMessage: 'Digite uma mensagem...',
-        sidebarTitle: 'Online',
-        btnClearMyMsgs: 'Limpar Minhas Mensagens',
-        confirmClear: 'Tem certeza que quer limpar APENAS suas mensagens?',
-        confirmDelete: 'Quer deletar esta mensagem?',
-        msgJoined: 'entrou na sala',
-        msgLeft: 'saiu da sala',
-        you: '(você)',
-        typing1: 'digitando...',
-        typingSomeone: 'Alguém está digitando...',
-        typingMany: 'Várias pessoas estão digitando...',
-        myMsgsCleared: 'Suas mensagens foram limpas.',
-        cleared: 'limpado',
-        uploadError: 'Falha no upload',
-        fileTooBig: 'Arquivo muito grande (máx 5MB)',
-        confirmTitle: 'Tem certeza?',
-        btnCancel: 'Cancelar',
-        btnConfirm: 'Sim, Deletar',
-        expiryTitle: 'Duração da Mensagem',
-        expiryDesc: 'Escolha quanto tempo as mensagens duram.'
-    }
-};
+// Translations Cache
+const loadedTranslations = {};
 
 // State Variables
 let pendingConfirmAction = null;
 let typingTimeout = null;
 let isTyping = false;
 let typingUsers = {};
+// Video Upload Variables
+// Voice variables removed
 let soundEnabled = localStorage.getItem('talk2_sound') !== 'false';
 let replyingTo = null;
 let notificationSound = null;
@@ -309,7 +60,7 @@ let shareLinkBtn, soundToggleBtn, replyPreview, replyToName, replyToText, cancel
 let expiryBtn, expiryOverlay, expiryCloseBtn, expiryOptions;
 let uploadBtn, imageInput;
 
-// --- Language Detection ---
+// --- Language Detection & Loading ---
 async function detectLanguage() {
     let storedLang = localStorage.getItem('talk2_lang');
     
@@ -343,22 +94,39 @@ async function detectLanguage() {
     
     currentLang = storedLang;
     if (!['en', 'tr', 'de', 'ru', 'ph', 'es', 'fr', 'it', 'pt'].includes(currentLang)) currentLang = 'en';
-    applyLanguage(currentLang);
+    
+    // Initial Load
+    await loadLanguage(currentLang);
     
     // Show nickname modal after language is applied
     const nicknameModal = document.getElementById('nickname-modal');
     if (nicknameModal) nicknameModal.style.opacity = '1';
 }
 
-function applyLanguage(lang) {
-    const t = translations[lang];
-    if (!t) {
-        console.error('No translations found for:', lang);
+async function loadLanguage(lang) {
+    if (loadedTranslations[lang]) {
+        applyTranslations(lang, loadedTranslations[lang]);
         return;
     }
-    
+
+    try {
+        const res = await fetch(`/locales/${lang}.json`);
+        if (!res.ok) throw new Error(`Failed to load ${lang}`);
+        const translations = await res.json();
+        loadedTranslations[lang] = translations;
+        applyTranslations(lang, translations);
+    } catch (e) {
+        console.error('Translation load error:', e);
+        // Fallback to English if not already English
+        if (lang !== 'en') loadLanguage('en');
+    }
+}
+
+function applyTranslations(lang, t) {
     console.log('Applying language:', lang);
-    
+    currentLang = lang;
+    localStorage.setItem('talk2_lang', lang);
+
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (t[key]) el.textContent = t[key];
@@ -382,6 +150,11 @@ function applyLanguage(lang) {
     if (clearBtn && t.btnClearMyMsgs) clearBtn.textContent = t.btnClearMyMsgs;
     
     if (langToggleBtn) langToggleBtn.textContent = lang.toUpperCase();
+}
+
+// Wrapper for existing applyLanguage calls from dropdown
+function applyLanguage(lang) {
+    loadLanguage(lang);
 }
 
 // --- Core Functions ---
@@ -418,15 +191,26 @@ function stopTyping() {
 // Reply feature removed
 
 function deleteMessage(id) {
-    const t = translations[currentLang] || translations['en'];
-    showConfirm(t.confirmDelete, () => {
+    const t = (loadedTranslations && loadedTranslations[currentLang]) || (loadedTranslations && loadedTranslations['en']) || {};
+    const confirmMsg = t.confirmDelete || 'Are you sure you want to delete this message?';
+    
+    // Fallback if modal is missing or check fails
+    if (!confirmModal || !showConfirm) {
+        if (confirm(confirmMsg)) {
+            socket.emit('deleteMessage', id);
+        }
+        return;
+    }
+    
+    showConfirm(confirmMsg, () => {
         socket.emit('deleteMessage', id);
     });
 }
 window.deleteMessage = deleteMessage;
 
 function showConfirm(message, onConfirm) {
-    const t = translations[currentLang] || translations['en'];
+    const t = (loadedTranslations && loadedTranslations[currentLang]) || (loadedTranslations && loadedTranslations['en']) || {};
+    
     if (confirmText) confirmText.textContent = message;
     if (confirmTitle) confirmTitle.textContent = t.confirmTitle || 'Confirm';
     if (confirmYesBtn) confirmYesBtn.textContent = t.btnConfirm || 'Yes';
@@ -436,6 +220,11 @@ function showConfirm(message, onConfirm) {
     if (confirmModal) {
         confirmModal.classList.remove('hidden');
         confirmModal.style.display = 'flex';
+    } else {
+        // Fallback to native confirm if modal fails
+        if(confirm(message)) {
+             onConfirm();
+        }
     }
 }
 
@@ -482,7 +271,7 @@ function updateUserList(users) {
     users.forEach(user => {
         const li = document.createElement('li');
         const isMe = user.nickname === nickname;
-        const t = translations[currentLang] || translations['en'];
+        const t = loadedTranslations[currentLang] || loadedTranslations['en'];
         li.innerHTML = `<i class="fas fa-user"></i> ${escapeHtml(user.nickname)} ${isMe ? t.you : ''}`;
         if (isMe) li.classList.add('self');
         usersList.appendChild(li);
@@ -495,7 +284,7 @@ function updateUserList(users) {
 function updateTypingIndicator() {
     if (!typingIndicator) return;
     const names = Object.keys(typingUsers);
-    const t = translations[currentLang] || translations['en'];
+    const t = loadedTranslations[currentLang] || loadedTranslations['en'];
     
     if (names.length === 0) {
         typingIndicator.textContent = '';
@@ -526,12 +315,40 @@ function addMessageToDOM(msg) {
         const imgPath = msg.image_path || msg.content;
         contentHtml = `<img src="${imgPath}" alt="Image" onclick="window.open(this.src, '_blank')" loading="lazy" />`;
         msgTextForReply = '[Image]';
+    } else if (msg.type === 'audio') {
+        contentHtml = `<audio controls src="${msg.content}"></audio>`;
+        msgTextForReply = '[Audio]';
+    } else if (msg.type === 'video') {
+        const videoPath = msg.video_path || msg.content;
+        const videoId = `video-${msg.id}`;
+        contentHtml = `
+            <div class="custom-video-player" id="player-${videoId}">
+                <video id="${videoId}" src="${videoPath}" playsinline></video>
+                <div class="video-overlay">
+                    <button class="play-btn"><i class="fas fa-play"></i></button>
+                </div>
+                <div class="video-controls">
+                    <button class="control-btn play-toggle"><i class="fas fa-play"></i></button>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                    </div>
+                    <span class="time-display">0:00 / 0:00</span>
+                    <button class="control-btn seek-btn" data-skip="-10" title="-10s"><i class="fas fa-undo"></i> 10</button>
+                    <button class="control-btn seek-btn" data-skip="10" title="+10s"><i class="fas fa-redo"></i> 10</button>
+                    <button class="control-btn fullscreen-toggle"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+        `;
+        msgTextForReply = '[Video]';
+        
+        // Initialize player after adding to DOM
+        requestAnimationFrame(() => initVideoPlayer(videoId));
     } else {
         msgTextForReply = msg.content || '';
         contentHtml = escapeHtml(msgTextForReply);
     }
 
-    const t = translations[currentLang] || translations['en'];
+    const t = loadedTranslations[currentLang] || loadedTranslations['en'];
     const displayName = isSelf ? (t.you || '(you)') : escapeHtml(msg.nickname);
     const deleteTitle = t.btnConfirm ? t.btnConfirm.split(',')[0] : 'Delete';
 
@@ -540,7 +357,7 @@ function addMessageToDOM(msg) {
             ${isSelf 
                 ? `<span class="time">${time}</span>
                    <span class="nickname">${displayName}</span>
-                   <button class="delete-msg-btn" onclick="deleteMessage('${msg.id}')" title="${deleteTitle}"><i class="fas fa-times"></i></button>
+                   <button class="delete-msg-btn" data-delete-id="${msg.id}" title="${deleteTitle}"><i class="fas fa-times"></i></button>
                    <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayName}</span>
                    <span class="time">${time}</span>`
@@ -551,8 +368,28 @@ function addMessageToDOM(msg) {
     
     messagesList.appendChild(div);
 
+    // Scroll handling for images/videos
+    const media = div.querySelector('img, video');
+    if (media) {
+        media.onload = scrollToBottom;
+        media.onloadeddata = scrollToBottom;
+    }
+
     if (!isSelf && window.msgObserver) {
         window.msgObserver.observe(div);
+    }
+}
+
+function scrollToBottom() {
+    if (messagesList) {
+        // Use requestAnimationFrame to ensure DOM paint is complete
+        requestAnimationFrame(() => {
+            messagesList.scrollTop = messagesList.scrollHeight;
+        });
+        // Double check a bit later for slow rendering elements
+        setTimeout(() => {
+            if(messagesList) messagesList.scrollTop = messagesList.scrollHeight;
+        }, 100);
     }
 }
 
@@ -562,7 +399,7 @@ function addSystemMessage(data) {
     const div = document.createElement('div');
     div.className = `system-message ${data.type || 'info'}`;
     
-    const t = translations[currentLang] || translations['en'];
+    const t = loadedTranslations[currentLang] || loadedTranslations['en'];
     let text = data.content || '';
     
     if (data.type === 'join') text = `${data.nickname} ${t.msgJoined}`;
@@ -592,6 +429,8 @@ document.addEventListener('DOMContentLoaded', () => {
     nicknameInput = document.getElementById('nickname-input');
     randomBtn = document.getElementById('random-nickname');
     
+
+    
     chatForm = document.getElementById('chat-form');
     messageInput = document.getElementById('message-input');
     sendBtn = document.getElementById('send-btn');
@@ -599,6 +438,20 @@ document.addEventListener('DOMContentLoaded', () => {
     messagesList = document.getElementById('messages');
     roomNameHeader = document.getElementById('room-name-header');
     roomDisplay = document.getElementById('room-display');
+
+    // Event delegation for delete, image preview, etc.
+    if (messagesList) {
+        messagesList.addEventListener('click', (e) => {
+            // Delete Message
+            const delBtn = e.target.closest('.delete-msg-btn');
+            if (delBtn) {
+                const msgId = delBtn.dataset.deleteId;
+                if (msgId) deleteMessage(msgId);
+                return;
+            }
+            // Image Preview logic...
+        });
+    }
     userCount = document.getElementById('user-count');
     sidebarUserCount = document.getElementById('sidebar-user-count');
     usersList = document.getElementById('users-list');
@@ -705,32 +558,77 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
             
-            if (file.size > 5 * 1024 * 1024) {
-                alert(translations[currentLang].fileTooBig);
+            let type = 'image';
+            if (file.type.startsWith('video/')) {
+                type = 'video';
+            } else if (!file.type) {
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'].includes(ext)) {
+                    type = 'video';
+                }
+            }
+
+            if (file.size > 200 * 1024 * 1024) { // 200MB limit
+                alert(loadedTranslations[currentLang].fileTooBig);
                 return;
             }
             
             const formData = new FormData();
-            formData.append('image', file);
+            formData.append('file', file);
             
             uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             uploadBtn.disabled = true;
             
-            try {
-                const response = await fetch('/api/upload', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error('Upload failed');
-                const data = await response.json();
-                sendMessage(data.url, 'image');
-                imageInput.value = '';
-            } catch (err) {
-                console.error(err);
-                alert(translations[currentLang].uploadError);
-            } finally {
-                uploadBtn.innerHTML = '<i class="fas fa-image"></i>';
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/api/upload', true);
+            xhr.timeout = 120000; // 2m timeout
+
+            xhr.upload.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const percentComplete = Math.round((e.loaded / e.total) * 100);
+                    uploadBtn.innerHTML = `<span style="font-size: 10px; font-weight: 800; line-height: 1;">${percentComplete}%</span>`;
+                }
+            };
+
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        sendMessage(data.url, type);
+                        imageInput.value = '';
+                    } catch (e) {
+                        console.error('JSON Parse error', e);
+                        alert(loadedTranslations[currentLang].uploadError);
+                    }
+                } else {
+                    console.error('Upload failed', xhr.statusText);
+                    alert(loadedTranslations[currentLang].uploadError);
+                }
+                uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
                 uploadBtn.disabled = false;
-            }
+            };
+
+            xhr.onerror = () => {
+                console.error('Upload network error');
+                alert(loadedTranslations[currentLang].uploadError);
+                uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
+                uploadBtn.disabled = false;
+            };
+
+            xhr.ontimeout = () => {
+                console.error('Upload timed out');
+                alert("Upload timed out");
+                uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
+                uploadBtn.disabled = false;
+            };
+
+            xhr.send(formData);
         });
     }
+
+    // Voice recording logic removed
+
+    // Confirm Modal
     
     // Confirm Modal
     if (confirmCancelBtn) {
@@ -750,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Clear Messages
     if (clearMsgsBtn) {
         clearMsgsBtn.addEventListener('click', () => {
-            const t = translations[currentLang] || translations['en'];
+            const t = loadedTranslations[currentLang] || loadedTranslations['en'];
             showConfirm(t.confirmClear, () => socket.emit('clearUserMessages'));
         });
     }
@@ -773,6 +671,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 usersSidebar.classList.toggle('visible');
             } else {
                 usersSidebar.classList.toggle('hidden');
+            }
+        });
+
+        // Close button logic
+        const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+        if (closeSidebarBtn) {
+            closeSidebarBtn.addEventListener('click', () => {
+                usersSidebar.classList.remove('visible');
+                usersSidebar.classList.add('hidden'); // Ensure hidden on desktop too if needed, though 'visible' deals with mobile
+            });
+        }
+
+        // Click outside to close (Mobile mainly)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768 && 
+                usersSidebar.classList.contains('visible') && 
+                !usersSidebar.contains(e.target) && 
+                e.target !== toggleSidebarBtn && 
+                !toggleSidebarBtn.contains(e.target)) {
+                
+                usersSidebar.classList.remove('visible');
             }
         });
     }
@@ -886,7 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Function to update existing messages when language changes
     function updateExistingMessages() {
-        const t = translations[currentLang] || translations['en'];
+        const t = loadedTranslations[currentLang] || loadedTranslations['en'];
         const selfMessages = document.querySelectorAll('.message.self .nickname');
         selfMessages.forEach(el => {
             el.textContent = t.you || '(you)';
@@ -991,3 +910,88 @@ socket.on('messageRead', (data) => {
     const statusEl = document.getElementById(`read-${data.msgId}`);
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #4ade80;"></i>';
 });
+
+// Custom Video Player Logic
+function initVideoPlayer(videoId) {
+    const video = document.getElementById(videoId);
+    if (!video) return;
+    
+    const container = video.parentElement;
+    const overlay = container.querySelector('.video-overlay');
+    const playBtn = overlay.querySelector('.play-btn');
+    const controls = container.querySelector('.video-controls');
+    const playToggle = controls.querySelector('.play-toggle');
+    const progressBarContainer = controls.querySelector('.progress-bar-container');
+    const progressBar = controls.querySelector('.progress-bar');
+    const progressFill = controls.querySelector('.progress-fill');
+    const timeDisplay = controls.querySelector('.time-display');
+    const fullscreenToggle = controls.querySelector('.fullscreen-toggle');
+    const seekBtns = controls.querySelectorAll('.seek-btn');
+    
+    function togglePlay() {
+        if (video.paused) {
+            video.play();
+            overlay.style.opacity = '0';
+            playToggle.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            video.pause();
+            overlay.style.opacity = '1';
+            playToggle.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
+    
+    // ... helper functions ...
+
+    seekBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation(); // prevent playing/pausing if bubbling to container
+            const skip = parseFloat(btn.dataset.skip);
+            video.currentTime += skip;
+        });
+    });
+    
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+    
+    function updateProgress() {
+        if (!video.duration) return;
+        const percent = (video.currentTime / video.duration) * 100;
+        progressFill.style.width = `${percent}%`;
+        timeDisplay.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    }
+    
+    playBtn.addEventListener('click', togglePlay);
+    playToggle.addEventListener('click', togglePlay);
+    video.addEventListener('click', togglePlay);
+    
+    video.addEventListener('timeupdate', updateProgress);
+    video.addEventListener('loadedmetadata', () => {
+        timeDisplay.textContent = `0:00 / ${formatTime(video.duration)}`;
+    });
+    
+    video.addEventListener('ended', () => {
+        overlay.style.opacity = '1';
+        playToggle.innerHTML = '<i class="fas fa-play"></i>';
+        progressFill.style.width = '0%';
+    });
+    
+    progressBarContainer.addEventListener('click', (e) => {
+        const rect = progressBar.getBoundingClientRect();
+        const pos = (e.clientX - rect.left) / rect.width;
+        video.currentTime = pos * video.duration;
+    });
+    
+    fullscreenToggle.addEventListener('click', () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+            fullscreenToggle.innerHTML = '<i class="fas fa-expand"></i>';
+        } else {
+            container.requestFullscreen();
+            fullscreenToggle.innerHTML = '<i class="fas fa-compress"></i>';
+        }
+    });
+
+}

@@ -315,9 +315,15 @@ body {
 }
 
 #chat-form {
+    width: 100%;
+}
+
+.input-wrapper {
     display: flex;
     gap: 0.5rem;
     align-items: center;
+    width: 100%;
+    position: relative;
 }
 
 #chat-form input[type="text"] {
@@ -397,6 +403,24 @@ body {
     justify-content: space-between;
     padding: 1rem;
     border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+    .close-sidebar {
+        display: block !important;
+        margin-left: auto;
+    }
+    .users-sidebar {
+        z-index: 2000;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.5);
+    }
+    
+    /* Make delete button easier to tap on mobile */
+    .delete-msg-btn {
+        padding: 6px 10px !important; 
+        font-size: 1rem !important;
+        opacity: 1 !important; /* Force visible on mobile */
+    }
 }
 
 .sidebar-header h3 {
@@ -1001,6 +1025,15 @@ body {
     content: "\f6a9"; /* fa-volume-mute */
 }
 
+/* Video Player */
+.video-msg {
+    max-width: 100%;
+    border-radius: 12px;
+    margin-top: 5px;
+    background: black;
+}
+
+
 .icon-btn.active {
     color: var(--accent);
 }
@@ -1085,4 +1118,118 @@ body {
     height: 15px;
     border-radius: 2px;
     box-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Custom Video Player */
+.custom-video-player {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    margin-top: 6px;
+}
+
+.custom-video-player video {
+    width: 100%;
+    display: block;
+}
+
+.video-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.3);
+    transition: opacity 0.2s;
+    pointer-events: none; /* Let clicks pass to video for toggle */
+}
+
+.video-overlay .play-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    color: var(--accent);
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto; /* Enable click on button */
+    transition: transform 0.2s;
+}
+
+.video-overlay .play-btn:hover {
+    transform: scale(1.1);
+}
+
+.video-controls {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.custom-video-player:hover .video-controls {
+    opacity: 1;
+}
+
+.control-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 5px;
+}
+
+.progress-bar-container {
+    flex: 1;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0;
+}
+
+.time-display {
+    color: white;
+    font-size: 0.7rem;
+    font-variant-numeric: tabular-nums;
+    margin-right: 5px;
+}
+
+.seek-btn {
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px 5px;
+}
+
+.seek-btn i {
+    font-size: 0.7rem;
 }
