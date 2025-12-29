@@ -362,35 +362,33 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Legacy message handler (fallback if PHP fails)
     socket.on('message', (msgData) => {
         const timestamp = Date.now();
         const msgId = timestamp + Math.random().toString(36).substr(2, 9);
-        
-        // Store essential data in a serialized string as backup
-        const essentialData = JSON.stringify({
-            c: msgData.content,
-            v: msgData.video_path,
-            i: msgData.image_path,
-            a: msgData.audio_path
-        });
         
         const msg = {
             id: msgId,
             room_id: msgData.room,
             nickname: msgData.nickname,
             content: msgData.content,
-            media_url: msgData.video_path || msgData.image_path || msgData.audio_path || msgData.content,
             image_path: msgData.image_path,
             video_path: msgData.video_path,
             audio_path: msgData.audio_path,
             type: msgData.type,
             timestamp: timestamp,
-            replyTo: msgData.replyTo || null,
-            _data: essentialData
+            replyTo: msgData.replyTo || null
         };
         
         db.addMessage({...msg});
         io.to(msgData.room).emit('message', msg);
+    });
+    
+    // NEW: Just broadcast message ID - clients fetch from PHP
+    socket.on('newMessage', (data) => {
+        console.log('newMessage received:', data);
+        // Broadcast to all users in the room (except sender)
+        socket.to(data.room).emit('newMessage', { messageId: data.messageId });
     });
 
     socket.on('deleteMessage', (msgId) => {

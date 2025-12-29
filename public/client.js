@@ -185,7 +185,7 @@ function joinRoom() {
     socket.emit('join', roomId, nickname, userId);
 }
 
-function sendMessage(content, type) {
+async function sendMessage(content, type) {
     console.log('sendMessage called with content:', content, 'type:', type);
     const tempId = 'temp_' + Date.now() + Math.random().toString(36).substr(2, 5);
     
@@ -194,14 +194,12 @@ function sendMessage(content, type) {
         nickname: nickname,
         content: content,
         type: type,
-        // Send path fields directly from client
         image_path: type === 'image' ? content : null,
         video_path: type === 'video' ? content : null,
-        audio_path: type === 'audio' ? content : null,
-        tempId: tempId
+        audio_path: type === 'audio' ? content : null
     };
     
-    // OPTIMISTIC UI: For media, display locally BEFORE server response
+    // OPTIMISTIC UI: Display locally immediately
     if (type === 'image' || type === 'video' || type === 'audio') {
         const localMsg = {
             id: tempId,
@@ -217,8 +215,30 @@ function sendMessage(content, type) {
         addMessageToDOM(localMsg);
     }
     
-    console.log('Emitting message:', JSON.stringify(msgData));
-    socket.emit('message', msgData);
+    try {
+        // Save message via PHP
+        const response = await fetch('/message.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(msgData)
+        });
+        const result = await response.json();
+        
+        if (result.success && result.message) {
+            // Notify other users via socket.io (just the ID)
+            socket.emit('newMessage', { room: roomId, messageId: result.message.id });
+            
+            // Update temp message ID if exists
+            const tempEl = document.getElementById(`msg-${tempId}`);
+            if (tempEl) tempEl.id = `msg-${result.message.id}`;
+        } else {
+            console.error('Failed to save message:', result);
+        }
+    } catch (err) {
+        console.error('Message save failed:', err);
+        // Fallback: send via socket.io as before
+        socket.emit('message', msgData);
+    }
 }
 
 function stopTyping() {
@@ -1138,10 +1158,8 @@ socket.on('history', (messages) => {
 socket.on('message', (msg) => {
     // Skip if this is our own media message (already displayed via optimistic UI)
     if (msg.nickname === nickname && (msg.type === 'image' || msg.type === 'video' || msg.type === 'audio')) {
-        // Check if we already have a temp message displayed for this
         const existingTempMsgs = document.querySelectorAll('[id^="msg-temp_"]');
         if (existingTempMsgs.length > 0) {
-            // Replace temp ID with real ID but don't add duplicate
             const lastTemp = existingTempMsgs[existingTempMsgs.length - 1];
             lastTemp.id = `msg-${msg.id}`;
             scrollToBottom();
@@ -1152,6 +1170,31 @@ socket.on('message', (msg) => {
     addMessageToDOM(msg);
     scrollToBottom();
     if (msg.nickname !== nickname) playNotificationSound();
+});
+
+// NEW: Fetch message from PHP when notified via socket.io
+socket.on('newMessage', async (data) => {
+    console.log('newMessage notification received:', data);
+    
+    // Don't fetch if we just sent this (optimistic UI already displayed it)
+    const existingMsg = document.getElementById(`msg-${data.messageId}`);
+    if (existingMsg) {
+        console.log('Message already displayed, skipping fetch');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/message.php?id=${data.messageId}`);
+        if (response.ok) {
+            const msg = await response.json();
+            console.log('Fetched message from PHP:', msg);
+            addMessageToDOM(msg);
+            scrollToBottom();
+            if (msg.nickname !== nickname) playNotificationSound();
+        }
+    } catch (err) {
+        console.error('Failed to fetch message:', err);
+    }
 });
 
 socket.on('messageDeleted', (msgId) => {
