@@ -363,18 +363,18 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message', (msgData) => {
-        console.log('=== MESSAGE HANDLER START ===');
-        console.log('RAW msgData:', JSON.stringify(msgData));
-        
         const timestamp = Date.now();
         const msgId = timestamp + Math.random().toString(36).substr(2, 9);
         
-        // Create message from client data directly
+        // Create message - include media_url as backup
+        const mediaUrl = msgData.video_path || msgData.image_path || msgData.audio_path || msgData.content || null;
+        
         const msg = {
             id: msgId,
             room_id: msgData.room,
             nickname: msgData.nickname,
             content: msgData.content,
+            media_url: mediaUrl,
             image_path: msgData.image_path,
             video_path: msgData.video_path,
             audio_path: msgData.audio_path,
@@ -383,15 +383,8 @@ io.on('connection', (socket) => {
             replyTo: msgData.replyTo || null
         };
         
-        console.log('BROADCASTING msg:', JSON.stringify(msg));
-        
-        // Save to DB (async, don't wait)
         db.addMessage({...msg});
-        
-        // Broadcast the message we constructed, not the DB result
         io.to(msgData.room).emit('message', msg);
-        
-        console.log('=== MESSAGE HANDLER END ===');
     });
 
     socket.on('deleteMessage', (msgId) => {

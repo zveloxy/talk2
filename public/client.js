@@ -389,7 +389,7 @@ function addMessageToDOM(msg) {
         contentHtml = `<audio controls src="${msg.content}"></audio>`;
         msgTextForReply = '[Audio]';
     } else if (msg.type === 'video') {
-        const videoPath = msg.video_path || msg.content;
+        const videoPath = msg.video_path || msg.media_url || msg.content;
         const videoId = `video-${msg.id}`;
         contentHtml = `
             <div class="custom-video-player" id="player-${videoId}">
