@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# Handle /api/upload -> upload.php
+RewriteRule ^api/upload$ api/upload.php [L,QSA]
+
+# Handle /api/file/filename.enc -> file.php?name=filename.enc
+RewriteRule ^api/file/(.+)$ api/file.php?name=$1 [L,QSA]
+
+# Let Node.js handle everything else (if using Passenger or similar)
+# If not using Node.js for other routes, remove or modify below
