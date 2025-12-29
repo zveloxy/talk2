@@ -365,13 +365,14 @@ io.on('connection', (socket) => {
     socket.on('message', (msgData) => {
         console.log('Server received message:', JSON.stringify(msgData)); // DEBUG
         const { room, nickname, content, type, replyTo } = msgData;
-        console.log('Extracted replyTo:', replyTo); // DEBUG
+        console.log('Content value:', content, 'Type:', type); // DEBUG
         const timestamp = Date.now();
         
+        // Store URL in content for ALL types (so it's always preserved)
         const msg = {
             room_id: room,
             nickname,
-            content: type === 'text' ? content : null,
+            content: content, // Keep URL in content for all types
             image_path: type === 'image' ? content : null,
             audio_path: type === 'audio' ? content : null,
             video_path: type === 'video' ? content : null,
