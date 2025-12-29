@@ -1,8 +1,9 @@
-// Talk2 Service Worker - v4 (Cache bust)
-const CACHE_NAME = 'talk2-v4';
+// Talk2 Service Worker - v5 (Cache bust)
+const CACHE_NAME = 'talk2-v5';
 const ASSETS = [
     '/manifest.json',
     '/icon.png',
+    '/logo.svg',
     'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap',
     'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];

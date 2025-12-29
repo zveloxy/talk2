@@ -12,10 +12,16 @@
     --accent-glow: rgba(99, 102, 241, 0.3);
     --gradient-start: #6366f1;
     --gradient-end: #a855f7;
-    --border: rgba(255, 255, 255, 0.08);
+    --border: rgba(255, 255, 255, 0.06);
     --danger: #ef4444;
     --success: #22c55e;
-    --warning: #f59e0b;
+}
+
+.brand-logo {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    vertical-align: middle;
 }
 
 * {

@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talk2 Chat</title>
-    <link rel="stylesheet" href="/style.css?v=7">
+    <link rel="stylesheet" href="/style.css?v=8">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <meta name="theme-color" content="#6366f1">
     <script>
         if ('serviceWorker' in navigator) {
@@ -23,7 +24,7 @@
         <!-- Nickname Modal -->
         <div id="nickname-overlay" class="overlay">
             <div class="modal" id="nickname-modal" style="opacity: 0; transition: opacity 0.3s;">
-                <div class="modal-icon"><i class="fas fa-satellite"></i></div>
+                <div class="modal-icon"><img src="/logo.svg" alt="Logo" style="width: 64px; height: 64px;"></div>
                 <h2 data-i18n="modalTitle"></h2>
                 <p><span data-i18n="modalText"></span> <strong id="room-display"></strong></p>
                 <form id="nickname-form" onsubmit="return false;">
@@ -68,7 +69,7 @@
         <header class="chat-header">
             <a href="/" class="logo-link">
                 <div class="logo">
-                    <i class="fas fa-satellite"></i>
+                     <img src="/logo.svg" alt="Talk2" class="brand-logo">
                     <span>Talk2</span>
                 </div>
             </a>
