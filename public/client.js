@@ -1107,6 +1107,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }, { threshold: 0.5 });
     
+    // Prevent right-click context menu on images
+    document.addEventListener('contextmenu', (e) => {
+        if (e.target.tagName === 'IMG' && (e.target.classList.contains('lightbox-trigger') || e.target.id === 'lightbox-image')) {
+            e.preventDefault();
+            return false;
+        }
+    });
+    
     console.log("Talk2 Client Ready!");
 });
 
