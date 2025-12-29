@@ -1395,15 +1395,15 @@ body {
 /* Scroll to Bottom Button */
 .scroll-bottom-btn {
     position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 44px;
-    height: 44px;
+    bottom: 15px;
+    right: 15px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    background: var(--accent);
-    border: none;
-    color: white;
-    font-size: 18px;
+    background: var(--bg-card); /* Use card background for better contrast */
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 16px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
     transition: all 0.3s ease;

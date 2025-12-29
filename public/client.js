@@ -725,7 +725,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const scrollContainer = messagesList.parentElement; // .chat-container
             
             scrollContainer.addEventListener('scroll', () => {
-                const isNearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 200;
+                // Show button only if we are more than 50px away from bottom
+                const isNearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 50;
                 scrollBottomBtn.classList.toggle('hidden', isNearBottom);
             });
             
