@@ -7,6 +7,20 @@ $STORAGE_DIR = __DIR__ . '/../storage/uploads/';
 $SECRET_FILE = __DIR__ . '/../.secret';
 $MAX_SIZE = 200 * 1024 * 1024; // 200MB
 
+// DEBUG MODE - Remove after testing
+if (isset($_GET['debug'])) {
+    echo json_encode([
+        'current_dir' => __DIR__,
+        'secret_path' => $SECRET_FILE,
+        'secret_exists' => file_exists($SECRET_FILE),
+        'storage_path' => $STORAGE_DIR,
+        'storage_exists' => file_exists($STORAGE_DIR),
+        'parent_dir' => dirname(__DIR__),
+        'parent_files' => scandir(dirname(__DIR__))
+    ]);
+    exit;
+}
+
 // Ensure storage directory exists
 if (!file_exists($STORAGE_DIR)) {
     mkdir($STORAGE_DIR, 0755, true);
@@ -15,7 +29,7 @@ if (!file_exists($STORAGE_DIR)) {
 // Get encryption key
 if (!file_exists($SECRET_FILE)) {
     http_response_code(500);
-    echo json_encode(['error' => 'Encryption key not found']);
+    echo json_encode(['error' => 'Encryption key not found', 'path' => $SECRET_FILE]);
     exit;
 }
 $key = hex2bin(trim(file_get_contents($SECRET_FILE)));
