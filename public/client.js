@@ -187,6 +187,8 @@ function joinRoom() {
 
 function sendMessage(content, type) {
     console.log('sendMessage called with content:', content, 'type:', type);
+    const tempId = 'temp_' + Date.now() + Math.random().toString(36).substr(2, 5);
+    
     const msgData = {
         room: roomId,
         nickname: nickname,
@@ -195,8 +197,25 @@ function sendMessage(content, type) {
         // Send path fields directly from client
         image_path: type === 'image' ? content : null,
         video_path: type === 'video' ? content : null,
-        audio_path: type === 'audio' ? content : null
+        audio_path: type === 'audio' ? content : null,
+        tempId: tempId
     };
+    
+    // OPTIMISTIC UI: For media, display locally BEFORE server response
+    if (type === 'image' || type === 'video' || type === 'audio') {
+        const localMsg = {
+            id: tempId,
+            room_id: roomId,
+            nickname: nickname,
+            content: content,
+            type: type,
+            image_path: type === 'image' ? content : null,
+            video_path: type === 'video' ? content : null,
+            audio_path: type === 'audio' ? content : null,
+            timestamp: Date.now()
+        };
+        addMessageToDOM(localMsg);
+    }
     
     console.log('Emitting message:', JSON.stringify(msgData));
     socket.emit('message', msgData);
