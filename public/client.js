@@ -229,13 +229,20 @@ function deleteMessage(id, fileUrl = null) {
 
 // Delete file from PHP storage
 function deleteFileFromStorage(url) {
-    if (!url || url.startsWith('/uploads/')) return; // Skip legacy uploads
+    console.log('Attempting to delete file:', url);
+    if (!url || url.startsWith('/uploads/')) {
+        console.log('Skipping deletion - legacy upload or empty');
+        return;
+    }
     
     fetch('/delete.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ url: url })
-    }).catch(err => console.error('File deletion failed:', err));
+    })
+    .then(res => res.json())
+    .then(data => console.log('Delete response:', data))
+    .catch(err => console.error('File deletion failed:', err));
 }
 
 window.deleteMessage = deleteMessage;
