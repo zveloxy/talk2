@@ -580,7 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
             uploadBtn.disabled = true;
             
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload.php', true); // Use PHP handler directly
+            xhr.open('POST', '/api/upload', true); // Back to Node.js
             xhr.timeout = 120000; // 2m timeout
 
             xhr.upload.onprogress = (e) => {
