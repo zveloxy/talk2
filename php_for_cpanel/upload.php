@@ -1,5 +1,14 @@
 <?php
 // upload.php - SECURE Encrypted File Upload Handler for cPanel
+
+// PHP Settings for large file uploads
+ini_set('memory_limit', '512M');
+ini_set('max_execution_time', 300);
+ini_set('max_input_time', 300);
+error_reporting(E_ALL);
+ini_set('display_errors', 0); // Don't show to user
+ini_set('log_errors', 1);
+
 header('Content-Type: application/json');
 
 // ==================== SECURITY CONFIGURATION ====================
