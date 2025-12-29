@@ -217,20 +217,28 @@ async function sendMessage(content, type) {
     
     try {
         // Save message via PHP
+        console.log('Sending to PHP:', msgData);
         const response = await fetch('/message.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(msgData)
         });
         const result = await response.json();
+        console.log('PHP response:', result);
         
         if (result.success && result.message) {
             // Notify other users via socket.io (just the ID)
+            console.log('Emitting newMessage:', { room: roomId, messageId: result.message.id });
             socket.emit('newMessage', { room: roomId, messageId: result.message.id });
             
             // Update temp message ID if exists
             const tempEl = document.getElementById(`msg-${tempId}`);
             if (tempEl) tempEl.id = `msg-${result.message.id}`;
+            
+            // Also add to DOM if not already (for text messages)
+            if (type === 'text') {
+                addMessageToDOM(result.message);
+            }
         } else {
             console.error('Failed to save message:', result);
         }
