@@ -232,7 +232,12 @@ async function detectLanguage() {
 
 function applyLanguage(lang) {
     const t = translations[lang];
-    if (!t) return;
+    if (!t) {
+        console.error('No translations found for:', lang);
+        return;
+    }
+    
+    console.log('Applying language:', lang);
     
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
@@ -243,6 +248,18 @@ function applyLanguage(lang) {
         const key = el.getAttribute('data-i18n-placeholder');
         if (t[key]) el.placeholder = t[key];
     });
+    
+    // Update system banner
+    const systemBanner = document.querySelector('.system-message');
+    if (systemBanner && t.systemBanner) systemBanner.textContent = t.systemBanner;
+    
+    // Update sidebar title
+    const sidebarTitle = document.querySelector('.sidebar-title');
+    if (sidebarTitle && t.sidebarTitle) sidebarTitle.textContent = t.sidebarTitle;
+    
+    // Update clear messages button
+    const clearBtn = document.querySelector('#clear-messages-btn');
+    if (clearBtn && t.btnClearMyMsgs) clearBtn.textContent = t.btnClearMyMsgs;
     
     if (langToggleBtn) langToggleBtn.textContent = lang.toUpperCase();
 }
@@ -662,10 +679,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Cancel Reply
-    if (cancelReplyBtn) {
-        cancelReplyBtn.addEventListener('click', cancelReply);
-    }
+    // Reply feature removed
     
     // Emoji Picker
     if (emojiBtn && emojiPicker) {
@@ -718,14 +732,55 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Language Selector
-    const langSelect = document.getElementById('lang-select');
-    if (langSelect) {
-        langSelect.value = currentLang;
-        langSelect.addEventListener('change', (e) => {
-            currentLang = e.target.value;
-            localStorage.setItem('talk2_lang', currentLang);
-            applyLanguage(currentLang);
+    // Language Dropdown
+    const langDropdown = document.getElementById('lang-dropdown');
+    const langDropdownBtn = document.getElementById('lang-dropdown-btn');
+    const langDropdownMenu = document.getElementById('lang-dropdown-menu');
+    const currentFlag = document.getElementById('current-flag');
+    const currentLangText = document.getElementById('current-lang-text');
+    
+    const langData = {
+        en: { flag: 'fi-us', text: 'EN' },
+        tr: { flag: 'fi-tr', text: 'TR' },
+        de: { flag: 'fi-de', text: 'DE' },
+        ru: { flag: 'fi-ru', text: 'RU' },
+        ph: { flag: 'fi-ph', text: 'PH' }
+    };
+    
+    function updateLangDisplay(lang) {
+        if (currentFlag && langData[lang]) {
+            currentFlag.className = 'fi ' + langData[lang].flag + ' lang-flag';
+        }
+        if (currentLangText && langData[lang]) {
+            currentLangText.textContent = langData[lang].text;
+        }
+        // Update active state in menu
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.classList.toggle('active', opt.dataset.lang === lang);
+        });
+    }
+    
+    if (langDropdownBtn) {
+        updateLangDisplay(currentLang);
+        
+        langDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            langDropdown.classList.toggle('open');
+        });
+        
+        document.addEventListener('click', () => {
+            langDropdown.classList.remove('open');
+        });
+        
+        document.querySelectorAll('.lang-option').forEach(opt => {
+            opt.addEventListener('click', () => {
+                const lang = opt.dataset.lang;
+                currentLang = lang;
+                localStorage.setItem('talk2_lang', currentLang);
+                applyLanguage(currentLang);
+                updateLangDisplay(lang);
+                langDropdown.classList.remove('open');
+            });
         });
     }
     

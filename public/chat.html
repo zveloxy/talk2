@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Talk2 Chat</title>
-    <link rel="stylesheet" href="/style.css?v=4">
+    <link rel="stylesheet" href="/style.css?v=7">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#6366f1">
     <script>
@@ -82,13 +83,20 @@
                 <button id="sound-toggle-btn" class="icon-btn" title="Bildirim Sesi">
                     <i class="fas fa-volume-up"></i>
                 </button>
-                <select id="lang-select" class="lang-select">
-                    <option value="en">🇺🇸 EN</option>
-                    <option value="tr">🇹🇷 TR</option>
-                    <option value="de">🇩🇪 DE</option>
-                    <option value="ru">🇷🇺 RU</option>
-                    <option value="ph">🇵🇭 PH</option>
-                </select>
+                <div class="lang-dropdown" id="lang-dropdown">
+                    <button class="lang-dropdown-btn" id="lang-dropdown-btn">
+                        <span class="fi fi-us lang-flag" id="current-flag"></span>
+                        <span id="current-lang-text">EN</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
+                    <div class="lang-dropdown-menu" id="lang-dropdown-menu">
+                        <div class="lang-option" data-lang="en"><span class="fi fi-us"></span> English</div>
+                        <div class="lang-option" data-lang="tr"><span class="fi fi-tr"></span> Türkçe</div>
+                        <div class="lang-option" data-lang="de"><span class="fi fi-de"></span> Deutsch</div>
+                        <div class="lang-option" data-lang="ru"><span class="fi fi-ru"></span> Русский</div>
+                        <div class="lang-option" data-lang="ph"><span class="fi fi-ph"></span> Filipino</div>
+                    </div>
+                </div>
                 <button id="expiry-btn" class="icon-btn" title="Mesaj Süresi">
                     <i class="fas fa-history"></i>
                 </button>
@@ -173,6 +181,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=7"></script>
+    <script src="/client.js?v=11"></script>
 </body>
 </html>
