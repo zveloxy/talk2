@@ -269,6 +269,7 @@ function sendMessage(content, type) {
             nickname: replyingTo.nickname,
             text: replyingTo.text
         };
+        console.log('Sending message with replyTo:', msgData.replyTo);
     }
     
     socket.emit('message', msgData);
