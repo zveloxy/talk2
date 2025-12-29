@@ -32,6 +32,12 @@ try {
     const cron = require('node-cron');
     log('✓ node-cron loaded');
     
+    const compression = require('compression');
+    log('✓ compression loaded');
+    
+    const helmet = require('helmet');
+    log('✓ helmet loaded');
+    
     log('Loading database...');
     const db = require('./database');
     log('✓ database loaded');
@@ -62,8 +68,30 @@ if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-// --- Middleware ---
-app.use(express.static(path.join(__dirname, 'public')));
+// --- Security & Performance Middleware ---
+// Gzip compression for all responses
+app.use(compression());
+
+// Security headers (with adjustments for socket.io and inline scripts)
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            scriptSrc: ["'self'", "'unsafe-inline'", "cdnjs.cloudflare.com"],
+            styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
+            fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
+            imgSrc: ["'self'", "data:", "blob:"],
+            connectSrc: ["'self'", "ws:", "wss:", "https://ipapi.co"]
+        }
+    },
+    crossOriginEmbedderPolicy: false // Required for socket.io
+}));
+
+// Static files with caching headers
+app.use(express.static(path.join(__dirname, 'public'), {
+    maxAge: '1h', // Cache for 1 hour
+    etag: true
+}));
 app.use(express.json());
 
 // --- File Upload Setup (Multer) ---
