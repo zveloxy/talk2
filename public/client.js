@@ -174,6 +174,118 @@ const translations = {
         btnConfirm: 'Oo, Burahin',
         expiryTitle: 'Tagal ng Mensahe',
         expiryDesc: 'Pumili kung gaano katagal mananatili ang mga mensahe.'
+    },
+    es: {
+        modalTitle: 'Entrar a Talk2',
+        modalText: 'Elige un apodo para unirte:',
+        placeholderNickname: 'ej. ViajeroCosmico',
+        btnConnect: 'Conectar',
+        btnRandom: 'Generar Aleatorio',
+        systemBanner: 'Los datos de esta sala se borran cada 24 horas.',
+        placeholderMessage: 'Escribe un mensaje...',
+        sidebarTitle: 'En línea',
+        btnClearMyMsgs: 'Borrar Mis Mensajes',
+        confirmClear: '¿Seguro que quieres borrar SOLO tus mensajes?',
+        confirmDelete: '¿Quieres eliminar este mensaje?',
+        msgJoined: 'se unió a la sala',
+        msgLeft: 'salió de la sala',
+        you: '(tú)',
+        typing1: 'escribiendo...',
+        typingSomeone: 'Alguien está escribiendo...',
+        typingMany: 'Varias personas están escribiendo...',
+        myMsgsCleared: 'Tus mensajes han sido borrados.',
+        cleared: 'borrado',
+        uploadError: 'Error al subir',
+        fileTooBig: 'Archivo demasiado grande (máx 5MB)',
+        confirmTitle: '¿Estás seguro?',
+        btnCancel: 'Cancelar',
+        btnConfirm: 'Sí, Eliminar',
+        expiryTitle: 'Duración del Mensaje',
+        expiryDesc: 'Elige cuánto tiempo duran los mensajes.'
+    },
+    fr: {
+        modalTitle: 'Entrer dans Talk2',
+        modalText: 'Choisissez un pseudo pour rejoindre:',
+        placeholderNickname: 'ex. VoyageurCosmique',
+        btnConnect: 'Connecter',
+        btnRandom: 'Générer Aléatoire',
+        systemBanner: 'Les données de cette salle sont effacées toutes les 24 heures.',
+        placeholderMessage: 'Tapez un message...',
+        sidebarTitle: 'En ligne',
+        btnClearMyMsgs: 'Effacer Mes Messages',
+        confirmClear: 'Êtes-vous sûr de vouloir effacer SEULEMENT vos messages?',
+        confirmDelete: 'Voulez-vous supprimer ce message?',
+        msgJoined: 'a rejoint la salle',
+        msgLeft: 'a quitté la salle',
+        you: '(vous)',
+        typing1: 'écrit...',
+        typingSomeone: 'Quelqu\'un écrit...',
+        typingMany: 'Plusieurs personnes écrivent...',
+        myMsgsCleared: 'Vos messages ont été effacés.',
+        cleared: 'effacé',
+        uploadError: 'Échec du téléchargement',
+        fileTooBig: 'Fichier trop volumineux (max 5Mo)',
+        confirmTitle: 'Êtes-vous sûr?',
+        btnCancel: 'Annuler',
+        btnConfirm: 'Oui, Supprimer',
+        expiryTitle: 'Durée des Messages',
+        expiryDesc: 'Choisissez combien de temps les messages restent.'
+    },
+    it: {
+        modalTitle: 'Entra in Talk2',
+        modalText: 'Scegli un nickname per unirti:',
+        placeholderNickname: 'es. ViaggiatoreCosmico',
+        btnConnect: 'Connetti',
+        btnRandom: 'Genera Casuale',
+        systemBanner: 'I dati in questa stanza vengono cancellati ogni 24 ore.',
+        placeholderMessage: 'Scrivi un messaggio...',
+        sidebarTitle: 'Online',
+        btnClearMyMsgs: 'Cancella I Miei Messaggi',
+        confirmClear: 'Sei sicuro di voler cancellare SOLO i tuoi messaggi?',
+        confirmDelete: 'Vuoi eliminare questo messaggio?',
+        msgJoined: 'è entrato nella stanza',
+        msgLeft: 'ha lasciato la stanza',
+        you: '(tu)',
+        typing1: 'sta scrivendo...',
+        typingSomeone: 'Qualcuno sta scrivendo...',
+        typingMany: 'Più persone stanno scrivendo...',
+        myMsgsCleared: 'I tuoi messaggi sono stati cancellati.',
+        cleared: 'cancellato',
+        uploadError: 'Caricamento fallito',
+        fileTooBig: 'File troppo grande (max 5MB)',
+        confirmTitle: 'Sei sicuro?',
+        btnCancel: 'Annulla',
+        btnConfirm: 'Sì, Elimina',
+        expiryTitle: 'Durata Messaggio',
+        expiryDesc: 'Scegli quanto tempo durano i messaggi.'
+    },
+    pt: {
+        modalTitle: 'Entrar no Talk2',
+        modalText: 'Escolha um apelido para entrar:',
+        placeholderNickname: 'ex. ViajanteCósmico',
+        btnConnect: 'Conectar',
+        btnRandom: 'Gerar Aleatório',
+        systemBanner: 'Os dados desta sala são limpos a cada 24 horas.',
+        placeholderMessage: 'Digite uma mensagem...',
+        sidebarTitle: 'Online',
+        btnClearMyMsgs: 'Limpar Minhas Mensagens',
+        confirmClear: 'Tem certeza que quer limpar APENAS suas mensagens?',
+        confirmDelete: 'Quer deletar esta mensagem?',
+        msgJoined: 'entrou na sala',
+        msgLeft: 'saiu da sala',
+        you: '(você)',
+        typing1: 'digitando...',
+        typingSomeone: 'Alguém está digitando...',
+        typingMany: 'Várias pessoas estão digitando...',
+        myMsgsCleared: 'Suas mensagens foram limpas.',
+        cleared: 'limpado',
+        uploadError: 'Falha no upload',
+        fileTooBig: 'Arquivo muito grande (máx 5MB)',
+        confirmTitle: 'Tem certeza?',
+        btnCancel: 'Cancelar',
+        btnConfirm: 'Sim, Deletar',
+        expiryTitle: 'Duração da Mensagem',
+        expiryDesc: 'Escolha quanto tempo as mensagens duram.'
     }
 };
 
@@ -209,6 +321,10 @@ async function detectLanguage() {
             else if (['DE', 'AT', 'CH'].includes(data.country_code)) storedLang = 'de';
             else if (data.country_code === 'RU') storedLang = 'ru';
             else if (data.country_code === 'PH') storedLang = 'ph';
+            else if (['ES', 'MX', 'AR', 'CO', 'CL', 'PE', 'VE'].includes(data.country_code)) storedLang = 'es';
+            else if (['FR', 'BE', 'CA'].includes(data.country_code)) storedLang = 'fr';
+            else if (data.country_code === 'IT') storedLang = 'it';
+            else if (['BR', 'PT'].includes(data.country_code)) storedLang = 'pt';
             else storedLang = 'en';
         } catch (e) {
             const nav = navigator.language.toLowerCase();
@@ -216,13 +332,17 @@ async function detectLanguage() {
             else if (nav.startsWith('de')) storedLang = 'de';
             else if (nav.startsWith('ru')) storedLang = 'ru';
             else if (nav.startsWith('fil') || nav.startsWith('tl')) storedLang = 'ph';
+            else if (nav.startsWith('es')) storedLang = 'es';
+            else if (nav.startsWith('fr')) storedLang = 'fr';
+            else if (nav.startsWith('it')) storedLang = 'it';
+            else if (nav.startsWith('pt')) storedLang = 'pt';
             else storedLang = 'en';
         }
         localStorage.setItem('talk2_lang', storedLang);
     }
     
     currentLang = storedLang;
-    if (!['en', 'tr', 'de', 'ru', 'ph'].includes(currentLang)) currentLang = 'en';
+    if (!['en', 'tr', 'de', 'ru', 'ph', 'es', 'fr', 'it', 'pt'].includes(currentLang)) currentLang = 'en';
     applyLanguage(currentLang);
     
     // Show nickname modal after language is applied
@@ -412,8 +532,8 @@ function addMessageToDOM(msg) {
     }
 
     const t = translations[currentLang] || translations['en'];
-    const displayName = isSelf ? (currentLang === 'tr' ? 'Sen' : 'You') : escapeHtml(msg.nickname);
-    const deleteTitle = currentLang === 'tr' ? 'Sil' : 'Delete';
+    const displayName = isSelf ? (t.you || '(you)') : escapeHtml(msg.nickname);
+    const deleteTitle = t.btnConfirm ? t.btnConfirm.split(',')[0] : 'Delete';
 
     div.innerHTML = `
         <div class="meta">
@@ -744,7 +864,11 @@ document.addEventListener('DOMContentLoaded', () => {
         tr: { flag: 'fi-tr', text: 'TR' },
         de: { flag: 'fi-de', text: 'DE' },
         ru: { flag: 'fi-ru', text: 'RU' },
-        ph: { flag: 'fi-ph', text: 'PH' }
+        ph: { flag: 'fi-ph', text: 'PH' },
+        es: { flag: 'fi-es', text: 'ES' },
+        fr: { flag: 'fi-fr', text: 'FR' },
+        it: { flag: 'fi-it', text: 'IT' },
+        pt: { flag: 'fi-br', text: 'PT' }
     };
     
     function updateLangDisplay(lang) {
@@ -757,6 +881,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update active state in menu
         document.querySelectorAll('.lang-option').forEach(opt => {
             opt.classList.toggle('active', opt.dataset.lang === lang);
+        });
+    }
+    
+    // Function to update existing messages when language changes
+    function updateExistingMessages() {
+        const t = translations[currentLang] || translations['en'];
+        const selfMessages = document.querySelectorAll('.message.self .nickname');
+        selfMessages.forEach(el => {
+            el.textContent = t.you || '(you)';
         });
     }
     
@@ -779,6 +912,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('talk2_lang', currentLang);
                 applyLanguage(currentLang);
                 updateLangDisplay(lang);
+                updateExistingMessages(); // Update (sen)/(you) on existing messages
                 langDropdown.classList.remove('open');
             });
         });
