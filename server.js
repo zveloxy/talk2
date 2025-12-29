@@ -210,7 +210,9 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message', (msgData) => {
+        console.log('Server received message:', JSON.stringify(msgData)); // DEBUG
         const { room, nickname, content, type, replyTo } = msgData;
+        console.log('Extracted replyTo:', replyTo); // DEBUG
         const timestamp = Date.now();
         
         const msg = {
@@ -222,6 +224,8 @@ io.on('connection', (socket) => {
             timestamp,
             replyTo: replyTo || null // Store reply reference
         };
+        
+        console.log('Saving message:', JSON.stringify(msg)); // DEBUG
 
         // Save to DB
         const savedMsg = db.addMessage(msg);
