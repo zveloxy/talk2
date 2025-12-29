@@ -82,7 +82,7 @@ app.use(helmet({
             scriptSrc: ["'self'", "'unsafe-inline'", "cdnjs.cloudflare.com"],
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
-            imgSrc: ["'self'", "data:", "blob:"],
+            imgSrc: ["'self'", "data:", "blob:", "cdnjs.cloudflare.com"],
             connectSrc: ["'self'", "ws:", "wss:", "https://ipapi.co"]
         }
     },
