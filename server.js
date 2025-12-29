@@ -364,21 +364,21 @@ io.on('connection', (socket) => {
 
     socket.on('message', (msgData) => {
         console.log('Server received message:', JSON.stringify(msgData)); // DEBUG
-        const { room, nickname, content, type, replyTo } = msgData;
+        const { room, nickname, content, type, replyTo, image_path, video_path, audio_path } = msgData;
         console.log('Content value:', content, 'Type:', type); // DEBUG
         const timestamp = Date.now();
         
-        // Store URL in content for ALL types (so it's always preserved)
+        // Use path fields from client directly
         const msg = {
             room_id: room,
             nickname,
-            content: content, // Keep URL in content for all types
-            image_path: type === 'image' ? content : null,
-            audio_path: type === 'audio' ? content : null,
-            video_path: type === 'video' ? content : null,
+            content: content,
+            image_path: image_path || null,
+            audio_path: audio_path || null,
+            video_path: video_path || null,
             type,
             timestamp,
-            replyTo: replyTo || null // Store reply reference
+            replyTo: replyTo || null
         };
         
         console.log('Saving message:', JSON.stringify(msg)); // DEBUG

@@ -191,7 +191,11 @@ function sendMessage(content, type) {
         room: roomId,
         nickname: nickname,
         content: content,
-        type: type
+        type: type,
+        // Send path fields directly from client
+        image_path: type === 'image' ? content : null,
+        video_path: type === 'video' ? content : null,
+        audio_path: type === 'audio' ? content : null
     };
     
     console.log('Emitting message:', JSON.stringify(msgData));
