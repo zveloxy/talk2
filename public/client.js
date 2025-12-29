@@ -338,6 +338,12 @@ function updateTypingIndicator() {
 }
 
 function addMessageToDOM(msg) {
+    // Debug video messages
+    if (msg.type === 'video') {
+        console.log('VIDEO MESSAGE RECEIVED:', JSON.stringify(msg));
+        console.log('video_path:', msg.video_path);
+        console.log('content:', msg.content);
+    }
     if (!messagesList) return;
     
     const div = document.createElement('div');
