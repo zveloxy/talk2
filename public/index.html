@@ -1233,20 +1233,20 @@
             const currentLangText = document.getElementById('current-lang-text');
             
             const langData = {
-                en: { flag: 'fi-us', text: 'EN' },
-                tr: { flag: 'fi-tr', text: 'TR' },
-                de: { flag: 'fi-de', text: 'DE' },
-                ru: { flag: 'fi-ru', text: 'RU' },
-                ph: { flag: 'fi-ph', text: 'PH' },
-                es: { flag: 'fi-es', text: 'ES' },
-                fr: { flag: 'fi-fr', text: 'FR' },
-                it: { flag: 'fi-it', text: 'IT' },
-                pt: { flag: 'fi-br', text: 'PT' }
+                en: { flag: '/flags/us.svg', text: 'EN' },
+                tr: { flag: '/flags/tr.svg', text: 'TR' },
+                de: { flag: '/flags/de.svg', text: 'DE' },
+                ru: { flag: '/flags/ru.svg', text: 'RU' },
+                ph: { flag: '/flags/ph.svg', text: 'PH' },
+                es: { flag: '/flags/es.svg', text: 'ES' },
+                fr: { flag: '/flags/fr.svg', text: 'FR' },
+                it: { flag: '/flags/it.svg', text: 'IT' },
+                pt: { flag: '/flags/br.svg', text: 'PT' }
             };
             
             function updateLangDisplay(lang) {
                 if (currentFlag && langData[lang]) {
-                    currentFlag.className = 'fi ' + langData[lang].flag + ' lang-flag';
+                    currentFlag.src = langData[lang].flag;
                 }
                 if (currentLangText && langData[lang]) {
                     currentLangText.textContent = langData[lang].text;
