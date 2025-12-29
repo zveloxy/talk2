@@ -1234,3 +1234,59 @@ body {
 .seek-btn i {
     font-size: 0.7rem;
 }
+
+/* Image Lightbox Modal */
+.lightbox-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s, visibility 0.3s;
+}
+
+.lightbox-modal:not(.hidden) {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox-modal img {
+    max-width: 90vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 0 50px rgba(99, 102, 241, 0.3);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 30px;
+    font-size: 40px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s, color 0.2s;
+    z-index: 10001;
+}
+
+.lightbox-close:hover {
+    color: var(--accent);
+    transform: scale(1.2);
+}
+
+/* Make message images clickable */
+.message-content img {
+    cursor: zoom-in;
+    transition: transform 0.2s;
+}
+
+.message-content img:hover {
+    transform: scale(1.02);
+}

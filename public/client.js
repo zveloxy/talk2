@@ -478,6 +478,44 @@ document.addEventListener('DOMContentLoaded', () => {
     expiryCloseBtn = document.getElementById('expiry-close-btn');
     expiryOptions = document.querySelectorAll('.expiry-option');
     
+    // Lightbox elements
+    const lightboxModal = document.getElementById('lightbox-modal');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxClose = document.querySelector('.lightbox-close');
+    
+    // Lightbox event handlers
+    if (lightboxModal && lightboxImage && lightboxClose) {
+        // Close on X button click
+        lightboxClose.addEventListener('click', () => {
+            lightboxModal.classList.add('hidden');
+        });
+        
+        // Close on background click
+        lightboxModal.addEventListener('click', (e) => {
+            if (e.target === lightboxModal) {
+                lightboxModal.classList.add('hidden');
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !lightboxModal.classList.contains('hidden')) {
+                lightboxModal.classList.add('hidden');
+            }
+        });
+    }
+    
+    // Event delegation for image clicks (to show lightbox)
+    if (messagesList) {
+        messagesList.addEventListener('click', (e) => {
+            const img = e.target.closest('.message-content img');
+            if (img && lightboxModal && lightboxImage) {
+                lightboxImage.src = img.src;
+                lightboxModal.classList.remove('hidden');
+            }
+        });
+    }
+    
     uploadBtn = document.getElementById('upload-btn');
     imageInput = document.getElementById('image-input');
     

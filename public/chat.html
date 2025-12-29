@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Talk2 Chat</title>
-    <link rel="stylesheet" href="/style.css?v=11">
+    <link rel="stylesheet" href="/style.css?v=12">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
@@ -189,7 +189,13 @@
         </div>
     </div>
 
+    <!-- Image Lightbox Modal -->
+    <div id="lightbox-modal" class="lightbox-modal hidden">
+        <span class="lightbox-close">&times;</span>
+        <img id="lightbox-image" src="" alt="Enlarged Image">
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=24"></script>
+    <script src="/client.js?v=25"></script>
 </body>
 </html>
