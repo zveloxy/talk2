@@ -1337,3 +1337,41 @@ body {
         height: 40px;
     }
 }
+
+/* Toast Notification */
+.toast-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-100px);
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    box-shadow: 0 8px 30px rgba(239, 68, 68, 0.4);
+    z-index: 20000;
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.3s;
+}
+
+.toast-notification:not(.hidden) {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+}
+
+.toast-notification i {
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .toast-notification {
+        width: 90%;
+        text-align: center;
+        justify-content: center;
+    }
+}

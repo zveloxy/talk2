@@ -779,7 +779,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (file.size > 200 * 1024 * 1024) { // 200MB limit
-                alert(loadedTranslations[currentLang].fileTooBig);
+                const t = loadedTranslations[currentLang] || loadedTranslations['en'];
+                showToast(t.fileTooBig || 'Dosya boyutu çok büyük! (Max: 200MB)');
                 return;
             }
             
