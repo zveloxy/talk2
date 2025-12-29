@@ -389,7 +389,7 @@ function addMessageToDOM(msg) {
             ${isSelf 
                 ? `<span class="time">${time}</span>
                    <span class="nickname">${displayName}</span>
-                   <button class="delete-msg-btn" data-delete-id="${msg.id}" data-file-url="${msg.image_path || msg.content || ''}" title="${deleteTitle}"><i class="fas fa-times"></i></button>
+                   <button class="delete-msg-btn" data-delete-id="${msg.id}" data-file-url="${msg.image_path || msg.video_path || ''}" title="${deleteTitle}"><i class="fas fa-times"></i></button>
                    <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayName}</span>
                    <span class="time">${time}</span>`
@@ -796,7 +796,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (file.size > 200 * 1024 * 1024) { // 200MB limit
                 const t = loadedTranslations[currentLang] || loadedTranslations['en'];
-                showToast(t.fileTooBig || 'Dosya boyutu çok büyük! (Max: 200MB)');
+                const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
+                showToast(`${t.fileTooBig || 'Dosya boyutu çok büyük!'} (${fileSizeMB}MB / Max: 200MB)`);
                 return;
             }
             
