@@ -185,68 +185,21 @@ function joinRoom() {
     socket.emit('join', roomId, nickname, userId);
 }
 
-async function sendMessage(content, type) {
-    console.log('sendMessage called with content:', content, 'type:', type);
-    const tempId = 'temp_' + Date.now() + Math.random().toString(36).substr(2, 5);
+function sendMessage(content, type) {
+    if (type === 'video') {
+        console.warn('Video upload disabled');
+        return;
+    }
     
     const msgData = {
         room: roomId,
         nickname: nickname,
         content: content,
         type: type,
-        image_path: type === 'image' ? content : null,
-        video_path: type === 'video' ? content : null,
-        audio_path: type === 'audio' ? content : null
+        image_path: type === 'image' ? content : null
     };
     
-    // OPTIMISTIC UI: Display locally immediately
-    if (type === 'image' || type === 'video' || type === 'audio') {
-        const localMsg = {
-            id: tempId,
-            room_id: roomId,
-            nickname: nickname,
-            content: content,
-            type: type,
-            image_path: type === 'image' ? content : null,
-            video_path: type === 'video' ? content : null,
-            audio_path: type === 'audio' ? content : null,
-            timestamp: Date.now()
-        };
-        addMessageToDOM(localMsg);
-    }
-    
-    try {
-        // Save message via PHP
-        console.log('Sending to PHP:', msgData);
-        const response = await fetch('/message.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(msgData)
-        });
-        const result = await response.json();
-        console.log('PHP response:', result);
-        
-        if (result.success && result.message) {
-            // Notify other users via socket.io (just the ID)
-            console.log('Emitting newMessage:', { room: roomId, messageId: result.message.id });
-            socket.emit('newMessage', { room: roomId, messageId: result.message.id });
-            
-            // Update temp message ID if exists
-            const tempEl = document.getElementById(`msg-${tempId}`);
-            if (tempEl) tempEl.id = `msg-${result.message.id}`;
-            
-            // Also add to DOM if not already (for text messages)
-            if (type === 'text') {
-                addMessageToDOM(result.message);
-            }
-        } else {
-            console.error('Failed to save message:', result);
-        }
-    } catch (err) {
-        console.error('Message save failed:', err);
-        // Fallback: send via socket.io as before
-        socket.emit('message', msgData);
-    }
+    socket.emit('message', msgData);
 }
 
 function stopTyping() {
@@ -858,20 +811,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
             
-            let type = 'image';
-            if (file.type.startsWith('video/')) {
-                type = 'video';
-            } else if (!file.type) {
-                const ext = file.name.split('.').pop().toLowerCase();
-                if (['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'].includes(ext)) {
-                    type = 'video';
-                }
+            // Only allow images
+            if (file.type.startsWith('video/') || 
+                ['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'].includes(file.name.split('.').pop().toLowerCase())) {
+                const t = loadedTranslations[currentLang] || loadedTranslations['en'];
+                showToast(t.videoNotSupported || 'Video yükleme şu an desteklenmiyor. Sadece resim yükleyebilirsiniz.');
+                imageInput.value = '';
+                return;
             }
+            
+            const type = 'image';
 
-            if (file.size > 200 * 1024 * 1024) { // 200MB limit
+            if (file.size > 10 * 1024 * 1024) { // 10MB limit for images
                 const t = loadedTranslations[currentLang] || loadedTranslations['en'];
                 const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-                showToast(`${t.fileTooBig || 'Dosya boyutu çok büyük!'} (${fileSizeMB}MB / Max: 200MB)`);
+                showToast(`${t.fileTooBig || 'Dosya boyutu çok büyük!'} (${fileSizeMB}MB / Max: 10MB)`);
                 return;
             }
             
@@ -1164,75 +1118,10 @@ socket.on('history', (messages) => {
 });
 
 socket.on('message', (msg) => {
-    // Skip if this is our own media message (already displayed via optimistic UI)
-    if (msg.nickname === nickname && (msg.type === 'image' || msg.type === 'video' || msg.type === 'audio')) {
-        const existingTempMsgs = document.querySelectorAll('[id^="msg-temp_"]');
-        if (existingTempMsgs.length > 0) {
-            const lastTemp = existingTempMsgs[existingTempMsgs.length - 1];
-            lastTemp.id = `msg-${msg.id}`;
-            scrollToBottom();
-            return;
-        }
-    }
-    
     addMessageToDOM(msg);
     scrollToBottom();
     if (msg.nickname !== nickname) playNotificationSound();
 });
-
-// NEW: Fetch message from PHP when notified via socket.io
-socket.on('newMessage', async (data) => {
-    console.log('newMessage notification received:', data);
-    
-    // Don't fetch if we just sent this (optimistic UI already displayed it)
-    const existingMsg = document.getElementById(`msg-${data.messageId}`);
-    if (existingMsg) {
-        console.log('Message already displayed, skipping fetch');
-        return;
-    }
-    
-    try {
-        const response = await fetch(`/message.php?id=${data.messageId}`);
-        if (response.ok) {
-            const msg = await response.json();
-            console.log('Fetched message from PHP:', msg);
-            addMessageToDOM(msg);
-            scrollToBottom();
-            if (msg.nickname !== nickname) playNotificationSound();
-        }
-    } catch (err) {
-        console.error('Failed to fetch message:', err);
-    }
-});
-
-// POLLING FALLBACK: Check for new messages every 2 seconds
-let lastMessageTimestamp = 0;
-setInterval(async () => {
-    if (!roomId) return;
-    
-    try {
-        const response = await fetch(`/message.php?room=${encodeURIComponent(roomId)}`);
-        if (response.ok) {
-            const messages = await response.json();
-            if (Array.isArray(messages)) {
-                messages.forEach(msg => {
-                    // Only add new messages we haven't seen
-                    const existingMsg = document.getElementById(`msg-${msg.id}`);
-                    if (!existingMsg && msg.timestamp > lastMessageTimestamp) {
-                        addMessageToDOM(msg);
-                        if (msg.nickname !== nickname) playNotificationSound();
-                    }
-                    // Update last timestamp
-                    if (msg.timestamp > lastMessageTimestamp) {
-                        lastMessageTimestamp = msg.timestamp;
-                    }
-                });
-            }
-        }
-    } catch (err) {
-        // Silently fail
-    }
-}, 2000);
 
 socket.on('messageDeleted', (msgId) => {
     const el = document.getElementById(`msg-${msgId}`);

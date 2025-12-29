@@ -362,7 +362,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Legacy message handler (fallback if PHP fails)
+    // Message handler
     socket.on('message', (msgData) => {
         const timestamp = Date.now();
         const msgId = timestamp + Math.random().toString(36).substr(2, 9);
@@ -372,9 +372,7 @@ io.on('connection', (socket) => {
             room_id: msgData.room,
             nickname: msgData.nickname,
             content: msgData.content,
-            image_path: msgData.image_path,
-            video_path: msgData.video_path,
-            audio_path: msgData.audio_path,
+            image_path: msgData.image_path || null,
             type: msgData.type,
             timestamp: timestamp,
             replyTo: msgData.replyTo || null
@@ -383,13 +381,7 @@ io.on('connection', (socket) => {
         db.addMessage({...msg});
         io.to(msgData.room).emit('message', msg);
     });
-    
-    // NEW: Just broadcast message ID - clients fetch from PHP
-    socket.on('newMessage', (data) => {
-        console.log('newMessage received:', data);
-        // Broadcast to all users in the room (except sender)
-        socket.to(data.room).emit('newMessage', { messageId: data.messageId });
-    });
+
 
     socket.on('deleteMessage', (msgId) => {
         const user = socketToUser[socket.id];
