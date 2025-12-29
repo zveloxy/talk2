@@ -363,31 +363,35 @@ io.on('connection', (socket) => {
     });
 
     socket.on('message', (msgData) => {
-        console.log('Server received message:', JSON.stringify(msgData)); // DEBUG
-        const { room, nickname, content, type, replyTo, image_path, video_path, audio_path } = msgData;
-        console.log('Content value:', content, 'Type:', type); // DEBUG
-        const timestamp = Date.now();
+        console.log('=== MESSAGE HANDLER START ===');
+        console.log('RAW msgData:', JSON.stringify(msgData));
         
-        // Use path fields from client directly
+        const timestamp = Date.now();
+        const msgId = timestamp + Math.random().toString(36).substr(2, 9);
+        
+        // Create message from client data directly
         const msg = {
-            room_id: room,
-            nickname,
-            content: content,
-            image_path: image_path || null,
-            audio_path: audio_path || null,
-            video_path: video_path || null,
-            type,
-            timestamp,
-            replyTo: replyTo || null
+            id: msgId,
+            room_id: msgData.room,
+            nickname: msgData.nickname,
+            content: msgData.content,
+            image_path: msgData.image_path,
+            video_path: msgData.video_path,
+            audio_path: msgData.audio_path,
+            type: msgData.type,
+            timestamp: timestamp,
+            replyTo: msgData.replyTo || null
         };
         
-        console.log('Saving message:', JSON.stringify(msg)); // DEBUG
-
-        // Save to DB
-        const savedMsg = db.addMessage(msg);
-                
-        // Broadcast
-        io.to(room).emit('message', savedMsg);
+        console.log('BROADCASTING msg:', JSON.stringify(msg));
+        
+        // Save to DB (async, don't wait)
+        db.addMessage({...msg});
+        
+        // Broadcast the message we constructed, not the DB result
+        io.to(msgData.room).emit('message', msg);
+        
+        console.log('=== MESSAGE HANDLER END ===');
     });
 
     socket.on('deleteMessage', (msgId) => {
