@@ -1,5 +1,5 @@
-// Talk2 Service Worker - v3 (Cache bust)
-const CACHE_NAME = 'talk2-v3';
+// Talk2 Service Worker - v4 (Cache bust)
+const CACHE_NAME = 'talk2-v4';
 const ASSETS = [
     '/manifest.json',
     '/icon.png',

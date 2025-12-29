@@ -417,7 +417,8 @@ function addMessageToDOM(msg) {
     const replyTitle = currentLang === 'tr' ? 'Yanıtla' : 'Reply';
     
     let quotedReplyHtml = '';
-    if (msg.replyTo) {
+    if (msg.replyTo && msg.replyTo.nickname) {
+        console.log('Reply data found:', msg.replyTo);
         quotedReplyHtml = `<div class="quoted-reply"><strong>${escapeHtml(msg.replyTo.nickname)}:</strong> ${escapeHtml(msg.replyTo.text || '[Image]').substring(0, 40)}</div>`;
     }
     
