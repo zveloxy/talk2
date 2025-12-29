@@ -483,17 +483,31 @@ document.addEventListener('DOMContentLoaded', () => {
     const lightboxImage = document.getElementById('lightbox-image');
     const lightboxClose = document.querySelector('.lightbox-close');
     
+    // Zoom state
+    let currentZoom = 1;
+    const minZoom = 0.5;
+    const maxZoom = 5;
+    
+    function resetZoom() {
+        currentZoom = 1;
+        if (lightboxImage) {
+            lightboxImage.style.transform = `scale(1)`;
+        }
+    }
+    
     // Lightbox event handlers
     if (lightboxModal && lightboxImage && lightboxClose) {
         // Close on X button click
         lightboxClose.addEventListener('click', () => {
             lightboxModal.classList.add('hidden');
+            resetZoom();
         });
         
         // Close on background click
         lightboxModal.addEventListener('click', (e) => {
             if (e.target === lightboxModal) {
                 lightboxModal.classList.add('hidden');
+                resetZoom();
             }
         });
         
@@ -501,6 +515,52 @@ document.addEventListener('DOMContentLoaded', () => {
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !lightboxModal.classList.contains('hidden')) {
                 lightboxModal.classList.add('hidden');
+                resetZoom();
+            }
+        });
+        
+        // Scroll wheel zoom
+        lightboxImage.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.2 : 0.2;
+            currentZoom = Math.min(maxZoom, Math.max(minZoom, currentZoom + delta));
+            lightboxImage.style.transform = `scale(${currentZoom})`;
+        }, { passive: false });
+        
+        // Touch pinch-to-zoom
+        let initialDistance = 0;
+        let initialZoom = 1;
+        
+        lightboxImage.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 2) {
+                initialDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                initialZoom = currentZoom;
+            }
+        }, { passive: true });
+        
+        lightboxImage.addEventListener('touchmove', (e) => {
+            if (e.touches.length === 2) {
+                e.preventDefault();
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const scale = currentDistance / initialDistance;
+                currentZoom = Math.min(maxZoom, Math.max(minZoom, initialZoom * scale));
+                lightboxImage.style.transform = `scale(${currentZoom})`;
+            }
+        }, { passive: false });
+        
+        // Double-click to reset zoom
+        lightboxImage.addEventListener('dblclick', () => {
+            if (currentZoom !== 1) {
+                resetZoom();
+            } else {
+                currentZoom = 2;
+                lightboxImage.style.transform = `scale(2)`;
             }
         });
     }
