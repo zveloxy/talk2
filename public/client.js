@@ -33,6 +33,22 @@ if (!userId) {
     localStorage.setItem('antigravity_userid', userId);
 }
 
+// Toast notification function
+function showToast(message, duration = 3000) {
+    const toast = document.getElementById('toast-notification');
+    const toastMsg = document.getElementById('toast-message');
+    if (!toast || !toastMsg) {
+        alert(message); // Fallback
+        return;
+    }
+    toastMsg.textContent = message;
+    toast.classList.remove('hidden');
+    
+    setTimeout(() => {
+        toast.classList.add('hidden');
+    }, duration);
+}
+
 const roomId = window.location.pathname.replace('/', '') || 'general';
 
 // Translations Cache
