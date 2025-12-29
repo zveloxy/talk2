@@ -263,17 +263,7 @@ function sendMessage(content, type) {
         type: type
     };
     
-    if (replyingTo) {
-        msgData.replyTo = {
-            id: replyingTo.id,
-            nickname: replyingTo.nickname,
-            text: replyingTo.text
-        };
-        console.log('Sending message with replyTo:', msgData.replyTo);
-    }
-    
     socket.emit('message', msgData);
-    cancelReply();
 }
 
 function stopTyping() {
@@ -284,19 +274,7 @@ function stopTyping() {
     clearTimeout(typingTimeout);
 }
 
-function cancelReply() {
-    replyingTo = null;
-    if (replyPreview) replyPreview.classList.add('hidden');
-}
-
-function setReply(msgId, msgNickname, msgText) {
-    replyingTo = { id: msgId, nickname: msgNickname, text: msgText };
-    if (replyToName) replyToName.textContent = msgNickname;
-    if (replyToText) replyToText.textContent = msgText.substring(0, 50) + (msgText.length > 50 ? '...' : '');
-    if (replyPreview) replyPreview.classList.remove('hidden');
-    if (messageInput) messageInput.focus();
-}
-window.setReply = setReply;
+// Reply feature removed
 
 function deleteMessage(id) {
     const t = translations[currentLang] || translations['en'];
@@ -415,28 +393,16 @@ function addMessageToDOM(msg) {
     const t = translations[currentLang] || translations['en'];
     const displayName = isSelf ? (currentLang === 'tr' ? 'Sen' : 'You') : escapeHtml(msg.nickname);
     const deleteTitle = currentLang === 'tr' ? 'Sil' : 'Delete';
-    const replyTitle = currentLang === 'tr' ? 'Yanıtla' : 'Reply';
-    
-    let quotedReplyHtml = '';
-    if (msg.replyTo && msg.replyTo.nickname) {
-        console.log('Reply data found:', msg.replyTo);
-        quotedReplyHtml = `<div class="quoted-reply"><strong>${escapeHtml(msg.replyTo.nickname)}:</strong> ${escapeHtml(msg.replyTo.text || '[Image]').substring(0, 40)}</div>`;
-    }
-    
-    const escapedText = msgTextForReply.replace(/'/g, "\\'").replace(/"/g, "&quot;").substring(0, 100);
 
     div.innerHTML = `
-        ${quotedReplyHtml}
         <div class="meta">
             ${isSelf 
                 ? `<span class="time">${time}</span>
                    <span class="nickname">${displayName}</span>
-                   <button class="reply-msg-btn" onclick="setReply('${msg.id}', '${escapeHtml(msg.nickname)}', '${escapedText}')" title="${replyTitle}"><i class="fas fa-reply"></i></button>
                    <button class="delete-msg-btn" onclick="deleteMessage('${msg.id}')" title="${deleteTitle}"><i class="fas fa-times"></i></button>
                    <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayName}</span>
-                   <span class="time">${time}</span>
-                   <button class="reply-msg-btn" onclick="setReply('${msg.id}', '${escapeHtml(msg.nickname)}', '${escapedText}')" title="${replyTitle}"><i class="fas fa-reply"></i></button>`
+                   <span class="time">${time}</span>`
             }
         </div>
         <div class="body">${contentHtml}</div>
