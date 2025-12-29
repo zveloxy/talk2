@@ -186,6 +186,7 @@ function joinRoom() {
 }
 
 function sendMessage(content, type) {
+    console.log('sendMessage called with content:', content, 'type:', type);
     const msgData = {
         room: roomId,
         nickname: nickname,
@@ -193,6 +194,7 @@ function sendMessage(content, type) {
         type: type
     };
     
+    console.log('Emitting message:', JSON.stringify(msgData));
     socket.emit('message', msgData);
 }
 
@@ -835,6 +837,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (xhr.status === 200) {
                     try {
                         const data = JSON.parse(xhr.responseText);
+                        console.log('UPLOAD SUCCESS - Response:', data);
+                        console.log('UPLOAD SUCCESS - URL:', data.url);
+                        console.log('UPLOAD SUCCESS - Type:', type);
                         sendMessage(data.url, type);
                         imageInput.value = '';
                     } catch (e) {
