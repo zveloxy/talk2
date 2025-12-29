@@ -1128,6 +1128,19 @@ socket.on('history', (messages) => {
 });
 
 socket.on('message', (msg) => {
+    // Skip if this is our own media message (already displayed via optimistic UI)
+    if (msg.nickname === nickname && (msg.type === 'image' || msg.type === 'video' || msg.type === 'audio')) {
+        // Check if we already have a temp message displayed for this
+        const existingTempMsgs = document.querySelectorAll('[id^="msg-temp_"]');
+        if (existingTempMsgs.length > 0) {
+            // Replace temp ID with real ID but don't add duplicate
+            const lastTemp = existingTempMsgs[existingTempMsgs.length - 1];
+            lastTemp.id = `msg-${msg.id}`;
+            scrollToBottom();
+            return;
+        }
+    }
+    
     addMessageToDOM(msg);
     scrollToBottom();
     if (msg.nickname !== nickname) playNotificationSound();
