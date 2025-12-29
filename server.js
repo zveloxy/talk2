@@ -366,21 +366,27 @@ io.on('connection', (socket) => {
         const timestamp = Date.now();
         const msgId = timestamp + Math.random().toString(36).substr(2, 9);
         
-        // Create message - include media_url as backup
-        const mediaUrl = msgData.video_path || msgData.image_path || msgData.audio_path || msgData.content || null;
+        // Store essential data in a serialized string as backup
+        const essentialData = JSON.stringify({
+            c: msgData.content,
+            v: msgData.video_path,
+            i: msgData.image_path,
+            a: msgData.audio_path
+        });
         
         const msg = {
             id: msgId,
             room_id: msgData.room,
             nickname: msgData.nickname,
             content: msgData.content,
-            media_url: mediaUrl,
+            media_url: msgData.video_path || msgData.image_path || msgData.audio_path || msgData.content,
             image_path: msgData.image_path,
             video_path: msgData.video_path,
             audio_path: msgData.audio_path,
             type: msgData.type,
             timestamp: timestamp,
-            replyTo: msgData.replyTo || null
+            replyTo: msgData.replyTo || null,
+            _data: essentialData
         };
         
         db.addMessage({...msg});

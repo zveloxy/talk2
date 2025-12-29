@@ -389,7 +389,15 @@ function addMessageToDOM(msg) {
         contentHtml = `<audio controls src="${msg.content}"></audio>`;
         msgTextForReply = '[Audio]';
     } else if (msg.type === 'video') {
-        const videoPath = msg.video_path || msg.media_url || msg.content;
+        // Try multiple fallbacks including _data serialized backup
+        let videoPath = msg.video_path || msg.media_url || msg.content;
+        if (!videoPath && msg._data) {
+            try {
+                const parsed = JSON.parse(msg._data);
+                videoPath = parsed.v || parsed.c;
+            } catch(e) {}
+        }
+        videoPath = videoPath || null;
         const videoId = `video-${msg.id}`;
         contentHtml = `
             <div class="custom-video-player" id="player-${videoId}">
