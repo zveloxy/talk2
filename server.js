@@ -94,7 +94,7 @@ app.use(helmet({
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "blob:", "cdnjs.cloudflare.com"],
-            connectSrc: ["'self'", "ws:", "wss:", "https://ipapi.co"]
+            connectSrc: ["'self'", "ws:", "wss:", "https://ipapi.co", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"]
         }
     },
     crossOriginEmbedderPolicy: false // Required for socket.io
@@ -142,9 +142,7 @@ function encryptFile(inputPath, outputPath, cb) {
         cb(null);
     });
     output.on('error', (err) => {
-        cb(err);
-    });
-    output.on('error', (err) => {
+        console.error("Stream encryption error:", err);
         cb(err);
     });
 }
