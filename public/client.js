@@ -313,7 +313,7 @@ function addMessageToDOM(msg) {
     
     if (msg.type === 'image') {
         const imgPath = msg.image_path || msg.content;
-        contentHtml = `<img src="${imgPath}" alt="Image" onclick="window.open(this.src, '_blank')" loading="lazy" />`;
+        contentHtml = `<img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />`;
         msgTextForReply = '[Image]';
     } else if (msg.type === 'audio') {
         contentHtml = `<audio controls src="${msg.content}"></audio>`;
@@ -508,7 +508,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Event delegation for image clicks (to show lightbox)
     if (messagesList) {
         messagesList.addEventListener('click', (e) => {
-            const img = e.target.closest('.message-content img');
+            const img = e.target.closest('.lightbox-trigger');
             if (img && lightboxModal && lightboxImage) {
                 lightboxImage.src = img.src;
                 lightboxModal.classList.remove('hidden');

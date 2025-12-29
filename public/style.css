@@ -1282,11 +1282,11 @@ body {
 }
 
 /* Make message images clickable */
-.message-content img {
+.lightbox-trigger {
     cursor: zoom-in;
     transition: transform 0.2s;
 }
 
-.message-content img:hover {
+.lightbox-trigger:hover {
     transform: scale(1.02);
 }
