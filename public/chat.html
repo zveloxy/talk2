@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Talk2 Chat</title>
-    <link rel="stylesheet" href="/style.css?v=12">
+    <link rel="stylesheet" href="/style.css?v=13">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
@@ -127,6 +127,11 @@
                 <main class="chat-container">
                     <div id="messages" class="messages-list"></div>
                     <div id="typing-indicator" class="typing-indicator hidden"></div>
+                    
+                    <!-- Scroll to Bottom Button -->
+                    <button id="scroll-bottom-btn" class="scroll-bottom-btn hidden" title="Alta git">
+                        <i class="fas fa-chevron-down"></i>
+                    </button>
                 </main>
 
                 <!-- Input Area -->
@@ -196,6 +201,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=28"></script>
+    <script src="/client.js?v=29"></script>
 </body>
 </html>

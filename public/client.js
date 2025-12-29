@@ -190,7 +190,7 @@ function stopTyping() {
 
 // Reply feature removed
 
-function deleteMessage(id) {
+function deleteMessage(id, fileUrl = null) {
     const t = (loadedTranslations && loadedTranslations[currentLang]) || (loadedTranslations && loadedTranslations['en']) || {};
     const confirmMsg = t.confirmDelete || 'Are you sure you want to delete this message?';
     
@@ -198,14 +198,30 @@ function deleteMessage(id) {
     if (!confirmModal || !showConfirm) {
         if (confirm(confirmMsg)) {
             socket.emit('deleteMessage', id);
+            // Delete file from storage if exists
+            if (fileUrl) deleteFileFromStorage(fileUrl);
         }
         return;
     }
     
     showConfirm(confirmMsg, () => {
         socket.emit('deleteMessage', id);
+        // Delete file from storage if exists
+        if (fileUrl) deleteFileFromStorage(fileUrl);
     });
 }
+
+// Delete file from PHP storage
+function deleteFileFromStorage(url) {
+    if (!url || url.startsWith('/uploads/')) return; // Skip legacy uploads
+    
+    fetch('/delete.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+    }).catch(err => console.error('File deletion failed:', err));
+}
+
 window.deleteMessage = deleteMessage;
 
 function showConfirm(message, onConfirm) {
@@ -357,7 +373,7 @@ function addMessageToDOM(msg) {
             ${isSelf 
                 ? `<span class="time">${time}</span>
                    <span class="nickname">${displayName}</span>
-                   <button class="delete-msg-btn" data-delete-id="${msg.id}" title="${deleteTitle}"><i class="fas fa-times"></i></button>
+                   <button class="delete-msg-btn" data-delete-id="${msg.id}" data-file-url="${msg.image_path || msg.content || ''}" title="${deleteTitle}"><i class="fas fa-times"></i></button>
                    <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayName}</span>
                    <span class="time">${time}</span>`
@@ -636,15 +652,40 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Event delegation for image clicks (to show lightbox)
+    // Event delegation for image clicks (to show lightbox) AND delete button
     if (messagesList) {
         messagesList.addEventListener('click', (e) => {
+            // Lightbox trigger
             const img = e.target.closest('.lightbox-trigger');
             if (img && lightboxModal && lightboxImage) {
                 lightboxImage.src = img.src;
                 lightboxModal.classList.remove('hidden');
+                return;
+            }
+            
+            // Delete button
+            const deleteBtn = e.target.closest('.delete-msg-btn');
+            if (deleteBtn) {
+                const msgId = deleteBtn.getAttribute('data-delete-id');
+                const fileUrl = deleteBtn.getAttribute('data-file-url');
+                // Only pass fileUrl if it looks like a file path (not text content)
+                const isFile = fileUrl && (fileUrl.includes('/file.php') || fileUrl.includes('.enc') || fileUrl.includes('/uploads/'));
+                deleteMessage(msgId, isFile ? fileUrl : null);
             }
         });
+        
+        // Scroll event for scroll-to-bottom button visibility
+        const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
+        if (scrollBottomBtn) {
+            messagesList.addEventListener('scroll', () => {
+                const isNearBottom = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight < 200;
+                scrollBottomBtn.classList.toggle('hidden', isNearBottom);
+            });
+            
+            scrollBottomBtn.addEventListener('click', () => {
+                messagesList.scrollTo({ top: messagesList.scrollHeight, behavior: 'smooth' });
+            });
+        }
     }
     
     uploadBtn = document.getElementById('upload-btn');
