@@ -1205,6 +1205,35 @@ socket.on('newMessage', async (data) => {
     }
 });
 
+// POLLING FALLBACK: Check for new messages every 2 seconds
+let lastMessageTimestamp = 0;
+setInterval(async () => {
+    if (!roomId) return;
+    
+    try {
+        const response = await fetch(`/message.php?room=${encodeURIComponent(roomId)}`);
+        if (response.ok) {
+            const messages = await response.json();
+            if (Array.isArray(messages)) {
+                messages.forEach(msg => {
+                    // Only add new messages we haven't seen
+                    const existingMsg = document.getElementById(`msg-${msg.id}`);
+                    if (!existingMsg && msg.timestamp > lastMessageTimestamp) {
+                        addMessageToDOM(msg);
+                        if (msg.nickname !== nickname) playNotificationSound();
+                    }
+                    // Update last timestamp
+                    if (msg.timestamp > lastMessageTimestamp) {
+                        lastMessageTimestamp = msg.timestamp;
+                    }
+                });
+            }
+        }
+    } catch (err) {
+        // Silently fail
+    }
+}, 2000);
+
 socket.on('messageDeleted', (msgId) => {
     const el = document.getElementById(`msg-${msgId}`);
     if (el) el.remove();
