@@ -1,1036 +1,1036 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Talk2 - Anonymous Chat</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#6366f1">
-    <script>
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js');
-            });
-        }
-    </script>
-    <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #0f0f16;
-            --bg-card: #161621;
-            --text-primary: #f0f0f5;
-            --text-secondary: #8a8a9a;
-            --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --gradient-start: #6366f1;
-            --gradient-end: #a855f7;
-            --border: rgba(255, 255, 255, 0.06);
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            overflow-y: auto;
-            line-height: 1.6;
-        }
-
-        /* Animated Background */
-        .bg-animation {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-            overflow: hidden;
-            /* Create a new stacking context to limit paint area */
-            contain: strict;
-        }
-
-        .bg-animation::before {
-            content: '';
-            position: absolute;
-            top: -25%;
-            left: -25%;
-            width: 150%; 
-            height: 150%; /* Reduced from 200% to save memory */
-            background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 60%);
-            animation: pulse 8s ease-in-out infinite;
-            will-change: transform, opacity; /* Hint browser to promote layer */
-            transform: translateZ(0); /* Force hardware acceleration */
-        }
-
-        .bg-animation::after {
-            content: '';
-            position: absolute;
-            top: 40%;
-            right: -20%;
-            width: 80%; /* Significantly reduced size */
-            height: 120%;
-            background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.2) 0%, transparent 60%);
-            animation: pulse 10s ease-in-out infinite reverse;
-            will-change: transform, opacity;
-            transform: translateZ(0);
-        }
-
-        @keyframes pulse {
-            0%, 100% { transform: scale(1) translateZ(0); opacity: 0.3; }
-            50% { transform: scale(1.1) translateZ(0); opacity: 0.5; }
-        }
-
-        /* Floating particles */
-        .particles {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            z-index: -1;
-            pointer-events: none;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: var(--accent);
-            border-radius: 50%;
-            opacity: 0.3;
-            animation: float 15s infinite linear; /* linear is cheaper */
-            will-change: transform;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
-            10% { opacity: 0.5; }
-            90% { opacity: 0.5; }
-            100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
-        }
-
-        /* Header */
-        header {
-            padding: 1.5rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            /* backdrop-filter can be heavy, but it's essential for the look. Keeping it but aware. */
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            background: rgba(10, 10, 15, 0.8);
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo i {
-            font-size: 1.75rem;
-        }
-
-        nav {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        nav a {
-            color: var(--text-secondary);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        nav a:hover {
-            color: var(--text-primary);
-        }
-
-        /* Common Section Styles */
-        section {
-            padding: 5rem 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .section-header h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #fff, #aaa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .section-header p {
-            color: var(--text-secondary);
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        /* Hero Section */
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 6rem 2rem 4rem;
-            position: relative;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            padding: 0.5rem 1rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            color: var(--accent);
-            margin-bottom: 1.5rem;
-            backdrop-filter: blur(5px);
-        }
-
-        .hero h1 {
-            font-size: clamp(3rem, 7vw, 5rem);
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            line-height: 1.1;
-            letter-spacing: -0.02em;
-        }
-
-        .hero h1 span {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-            color: var(--text-secondary);
-            max-width: 650px;
-            margin-bottom: 3rem;
-            line-height: 1.6;
-        }
-
-        /* Room Input */
-        .room-input-container {
-            display: flex;
-            gap: 0.75rem;
-            width: 100%;
-            max-width: 480px;
-            margin-bottom: 2rem;
-            background: rgba(255,255,255,0.03);
-            padding: 0.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            backdrop-filter: blur(10px);
-        }
-
-        .input-wrapper {
-            flex: 1;
-            position: relative;
-        }
-
-        .input-wrapper i {
-            position: absolute;
-            left: 1.25rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-secondary);
-        }
-
-        .room-input-container input {
-            width: 100%;
-            padding: 1rem 1rem 1rem 3rem;
-            border-radius: 12px;
-            border: none;
-            background: transparent;
-            color: var(--text-primary);
-            font-size: 1.1rem;
-            outline: none;
-        }
-
-        .room-input-container button {
-            padding: 0 2rem;
-            border-radius: 12px;
-            border: none;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: white;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s;
-            white-space: nowrap;
-        }
-
-        .room-input-container button:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px var(--accent-glow);
-        }
-
-        /* Features Grid */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 2rem;
-            transition: transform 0.3s, border-color 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent);
-        }
-
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 16px;
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 1.5rem;
-            color: var(--accent);
-            font-size: 1.5rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-            font-weight: 600;
-        }
-
-        .feature-card p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-        }
-
-        /* How It Works */
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 2rem;
-            position: relative;
-        }
-
-        .step {
-            text-align: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .step-number {
-            width: 50px;
-            height: 50px;
-            background: var(--bg-card);
-            border: 2px solid var(--accent);
-            color: var(--accent);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.25rem;
-            font-weight: 700;
-            margin: 0 auto 1.5rem;
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .steps::before {
-            content: '';
-            position: absolute;
-            top: 25px;
-            left: 50px;
-            right: 50px;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            z-index: 1;
-            opacity: 0.3;
-        }
-
-        /* FAQ Section */
-        .faq-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 2rem;
-        }
-
-        .faq-item {
-            background: var(--bg-secondary);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-        }
-
-        .faq-item h3 {
-            font-size: 1.1rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
-        }
-
-        .faq-item p {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        /* Stats Strip */
-        .stats-strip {
-            background: var(--bg-card);
-            border-top: 1px solid var(--border);
-            border-bottom: 1px solid var(--border);
-            padding: 3rem 0;
-            display: flex;
-            justify-content: center;
-            gap: 5rem;
-            margin-top: 4rem;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-val {
-            font-size: 3rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .stat-lbl {
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            margin-top: 0.5rem;
-        }
-
-        /* Footer */
-        footer {
-            background: var(--bg-secondary);
-            padding: 4rem 2rem;
-            border-top: 1px solid var(--border);
-            margin-top: auto;
-        }
-
-        .footer-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2rem;
-        }
-
-        .footer-info p {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-        }
-
-        .socials a {
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            margin-left: 1rem;
-            transition: color 0.2s;
-        }
-
-        .socials a:hover {
-            color: var(--accent);
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.5rem; }
-            .steps { grid-template-columns: 1fr; gap: 3rem; }
-            .steps::before { display: none; }
-            .stats-strip { flex-direction: column; gap: 2rem; }
-            .room-input-container { flex-direction: column; }
-            .room-input-container button { padding: 1rem; }
-            nav { gap: 0.75rem; }
-            .lang-selector { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
-        }
-
-        /* Language Selector */
-        .lang-selector {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 0.75rem;
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .lang-selector:hover {
-            background: rgba(99, 102, 241, 0.2);
-            border-color: var(--accent);
-        }
-
-        .lang-selector select {
-            background: transparent;
-            border: none;
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            cursor: pointer;
-            outline: none;
-        }
-
-        .lang-selector select option {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-        }
-    </style>
-</head>
-<body>
-    <div class="bg-animation"></div>
-    <div class="particles" id="particles"></div>
-
-    <header>
-        <div class="logo">
-            <i class="fas fa-satellite"></i>
-            Talk2
-        </div>
-        <nav>
-            <a href="#how-it-works" data-i18n="howItWorks">How it Works</a>
-            <a href="#features" data-i18n="features">Features</a>
-            <a href="#faq" data-i18n="faq">FAQ</a>
-            <a href="https://github.com/zveloxy" target="_blank">GitHub</a>
-            <div class="lang-selector">
-                <i class="fas fa-globe"></i>
-                <select id="lang-select">
-                    <option value="en">🇺🇸 EN</option>
-                    <option value="tr">🇹🇷 TR</option>
-                    <option value="de">🇩🇪 DE</option>
-                    <option value="ru">🇷🇺 RU</option>
-                    <option value="ph">🇵🇭 PH</option>
-                </select>
-            </div>
-        </nav>
-    </header>
-
-    <main>
-        <section class="hero">
-            <div class="hero-badge">
-                <i class="fas fa-user-secret"></i>
-                <span data-i18n="heroBadge">100% Anonymous</span>
-            </div>
-            <h1 data-i18n="heroTitle">Private Chats That<br><span>Disappear</span></h1>
-            <p data-i18n="heroDesc">Chat freely without leaving a trace. Create a room, share messages and images, and everything auto-deletes after 24 hours. No sign-up required.</p>
-
-            <form class="room-input-container" id="room-form">
-                <div class="input-wrapper">
-                    <i class="fas fa-hashtag"></i>
-                    <input type="text" id="room-name" placeholder="Enter a room name..." autocomplete="off" required>
-                </div>
-                <button type="submit" data-i18n="btnEnter">Start Chatting <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></button>
-            </form>
-
-            <div style="font-size: 0.9rem; color: var(--text-secondary);">
-                <span data-i18n="popular">Popular rooms:</span> <a href="/general" style="color:var(--accent);">general</a>, <a href="/random" style="color:var(--accent);">random</a>
-            </div>
-        </section>
-
-        <section id="how-it-works">
-            <div class="section-header">
-                <h2 data-i18n="howItWorks">How it Works</h2>
-                <p data-i18n="howDesc">Simple by design. Secure by default.</p>
-            </div>
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3 data-i18n="step1Title">Choose a Room</h3>
-                    <p data-i18n="step1Desc">Enter any room name. If it doesn't exist, it's created instantly just for you.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3 data-i18n="step2Title">Pick an Alias</h3>
-                    <p data-i18n="step2Desc">No accounts. Just pick a temporary nickname and you're in. Be anyone.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3 data-i18n="step3Title">Vanish</h3>
-                    <p data-i18n="step3Desc">Chat, share images. Every 24 hours, the room wipes itself clean.</p>
-                </div>
-            </div>
-        </section>
-
-        <div class="stats-strip">
-            <div class="stat-item">
-                <div class="stat-val" id="active-rooms">-</div>
-                <div class="stat-lbl" data-i18n="statActiveRooms">Active Rooms</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-val" id="online-users">-</div>
-                <div class="stat-lbl" data-i18n="statOnlineUsers">Online Users</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-val">24h</div>
-                <div class="stat-lbl" data-i18n="statRet">Data Retention</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-val">AES</div>
-                <div class="stat-lbl" data-i18n="statEnc">Standard Encryption</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-val">0</div>
-                <div class="stat-lbl" data-i18n="statLogs">Logs Stored</div>
-            </div>
-        </div>
-
-        <section id="features" class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-ghost"></i></div>
-                <h3 data-i18n="fIdentTitle">Anonymous Identity</h3>
-                <p data-i18n="fIdentDesc">We don't know who you are, and we don't want to. No email, no phone verification.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-stopwatch"></i></div>
-                <h3 data-i18n="fAutoTitle">Auto-Destruct</h3>
-                <p data-i18n="fAutoDesc">A cron job rigorously cleans the database and file system every hour for content older than 24h.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                <h3 data-i18n="fRealTitle">Real-Time Socket</h3>
-                <p data-i18n="fRealDesc">Built on Socket.io for millisecond-latency messaging. Typing indicators included.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-images"></i></div>
-                <h3 data-i18n="fMediaTitle">Media Support</h3>
-                <p data-i18n="fMediaDesc">Drag and drop images. They are uploaded securely and deleted along with the messages.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-mobile"></i></div>
-                <h3 data-i18n="fRespTitle">Responsive UI</h3>
-                <p data-i18n="fRespDesc">A dark-themed, glassmorphic interface that looks beautiful on any device.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-code"></i></div>
-                <h3 data-i18n="fOpenTitle">Open Source</h3>
-                <p data-i18n="fOpenDesc">The code is transparent. Verification is better than trust.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                <h3 data-i18n="fSecureTitle">Secure Transport</h3>
-                <p data-i18n="fSecureDesc">All data is transmitted via HTTPS/WSS standards to prevent interception.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-globe"></i></div>
-                <h3 data-i18n="fGlobalTitle">Global Reach</h3>
-                <p data-i18n="fGlobalDesc">Optimized for low-latency connections worldwide using lightweight protocols.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon"><i class="fas fa-feather"></i></div>
-                <h3 data-i18n="fLightTitle">Lightweight</h3>
-                <p data-i18n="fLightDesc">No bloated frameworks. Pure vanilla JS for maximum performance.</p>
-            </div>
-        </section>
-        
-        <!-- FAQ skipped for brevity but similar pattern would apply. -->
-    </main>
-
-        <section id="faq">
-            <div class="section-header">
-                <h2>Frequently Asked Questions</h2>
-            </div>
-            <div class="faq-grid">
-                <div class="faq-item">
-                    <h3>Is it really anonymous?</h3>
-                    <p>Yes. We do not require any personal information. Your IP is logged briefly for connection handling but is never associated with a persistent profile.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Can I retrieve deleted messages?</h3>
-                    <p>No. Once deleted by you or the auto-cleaner, they are physically removed from the storage and cannot be recovered.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Is there a mobile app?</h3>
-                    <p>Talk2 works great on mobile browsers. You can add it to your home screen for an app-like experience.</p>
-                </div>
-                <div class="faq-item">
-                    <h3>Who runs this?</h3>
-                    <p>This is an open-source project developed by Veloxy, focused on privacy rights.</p>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-content">
-            <div class="footer-info">
-                <div class="logo" style="font-size: 1.2rem; margin-bottom: 0.5rem;">
-                    <i class="fas fa-satellite"></i> Talk2
-                </div>
-                <p>&copy; <span id="current-year"></span> Veloxy. All rights reserved.</p>
-                <script>document.getElementById('current-year').textContent = new Date().getFullYear();</script>
-                <p>Code released under MIT License.</p>
-            </div>
-            <div class="socials">
-                <a href="https://github.com/zveloxy" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
-                <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
-                <a href="#" title="Discord"><i class="fab fa-discord"></i></a>
-            </div>
-        </div>
-    </footer>
-
-    <script>
-        const translations = {
-            en: {
-                title: "Talk2 - Anonymous Chat",
-                heroBadge: "100% Anonymous",
-                heroTitle: "Private Chats That<br><span>Disappear</span>",
-                heroDesc: "Chat freely without leaving a trace. Create a room, share messages and images, and everything auto-deletes after 24 hours. No sign-up required.",
-                btnEnter: 'Start Chatting <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                popular: "Popular rooms:",
-                howItWorks: "How it Works",
-                howDesc: "Simple by design. Secure by default.",
-                step1Title: "Choose a Room",
-                step1Desc: "Enter any room name. If it doesn't exist, it's created instantly just for you.",
-                step2Title: "Pick an Alias",
-                step2Desc: "No accounts. Just pick a temporary nickname and you're in.",
-                step3Title: "Vanish",
-                step3Desc: "Chat, share images. Every 24 hours, the room wipes itself clean.",
-                features: "Features",
-                faq: "FAQ",
-                statActiveRooms: "Active Rooms",
-                statOnlineUsers: "Online Users",
-                statRet: "Data Retention",
-                statEnc: "Standard Encryption",
-                statLogs: "Logs Stored",
-                fIdentTitle: "Anonymous Identity",
-                fIdentDesc: "We don't know who you are, and we don't want to.",
-                fAutoTitle: "Auto-Destruct",
-                fAutoDesc: "A cron job rigorously cleans the database and file system every hour.",
-                fRealTitle: "Real-Time Socket",
-                fRealDesc: "Built on Socket.io for millisecond-latency messaging. Typing indicators included.",
-                fMediaTitle: "Media Support",
-                fMediaDesc: "Drag and drop images. They are uploaded securely and deleted along with messages.",
-                fRespTitle: "Responsive UI",
-                fRespDesc: "A dark-themed, glassmorphic interface that looks beautiful on any device.",
-                fOpenTitle: "Open Source",
-                fOpenDesc: "The code is transparent. Verification is better than trust.",
-                fSecureTitle: "Secure Transport",
-                fSecureDesc: "All data is transmitted via HTTPS/WSS standards to prevent interception.",
-                fGlobalTitle: "Global Reach",
-                fGlobalDesc: "Optimized for low-latency connections worldwide using lightweight protocols.",
-                fLightTitle: "Lightweight",
-                fLightDesc: "No bloated frameworks. Pure vanilla JS for maximum performance.",
-                rooms: "rooms"
-            },
-            tr: {
-                title: "Talk2 - Anonim Sohbet",
-                heroBadge: "%100 Anonim",
-                heroTitle: "Kaybolan<br><span>Özel Sohbetler</span>",
-                heroDesc: "İz bırakmadan sohbet edin. Oda oluşturun, mesaj ve resim paylaşın. 24 saat sonra her şey otomatik silinir. Kayıt gerekmez.",
-                btnEnter: 'Sohbete Başla <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                popular: "Popüler odalar:",
-                howItWorks: "Nasıl Çalışır",
-                howDesc: "Tasarımı basit. Doğası gereği güvenli.",
-                step1Title: "Oda Seç",
-                step1Desc: "Herhangi bir oda adı girin. Yoksa, anında oluşturulur.",
-                step2Title: "Takma Ad Seç",
-                step2Desc: "Hesap yok. Sadece geçici bir isim seç ve katıl.",
-                step3Title: "Yok Ol",
-                step3Desc: "Sohbet et, resim paylaş. Her 24 saatte bir her şey silinir.",
-                features: "Özellikler",
-                faq: "S.S.S",
-                statActiveRooms: "Aktif Odalar",
-                statOnlineUsers: "Çevrimiçi",
-                statRet: "Veri Saklama",
-                statEnc: "Standart Şifreleme",
-                statLogs: "Log Kaydı",
-                fIdentTitle: "Anonim Kimlik",
-                fIdentDesc: "Kim olduğunu bilmiyoruz ve bilmek de istemiyoruz.",
-                fAutoTitle: "Oto-İmha",
-                fAutoDesc: "Silici botlar her saat başı veritabanını temizler.",
-                fRealTitle: "Gerçek Zamanlı",
-                fRealDesc: "Milisaniyelik gecikme ile Socket.io altyapısı. Yazıyor göstergeleri dahil.",
-                fMediaTitle: "Medya Desteği",
-                fMediaDesc: "Sürükle bırak ile resim yükle. Mesajlarla birlikte güvenli bir şekilde silinirler.",
-                fRespTitle: "Duyarlı Arayüz",
-                fRespDesc: "Her cihazda harika görünen karanlık temalı, 'glassmorphic' bir arayüz.",
-                fOpenTitle: "Açık Kaynak",
-                fOpenDesc: "Kod şeffaftır. Doğrulama güvenmekten iyidir.",
-                fSecureTitle: "Güvenli İletim",
-                fSecureDesc: "Tüm veriler müdahaleyi önlemek için HTTPS/WSS standartlarıyla iletilir.",
-                fGlobalTitle: "Küresel Erişim",
-                fGlobalDesc: "Dünya çapında düşük gecikme için hafif protokollerle optimize edildi.",
-                fLightTitle: "Hafif Yapı",
-                fLightDesc: "Şişirilmiş frameworkler yok. Maksimum performans için saf Vanilla JS.",
-                rooms: "odalar"
-            },
-            ph: {
-                title: "Talk2 - Anonymous Chat",
-                heroBadge: "100% Anonymous",
-                heroTitle: "Mga Pribadong Chat na<br><span>Nawawala</span>",
-                heroDesc: "Mag-chat nang malaya. Gumawa ng room, magbahagi ng mga mensahe at larawan. Lahat ay awtomatikong mabubura pagkatapos ng 24 na oras. Walang sign-up.",
-                btnEnter: 'Magsimulang Mag-chat <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                popular: "Mga sikat na room:",
-                howItWorks: "Paano Ito Gumagana",
-                howDesc: "Simple sa disenyo. Ligtas bilang default.",
-                step1Title: "Pumili ng Room",
-                step1Desc: "Maglagay ng pangalan ng room. Kung wala ito, agad itong nagagawa.",
-                step2Title: "Pumili ng Palayaw",
-                step2Desc: "Walang account. Pumili lang ng pansamantalang pangalan at pasok ka na.",
-                step3Title: "Mawala",
-                step3Desc: "Mag-chat, magbahagi ng larawan. Bawat 24 oras, nililinis ang lahat.",
-                features: "Mga Feature",
-                faq: "FAQ",
-                statActiveRooms: "Mga Aktibong Room",
-                statOnlineUsers: "Online Users",
-                statRet: "Data Retention",
-                statEnc: "Standard Encryption",
-                statLogs: "Logs Stored",
-                fIdentTitle: "Anonymous Identity",
-                fIdentDesc: "Hindi namin alam kung sino ka, at ayaw naming malaman.",
-                fAutoTitle: "Auto-Destruct",
-                fAutoDesc: "Awtomatikong nililinis ang database bawat oras.",
-                fRealTitle: "Real-Time Socket",
-                fRealDesc: "Gamit ang Socket.io para sa mabilis na messaging. May typing indicators.",
-                fMediaTitle: "Media Support",
-                fMediaDesc: "Drag and drop ng mga larawan. Mabubura kasama ng mga mensahe.",
-                fRespTitle: "Responsive UI",
-                fRespDesc: "Dark-themed interface na maganda sa kahit anong device.",
-                fOpenTitle: "Open Source",
-                fOpenDesc: "Transparent ang code. Verification ay mas mabuti kaysa tiwala.",
-                fSecureTitle: "Secure Transport",
-                fSecureDesc: "Lahat ng data ay naipapadala sa pamamagitan ng HTTPS/WSS.",
-                fGlobalTitle: "Global Reach",
-                fGlobalDesc: "Optimized para sa mabilis na koneksyon sa buong mundo.",
-                fLightTitle: "Lightweight",
-                fLightDesc: "Walang mabibigat na frameworks. Pure vanilla JS.",
-                rooms: "mga room"
-            },
-            de: {
-                title: "Talk2 - Anonymer Chat",
-                heroBadge: "100% Anonym",
-                heroTitle: "Private Chats die<br><span>Verschwinden</span>",
-                heroDesc: "Chatten Sie frei ohne Spuren zu hinterlassen. Erstellen Sie einen Raum, teilen Sie Nachrichten und Bilder, alles wird nach 24 Stunden automatisch gelöscht. Keine Anmeldung erforderlich.",
-                btnEnter: 'Chat Starten <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                popular: "Beliebte Räume:",
-                howItWorks: "So funktioniert's",
-                howDesc: "Einfach im Design. Sicher als Standard.",
-                step1Title: "Raum Wählen",
-                step1Desc: "Geben Sie einen Raumnamen ein. Wenn er nicht existiert, wird er sofort erstellt.",
-                step2Title: "Alias Wählen",
-                step2Desc: "Kein Konto. Wählen Sie einen temporären Namen und Sie sind dabei.",
-                step3Title: "Verschwinden",
-                step3Desc: "Chatten, Bilder teilen. Alle 24 Stunden wird alles gelöscht.",
-                features: "Funktionen",
-                faq: "FAQ",
-                statActiveRooms: "Aktive Räume",
-                statOnlineUsers: "Online",
-                statRet: "Datenspeicherung",
-                statEnc: "Standardverschlüsselung",
-                statLogs: "Gespeicherte Logs",
-                fIdentTitle: "Anonyme Identität",
-                fIdentDesc: "Wir wissen nicht wer Sie sind, und wir wollen es nicht wissen.",
-                fAutoTitle: "Auto-Löschung",
-                fAutoDesc: "Die Datenbank wird stündlich automatisch bereinigt.",
-                fRealTitle: "Echtzeit-Socket",
-                fRealDesc: "Mit Socket.io für blitzschnelle Nachrichten. Tippanzeigen inklusive.",
-                fMediaTitle: "Medien-Support",
-                fMediaDesc: "Drag & Drop für Bilder. Sie werden mit den Nachrichten gelöscht.",
-                fRespTitle: "Responsives UI",
-                fRespDesc: "Dark-Theme Interface, das auf jedem Gerät gut aussieht.",
-                fOpenTitle: "Open Source",
-                fOpenDesc: "Der Code ist transparent. Verifizierung ist besser als Vertrauen.",
-                fSecureTitle: "Sichere Übertragung",
-                fSecureDesc: "Alle Daten werden über HTTPS/WSS übertragen.",
-                fGlobalTitle: "Globale Reichweite",
-                fGlobalDesc: "Optimiert für schnelle Verbindungen weltweit.",
-                fLightTitle: "Leichtgewichtig",
-                fLightDesc: "Keine schweren Frameworks. Pures Vanilla JS.",
-                rooms: "Räume"
-            },
-            ru: {
-                title: "Talk2 - Анонимный Чат",
-                heroBadge: "100% Анонимно",
-                heroTitle: "Приватные Чаты<br><span>Которые Исчезают</span>",
-                heroDesc: "Общайтесь свободно, не оставляя следов. Создайте комнату, делитесь сообщениями и изображениями — всё автоматически удаляется через 24 часа. Регистрация не требуется.",
-                btnEnter: 'Начать Чат <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
-                popular: "Популярные комнаты:",
-                howItWorks: "Как это работает",
-                howDesc: "Просто по дизайну. Безопасно по умолчанию.",
-                step1Title: "Выберите Комнату",
-                step1Desc: "Введите название комнаты. Если её нет, она будет создана мгновенно.",
-                step2Title: "Выберите Псевдоним",
-                step2Desc: "Без аккаунта. Просто выберите временное имя и вы внутри.",
-                step3Title: "Исчезните",
-                step3Desc: "Общайтесь, делитесь изображениями. Каждые 24 часа всё очищается.",
-                features: "Возможности",
-                faq: "ЧАВО",
-                statActiveRooms: "Активные Комнаты",
-                statOnlineUsers: "Онлайн",
-                statRet: "Хранение данных",
-                statEnc: "Стандартное шифрование",
-                statLogs: "Хранимые логи",
-                fIdentTitle: "Анонимная Личность",
-                fIdentDesc: "Мы не знаем кто вы, и не хотим знать.",
-                fAutoTitle: "Авто-Удаление",
-                fAutoDesc: "База данных автоматически очищается каждый час.",
-                fRealTitle: "Реальное Время",
-                fRealDesc: "На Socket.io для мгновенных сообщений. Индикаторы набора включены.",
-                fMediaTitle: "Медиа Поддержка",
-                fMediaDesc: "Перетаскивайте изображения. Удаляются вместе с сообщениями.",
-                fRespTitle: "Адаптивный UI",
-                fRespDesc: "Тёмная тема, отлично выглядит на любом устройстве.",
-                fOpenTitle: "Открытый Код",
-                fOpenDesc: "Код прозрачен. Проверка лучше доверия.",
-                fSecureTitle: "Безопасная Передача",
-                fSecureDesc: "Все данные передаются через HTTPS/WSS.",
-                fGlobalTitle: "Глобальный Охват",
-                fGlobalDesc: "Оптимизировано для быстрых соединений по всему миру.",
-                fLightTitle: "Легковесный",
-                fLightDesc: "Без тяжёлых фреймворков. Чистый Vanilla JS.",
-                rooms: "комнаты"
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Talk2 - Anonymous Chat</title>
+        <link rel="stylesheet" href="style.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#6366f1">
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/sw.js');
+                });
             }
-        };
+        </script>
+        <style>
+            :root {
+                --bg-primary: #0a0a0f;
+                --bg-secondary: #0f0f16;
+                --bg-card: #161621;
+                --text-primary: #f0f0f5;
+                --text-secondary: #8a8a9a;
+                --accent: #6366f1;
+                --accent-glow: rgba(99, 102, 241, 0.4);
+                --gradient-start: #6366f1;
+                --gradient-end: #a855f7;
+                --border: rgba(255, 255, 255, 0.06);
+            }
 
-        // IP Detection & Language Setup
-        async function detectLanguage() {
-            // Check localStorage first
-            let lang = localStorage.getItem('talk2_lang');
+            * {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background: var(--bg-primary);
+                color: var(--text-primary);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+                overflow-x: hidden;
+                overflow-y: auto;
+                line-height: 1.6;
+            }
+
+            /* Animated Background */
+            .bg-animation {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                z-index: -1;
+                overflow: hidden;
+                /* Create a new stacking context to limit paint area */
+                contain: strict;
+            }
+
+            .bg-animation::before {
+                content: '';
+                position: absolute;
+                top: -25%;
+                left: -25%;
+                width: 150%; 
+                height: 150%; /* Reduced from 200% to save memory */
+                background: radial-gradient(ellipse at center, var(--accent-glow) 0%, transparent 60%);
+                animation: pulse 8s ease-in-out infinite;
+                will-change: transform, opacity; /* Hint browser to promote layer */
+                transform: translateZ(0); /* Force hardware acceleration */
+            }
+
+            .bg-animation::after {
+                content: '';
+                position: absolute;
+                top: 40%;
+                right: -20%;
+                width: 80%; /* Significantly reduced size */
+                height: 120%;
+                background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.2) 0%, transparent 60%);
+                animation: pulse 10s ease-in-out infinite reverse;
+                will-change: transform, opacity;
+                transform: translateZ(0);
+            }
+
+            @keyframes pulse {
+                0%, 100% { transform: scale(1) translateZ(0); opacity: 0.3; }
+                50% { transform: scale(1.1) translateZ(0); opacity: 0.5; }
+            }
+
+            /* Floating particles */
+            .particles {
+                position: fixed;
+                top: 0; left: 0; right: 0; bottom: 0;
+                z-index: -1;
+                pointer-events: none;
+            }
+
+            .particle {
+                position: absolute;
+                width: 4px;
+                height: 4px;
+                background: var(--accent);
+                border-radius: 50%;
+                opacity: 0.3;
+                animation: float 15s infinite linear; /* linear is cheaper */
+                will-change: transform;
+            }
+
+            @keyframes float {
+                0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+                10% { opacity: 0.5; }
+                90% { opacity: 0.5; }
+                100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+            }
+
+            /* Header */
+            header {
+                padding: 1.5rem 2rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border);
+                /* backdrop-filter can be heavy, but it's essential for the look. Keeping it but aware. */
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                background: rgba(10, 10, 15, 0.8);
+            }
+
+            .logo {
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                font-size: 1.5rem;
+                font-weight: 700;
+                background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .logo i {
+                font-size: 1.75rem;
+            }
+
+            nav {
+                display: flex;
+                gap: 1.5rem;
+            }
+
+            nav a {
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 0.9rem;
+                font-weight: 500;
+                transition: color 0.2s;
+            }
+
+            nav a:hover {
+                color: var(--text-primary);
+            }
+
+            /* Common Section Styles */
+            section {
+                padding: 5rem 2rem;
+                max-width: 1200px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            .section-header {
+                text-align: center;
+                margin-bottom: 3rem;
+            }
+
+            .section-header h2 {
+                font-size: 2.5rem;
+                margin-bottom: 1rem;
+                background: linear-gradient(135deg, #fff, #aaa);
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .section-header p {
+                color: var(--text-secondary);
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            /* Hero Section */
+            .hero {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                text-align: center;
+                padding: 6rem 2rem 4rem;
+                position: relative;
+            }
+
+            .hero-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: rgba(99, 102, 241, 0.1);
+                border: 1px solid rgba(99, 102, 241, 0.3);
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                font-size: 0.85rem;
+                color: var(--accent);
+                margin-bottom: 1.5rem;
+                backdrop-filter: blur(5px);
+            }
+
+            .hero h1 {
+                font-size: clamp(3rem, 7vw, 5rem);
+                font-weight: 800;
+                margin-bottom: 1.5rem;
+                line-height: 1.1;
+                letter-spacing: -0.02em;
+            }
+
+            .hero h1 span {
+                background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .hero p {
+                font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+                color: var(--text-secondary);
+                max-width: 650px;
+                margin-bottom: 3rem;
+                line-height: 1.6;
+            }
+
+            /* Room Input */
+            .room-input-container {
+                display: flex;
+                gap: 0.75rem;
+                width: 100%;
+                max-width: 480px;
+                margin-bottom: 2rem;
+                background: rgba(255,255,255,0.03);
+                padding: 0.5rem;
+                border-radius: 16px;
+                border: 1px solid var(--border);
+                backdrop-filter: blur(10px);
+            }
+
+            .input-wrapper {
+                flex: 1;
+                position: relative;
+            }
+
+            .input-wrapper i {
+                position: absolute;
+                left: 1.25rem;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-secondary);
+            }
+
+            .room-input-container input {
+                width: 100%;
+                padding: 1rem 1rem 1rem 3rem;
+                border-radius: 12px;
+                border: none;
+                background: transparent;
+                color: var(--text-primary);
+                font-size: 1.1rem;
+                outline: none;
+            }
+
+            .room-input-container button {
+                padding: 0 2rem;
+                border-radius: 12px;
+                border: none;
+                background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+                color: white;
+                font-size: 1rem;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.2s;
+                white-space: nowrap;
+            }
+
+            .room-input-container button:hover {
+                transform: scale(1.02);
+                box-shadow: 0 0 20px var(--accent-glow);
+            }
+
+            /* Features Grid */
+            .features-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 2rem;
+            }
+
+            .feature-card {
+                background: var(--bg-card);
+                border: 1px solid var(--border);
+                border-radius: 20px;
+                padding: 2rem;
+                transition: transform 0.3s, border-color 0.3s;
+            }
+
+            .feature-card:hover {
+                transform: translateY(-5px);
+                border-color: var(--accent);
+            }
+
+            .feature-icon {
+                width: 60px;
+                height: 60px;
+                border-radius: 16px;
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-bottom: 1.5rem;
+                color: var(--accent);
+                font-size: 1.5rem;
+            }
+
+            .feature-card h3 {
+                font-size: 1.25rem;
+                margin-bottom: 0.75rem;
+                font-weight: 600;
+            }
+
+            .feature-card p {
+                color: var(--text-secondary);
+                font-size: 0.95rem;
+            }
+
+            /* How It Works */
+            .steps {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 2rem;
+                position: relative;
+            }
+
+            .step {
+                text-align: center;
+                position: relative;
+                z-index: 2;
+            }
+
+            .step-number {
+                width: 50px;
+                height: 50px;
+                background: var(--bg-card);
+                border: 2px solid var(--accent);
+                color: var(--accent);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.25rem;
+                font-weight: 700;
+                margin: 0 auto 1.5rem;
+                box-shadow: 0 0 15px var(--accent-glow);
+            }
+
+            .steps::before {
+                content: '';
+                position: absolute;
+                top: 25px;
+                left: 50px;
+                right: 50px;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, var(--accent), transparent);
+                z-index: 1;
+                opacity: 0.3;
+            }
+
+            /* FAQ Section */
+            .faq-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+                gap: 2rem;
+            }
+
+            .faq-item {
+                background: var(--bg-secondary);
+                padding: 2rem;
+                border-radius: 16px;
+                border: 1px solid var(--border);
+            }
+
+            .faq-item h3 {
+                font-size: 1.1rem;
+                margin-bottom: 0.5rem;
+                color: var(--text-primary);
+            }
+
+            .faq-item p {
+                font-size: 0.9rem;
+                color: var(--text-secondary);
+            }
+
+            /* Stats Strip */
+            .stats-strip {
+                background: var(--bg-card);
+                border-top: 1px solid var(--border);
+                border-bottom: 1px solid var(--border);
+                padding: 3rem 0;
+                display: flex;
+                justify-content: center;
+                gap: 5rem;
+                margin-top: 4rem;
+            }
+
+            .stat-item {
+                text-align: center;
+            }
+
+            .stat-val {
+                font-size: 3rem;
+                font-weight: 800;
+                background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+                -webkit-background-clip: text;
+                background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+            .stat-lbl {
+                text-transform: uppercase;
+                letter-spacing: 1px;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                margin-top: 0.5rem;
+            }
+
+            /* Footer */
+            footer {
+                background: var(--bg-secondary);
+                padding: 4rem 2rem;
+                border-top: 1px solid var(--border);
+                margin-top: auto;
+            }
+
+            .footer-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 2rem;
+            }
+
+            .footer-info p {
+                color: var(--text-secondary);
+                font-size: 0.9rem;
+                margin-top: 0.5rem;
+            }
+
+            .socials a {
+                color: var(--text-secondary);
+                font-size: 1.5rem;
+                margin-left: 1rem;
+                transition: color 0.2s;
+            }
+
+            .socials a:hover {
+                color: var(--accent);
+            }
+
+            @media (max-width: 768px) {
+                .hero h1 { font-size: 2.5rem; }
+                .steps { grid-template-columns: 1fr; gap: 3rem; }
+                .steps::before { display: none; }
+                .stats-strip { flex-direction: column; gap: 2rem; }
+                .room-input-container { flex-direction: column; }
+                .room-input-container button { padding: 1rem; }
+                nav { gap: 0.75rem; }
+                .lang-selector { padding: 0.4rem 0.6rem; font-size: 0.75rem; }
+            }
+
+            /* Language Selector */
+            .lang-selector {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 0.75rem;
+                background: rgba(99, 102, 241, 0.1);
+                border: 1px solid rgba(99, 102, 241, 0.3);
+                border-radius: 8px;
+                color: var(--text-primary);
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: all 0.2s;
+            }
+
+            .lang-selector:hover {
+                background: rgba(99, 102, 241, 0.2);
+                border-color: var(--accent);
+            }
+
+            .lang-selector select {
+                background: transparent;
+                border: none;
+                color: var(--text-primary);
+                font-size: 0.85rem;
+                cursor: pointer;
+                outline: none;
+            }
+
+            .lang-selector select option {
+                background: var(--bg-secondary);
+                color: var(--text-primary);
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bg-animation"></div>
+        <div class="particles" id="particles"></div>
+
+        <header>
+            <div class="logo">
+                <i class="fas fa-satellite"></i>
+                Talk2
+            </div>
+            <nav>
+                <a href="#how-it-works" data-i18n="howItWorks">How it Works</a>
+                <a href="#features" data-i18n="features">Features</a>
+                <a href="#faq" data-i18n="faq">FAQ</a>
+                <a href="https://github.com/zveloxy" target="_blank">GitHub</a>
+                <div class="lang-selector">
+                    <i class="fas fa-globe"></i>
+                    <select id="lang-select">
+                        <option value="en">🇺🇸 EN</option>
+                        <option value="tr">🇹🇷 TR</option>
+                        <option value="de">🇩🇪 DE</option>
+                        <option value="ru">🇷🇺 RU</option>
+                        <option value="ph">🇵🇭 PH</option>
+                    </select>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div class="hero-badge">
+                    <i class="fas fa-user-secret"></i>
+                    <span data-i18n="heroBadge">100% Anonymous</span>
+                </div>
+                <h1 data-i18n="heroTitle">Private Chats That<br><span>Disappear</span></h1>
+                <p data-i18n="heroDesc">Chat freely without leaving a trace. Create a room, share messages and images, and everything auto-deletes after 24 hours. No sign-up required.</p>
+
+                <form class="room-input-container" id="room-form">
+                    <div class="input-wrapper">
+                        <i class="fas fa-hashtag"></i>
+                        <input type="text" id="room-name" placeholder="Enter a room name..." autocomplete="off" required>
+                    </div>
+                    <button type="submit" data-i18n="btnEnter">Start Chatting <i class="fas fa-arrow-right" style="margin-left: 8px;"></i></button>
+                </form>
+
+                <div style="font-size: 0.9rem; color: var(--text-secondary);">
+                    <span data-i18n="popular">Popular rooms:</span> <a href="/general" style="color:var(--accent);">general</a>, <a href="/random" style="color:var(--accent);">random</a>
+                </div>
+            </section>
+
+            <section id="how-it-works">
+                <div class="section-header">
+                    <h2 data-i18n="howItWorks">How it Works</h2>
+                    <p data-i18n="howDesc">Simple by design. Secure by default.</p>
+                </div>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <h3 data-i18n="step1Title">Choose a Room</h3>
+                        <p data-i18n="step1Desc">Enter any room name. If it doesn't exist, it's created instantly just for you.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <h3 data-i18n="step2Title">Pick an Alias</h3>
+                        <p data-i18n="step2Desc">No accounts. Just pick a temporary nickname and you're in. Be anyone.</p>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <h3 data-i18n="step3Title">Vanish</h3>
+                        <p data-i18n="step3Desc">Chat, share images. Every 24 hours, the room wipes itself clean.</p>
+                    </div>
+                </div>
+            </section>
+
+            <div class="stats-strip">
+                <div class="stat-item">
+                    <div class="stat-val" id="active-rooms">-</div>
+                    <div class="stat-lbl" data-i18n="statActiveRooms">Active Rooms</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="online-users">-</div>
+                    <div class="stat-lbl" data-i18n="statOnlineUsers">Online Users</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val">24h</div>
+                    <div class="stat-lbl" data-i18n="statRet">Data Retention</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val">AES</div>
+                    <div class="stat-lbl" data-i18n="statEnc">Standard Encryption</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val">0</div>
+                    <div class="stat-lbl" data-i18n="statLogs">Logs Stored</div>
+                </div>
+            </div>
+
+            <section id="features" class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-ghost"></i></div>
+                    <h3 data-i18n="fIdentTitle">Anonymous Identity</h3>
+                    <p data-i18n="fIdentDesc">We don't know who you are, and we don't want to. No email, no phone verification.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-stopwatch"></i></div>
+                    <h3 data-i18n="fAutoTitle">Auto-Destruct</h3>
+                    <p data-i18n="fAutoDesc">A cron job rigorously cleans the database and file system every hour for content older than 24h.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                    <h3 data-i18n="fRealTitle">Real-Time Socket</h3>
+                    <p data-i18n="fRealDesc">Built on Socket.io for millisecond-latency messaging. Typing indicators included.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-images"></i></div>
+                    <h3 data-i18n="fMediaTitle">Media Support</h3>
+                    <p data-i18n="fMediaDesc">Drag and drop images. They are uploaded securely and deleted along with the messages.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-mobile"></i></div>
+                    <h3 data-i18n="fRespTitle">Responsive UI</h3>
+                    <p data-i18n="fRespDesc">A dark-themed, glassmorphic interface that looks beautiful on any device.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-code"></i></div>
+                    <h3 data-i18n="fOpenTitle">Open Source</h3>
+                    <p data-i18n="fOpenDesc">The code is transparent. Verification is better than trust.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
+                    <h3 data-i18n="fSecureTitle">Secure Transport</h3>
+                    <p data-i18n="fSecureDesc">All data is transmitted via HTTPS/WSS standards to prevent interception.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-globe"></i></div>
+                    <h3 data-i18n="fGlobalTitle">Global Reach</h3>
+                    <p data-i18n="fGlobalDesc">Optimized for low-latency connections worldwide using lightweight protocols.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon"><i class="fas fa-feather"></i></div>
+                    <h3 data-i18n="fLightTitle">Lightweight</h3>
+                    <p data-i18n="fLightDesc">No bloated frameworks. Pure vanilla JS for maximum performance.</p>
+                </div>
+            </section>
             
-            if (!lang) {
-                try {
-                    // Fetch IP info
-                    const res = await fetch('https://ipapi.co/json/');
-                    const data = await res.json();
-                    if (data.country_code === 'TR') {
-                        lang = 'tr';
-                    } else if (data.country_code === 'PH') {
-                        lang = 'ph';
-                    } else if (data.country_code === 'DE' || data.country_code === 'AT' || data.country_code === 'CH') {
-                        lang = 'de';
-                    } else if (data.country_code === 'RU') {
-                        lang = 'ru';
-                    } else {
-                        lang = 'en';
-                    }
-                } catch (e) {
-                    console.error("IP check failed, defaulting based on browser");
-                    if (navigator.language.startsWith('tr')) {
-                        lang = 'tr';
-                    } else if (navigator.language.startsWith('fil') || navigator.language.startsWith('tl')) {
-                        lang = 'ph';
-                    } else if (navigator.language.startsWith('de')) {
-                        lang = 'de';
-                    } else if (navigator.language.startsWith('ru')) {
-                        lang = 'ru';
-                    } else {
-                        lang = 'en';
-                    }
+            <!-- FAQ skipped for brevity but similar pattern would apply. -->
+        </main>
+
+            <section id="faq">
+                <div class="section-header">
+                    <h2>Frequently Asked Questions</h2>
+                </div>
+                <div class="faq-grid">
+                    <div class="faq-item">
+                        <h3>Is it really anonymous?</h3>
+                        <p>Yes. We do not require any personal information. Your IP is logged briefly for connection handling but is never associated with a persistent profile.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Can I retrieve deleted messages?</h3>
+                        <p>No. Once deleted by you or the auto-cleaner, they are physically removed from the storage and cannot be recovered.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Is there a mobile app?</h3>
+                        <p>Talk2 works great on mobile browsers. You can add it to your home screen for an app-like experience.</p>
+                    </div>
+                    <div class="faq-item">
+                        <h3>Who runs this?</h3>
+                        <p>This is an open-source project developed by Veloxy, focused on privacy rights.</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <div class="footer-info">
+                    <div class="logo" style="font-size: 1.2rem; margin-bottom: 0.5rem;">
+                        <i class="fas fa-satellite"></i> Talk2
+                    </div>
+                    <p>&copy; <span id="current-year"></span> Veloxy. All rights reserved.</p>
+                    <script>document.getElementById('current-year').textContent = new Date().getFullYear();</script>
+                    <p>Code released under MIT License.</p>
+                </div>
+                <div class="socials">
+                    <a href="https://github.com/zveloxy" target="_blank" title="GitHub"><i class="fab fa-github"></i></a>
+                    <a href="#" title="Twitter"><i class="fab fa-twitter"></i></a>
+                    <a href="#" title="Discord"><i class="fab fa-discord"></i></a>
+                </div>
+            </div>
+        </footer>
+
+        <script>
+            const translations = {
+                en: {
+                    title: "Talk2 - Anonymous Chat",
+                    heroBadge: "100% Anonymous",
+                    heroTitle: "Private Chats That<br><span>Disappear</span>",
+                    heroDesc: "Chat freely without leaving a trace. Create a room, share messages and images, and everything auto-deletes after 24 hours. No sign-up required.",
+                    btnEnter: 'Start Chatting <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                    popular: "Popular rooms:",
+                    howItWorks: "How it Works",
+                    howDesc: "Simple by design. Secure by default.",
+                    step1Title: "Choose a Room",
+                    step1Desc: "Enter any room name. If it doesn't exist, it's created instantly just for you.",
+                    step2Title: "Pick an Alias",
+                    step2Desc: "No accounts. Just pick a temporary nickname and you're in.",
+                    step3Title: "Vanish",
+                    step3Desc: "Chat, share images. Every 24 hours, the room wipes itself clean.",
+                    features: "Features",
+                    faq: "FAQ",
+                    statActiveRooms: "Active Rooms",
+                    statOnlineUsers: "Online Users",
+                    statRet: "Data Retention",
+                    statEnc: "Standard Encryption",
+                    statLogs: "Logs Stored",
+                    fIdentTitle: "Anonymous Identity",
+                    fIdentDesc: "We don't know who you are, and we don't want to.",
+                    fAutoTitle: "Auto-Destruct",
+                    fAutoDesc: "A cron job rigorously cleans the database and file system every hour.",
+                    fRealTitle: "Real-Time Socket",
+                    fRealDesc: "Built on Socket.io for millisecond-latency messaging. Typing indicators included.",
+                    fMediaTitle: "Media Support",
+                    fMediaDesc: "Drag and drop images. They are uploaded securely and deleted along with messages.",
+                    fRespTitle: "Responsive UI",
+                    fRespDesc: "A dark-themed, glassmorphic interface that looks beautiful on any device.",
+                    fOpenTitle: "Open Source",
+                    fOpenDesc: "The code is transparent. Verification is better than trust.",
+                    fSecureTitle: "Secure Transport",
+                    fSecureDesc: "All data is transmitted via HTTPS/WSS standards to prevent interception.",
+                    fGlobalTitle: "Global Reach",
+                    fGlobalDesc: "Optimized for low-latency connections worldwide using lightweight protocols.",
+                    fLightTitle: "Lightweight",
+                    fLightDesc: "No bloated frameworks. Pure vanilla JS for maximum performance.",
+                    rooms: "rooms"
+                },
+                tr: {
+                    title: "Talk2 - Anonim Sohbet",
+                    heroBadge: "%100 Anonim",
+                    heroTitle: "Kaybolan<br><span>Özel Sohbetler</span>",
+                    heroDesc: "İz bırakmadan sohbet edin. Oda oluşturun, mesaj ve resim paylaşın. 24 saat sonra her şey otomatik silinir. Kayıt gerekmez.",
+                    btnEnter: 'Sohbete Başla <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                    popular: "Popüler odalar:",
+                    howItWorks: "Nasıl Çalışır",
+                    howDesc: "Tasarımı basit. Doğası gereği güvenli.",
+                    step1Title: "Oda Seç",
+                    step1Desc: "Herhangi bir oda adı girin. Yoksa, anında oluşturulur.",
+                    step2Title: "Takma Ad Seç",
+                    step2Desc: "Hesap yok. Sadece geçici bir isim seç ve katıl.",
+                    step3Title: "Yok Ol",
+                    step3Desc: "Sohbet et, resim paylaş. Her 24 saatte bir her şey silinir.",
+                    features: "Özellikler",
+                    faq: "S.S.S",
+                    statActiveRooms: "Aktif Odalar",
+                    statOnlineUsers: "Çevrimiçi",
+                    statRet: "Veri Saklama",
+                    statEnc: "Standart Şifreleme",
+                    statLogs: "Log Kaydı",
+                    fIdentTitle: "Anonim Kimlik",
+                    fIdentDesc: "Kim olduğunu bilmiyoruz ve bilmek de istemiyoruz.",
+                    fAutoTitle: "Oto-İmha",
+                    fAutoDesc: "Silici botlar her saat başı veritabanını temizler.",
+                    fRealTitle: "Gerçek Zamanlı",
+                    fRealDesc: "Milisaniyelik gecikme ile Socket.io altyapısı. Yazıyor göstergeleri dahil.",
+                    fMediaTitle: "Medya Desteği",
+                    fMediaDesc: "Sürükle bırak ile resim yükle. Mesajlarla birlikte güvenli bir şekilde silinirler.",
+                    fRespTitle: "Duyarlı Arayüz",
+                    fRespDesc: "Her cihazda harika görünen karanlık temalı, 'glassmorphic' bir arayüz.",
+                    fOpenTitle: "Açık Kaynak",
+                    fOpenDesc: "Kod şeffaftır. Doğrulama güvenmekten iyidir.",
+                    fSecureTitle: "Güvenli İletim",
+                    fSecureDesc: "Tüm veriler müdahaleyi önlemek için HTTPS/WSS standartlarıyla iletilir.",
+                    fGlobalTitle: "Küresel Erişim",
+                    fGlobalDesc: "Dünya çapında düşük gecikme için hafif protokollerle optimize edildi.",
+                    fLightTitle: "Hafif Yapı",
+                    fLightDesc: "Şişirilmiş frameworkler yok. Maksimum performans için saf Vanilla JS.",
+                    rooms: "odalar"
+                },
+                ph: {
+                    title: "Talk2 - Anonymous Chat",
+                    heroBadge: "100% Anonymous",
+                    heroTitle: "Mga Pribadong Chat na<br><span>Nawawala</span>",
+                    heroDesc: "Mag-chat nang malaya. Gumawa ng room, magbahagi ng mga mensahe at larawan. Lahat ay awtomatikong mabubura pagkatapos ng 24 na oras. Walang sign-up.",
+                    btnEnter: 'Magsimulang Mag-chat <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                    popular: "Mga sikat na room:",
+                    howItWorks: "Paano Ito Gumagana",
+                    howDesc: "Simple sa disenyo. Ligtas bilang default.",
+                    step1Title: "Pumili ng Room",
+                    step1Desc: "Maglagay ng pangalan ng room. Kung wala ito, agad itong nagagawa.",
+                    step2Title: "Pumili ng Palayaw",
+                    step2Desc: "Walang account. Pumili lang ng pansamantalang pangalan at pasok ka na.",
+                    step3Title: "Mawala",
+                    step3Desc: "Mag-chat, magbahagi ng larawan. Bawat 24 oras, nililinis ang lahat.",
+                    features: "Mga Feature",
+                    faq: "FAQ",
+                    statActiveRooms: "Mga Aktibong Room",
+                    statOnlineUsers: "Online Users",
+                    statRet: "Data Retention",
+                    statEnc: "Standard Encryption",
+                    statLogs: "Logs Stored",
+                    fIdentTitle: "Anonymous Identity",
+                    fIdentDesc: "Hindi namin alam kung sino ka, at ayaw naming malaman.",
+                    fAutoTitle: "Auto-Destruct",
+                    fAutoDesc: "Awtomatikong nililinis ang database bawat oras.",
+                    fRealTitle: "Real-Time Socket",
+                    fRealDesc: "Gamit ang Socket.io para sa mabilis na messaging. May typing indicators.",
+                    fMediaTitle: "Media Support",
+                    fMediaDesc: "Drag and drop ng mga larawan. Mabubura kasama ng mga mensahe.",
+                    fRespTitle: "Responsive UI",
+                    fRespDesc: "Dark-themed interface na maganda sa kahit anong device.",
+                    fOpenTitle: "Open Source",
+                    fOpenDesc: "Transparent ang code. Verification ay mas mabuti kaysa tiwala.",
+                    fSecureTitle: "Secure Transport",
+                    fSecureDesc: "Lahat ng data ay naipapadala sa pamamagitan ng HTTPS/WSS.",
+                    fGlobalTitle: "Global Reach",
+                    fGlobalDesc: "Optimized para sa mabilis na koneksyon sa buong mundo.",
+                    fLightTitle: "Lightweight",
+                    fLightDesc: "Walang mabibigat na frameworks. Pure vanilla JS.",
+                    rooms: "mga room"
+                },
+                de: {
+                    title: "Talk2 - Anonymer Chat",
+                    heroBadge: "100% Anonym",
+                    heroTitle: "Private Chats die<br><span>Verschwinden</span>",
+                    heroDesc: "Chatten Sie frei ohne Spuren zu hinterlassen. Erstellen Sie einen Raum, teilen Sie Nachrichten und Bilder, alles wird nach 24 Stunden automatisch gelöscht. Keine Anmeldung erforderlich.",
+                    btnEnter: 'Chat Starten <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                    popular: "Beliebte Räume:",
+                    howItWorks: "So funktioniert's",
+                    howDesc: "Einfach im Design. Sicher als Standard.",
+                    step1Title: "Raum Wählen",
+                    step1Desc: "Geben Sie einen Raumnamen ein. Wenn er nicht existiert, wird er sofort erstellt.",
+                    step2Title: "Alias Wählen",
+                    step2Desc: "Kein Konto. Wählen Sie einen temporären Namen und Sie sind dabei.",
+                    step3Title: "Verschwinden",
+                    step3Desc: "Chatten, Bilder teilen. Alle 24 Stunden wird alles gelöscht.",
+                    features: "Funktionen",
+                    faq: "FAQ",
+                    statActiveRooms: "Aktive Räume",
+                    statOnlineUsers: "Online",
+                    statRet: "Datenspeicherung",
+                    statEnc: "Standardverschlüsselung",
+                    statLogs: "Gespeicherte Logs",
+                    fIdentTitle: "Anonyme Identität",
+                    fIdentDesc: "Wir wissen nicht wer Sie sind, und wir wollen es nicht wissen.",
+                    fAutoTitle: "Auto-Löschung",
+                    fAutoDesc: "Die Datenbank wird stündlich automatisch bereinigt.",
+                    fRealTitle: "Echtzeit-Socket",
+                    fRealDesc: "Mit Socket.io für blitzschnelle Nachrichten. Tippanzeigen inklusive.",
+                    fMediaTitle: "Medien-Support",
+                    fMediaDesc: "Drag & Drop für Bilder. Sie werden mit den Nachrichten gelöscht.",
+                    fRespTitle: "Responsives UI",
+                    fRespDesc: "Dark-Theme Interface, das auf jedem Gerät gut aussieht.",
+                    fOpenTitle: "Open Source",
+                    fOpenDesc: "Der Code ist transparent. Verifizierung ist besser als Vertrauen.",
+                    fSecureTitle: "Sichere Übertragung",
+                    fSecureDesc: "Alle Daten werden über HTTPS/WSS übertragen.",
+                    fGlobalTitle: "Globale Reichweite",
+                    fGlobalDesc: "Optimiert für schnelle Verbindungen weltweit.",
+                    fLightTitle: "Leichtgewichtig",
+                    fLightDesc: "Keine schweren Frameworks. Pures Vanilla JS.",
+                    rooms: "Räume"
+                },
+                ru: {
+                    title: "Talk2 - Анонимный Чат",
+                    heroBadge: "100% Анонимно",
+                    heroTitle: "Приватные Чаты<br><span>Которые Исчезают</span>",
+                    heroDesc: "Общайтесь свободно, не оставляя следов. Создайте комнату, делитесь сообщениями и изображениями — всё автоматически удаляется через 24 часа. Регистрация не требуется.",
+                    btnEnter: 'Начать Чат <i class="fas fa-arrow-right" style="margin-left: 8px;"></i>',
+                    popular: "Популярные комнаты:",
+                    howItWorks: "Как это работает",
+                    howDesc: "Просто по дизайну. Безопасно по умолчанию.",
+                    step1Title: "Выберите Комнату",
+                    step1Desc: "Введите название комнаты. Если её нет, она будет создана мгновенно.",
+                    step2Title: "Выберите Псевдоним",
+                    step2Desc: "Без аккаунта. Просто выберите временное имя и вы внутри.",
+                    step3Title: "Исчезните",
+                    step3Desc: "Общайтесь, делитесь изображениями. Каждые 24 часа всё очищается.",
+                    features: "Возможности",
+                    faq: "ЧАВО",
+                    statActiveRooms: "Активные Комнаты",
+                    statOnlineUsers: "Онлайн",
+                    statRet: "Хранение данных",
+                    statEnc: "Стандартное шифрование",
+                    statLogs: "Хранимые логи",
+                    fIdentTitle: "Анонимная Личность",
+                    fIdentDesc: "Мы не знаем кто вы, и не хотим знать.",
+                    fAutoTitle: "Авто-Удаление",
+                    fAutoDesc: "База данных автоматически очищается каждый час.",
+                    fRealTitle: "Реальное Время",
+                    fRealDesc: "На Socket.io для мгновенных сообщений. Индикаторы набора включены.",
+                    fMediaTitle: "Медиа Поддержка",
+                    fMediaDesc: "Перетаскивайте изображения. Удаляются вместе с сообщениями.",
+                    fRespTitle: "Адаптивный UI",
+                    fRespDesc: "Тёмная тема, отлично выглядит на любом устройстве.",
+                    fOpenTitle: "Открытый Код",
+                    fOpenDesc: "Код прозрачен. Проверка лучше доверия.",
+                    fSecureTitle: "Безопасная Передача",
+                    fSecureDesc: "Все данные передаются через HTTPS/WSS.",
+                    fGlobalTitle: "Глобальный Охват",
+                    fGlobalDesc: "Оптимизировано для быстрых соединений по всему миру.",
+                    fLightTitle: "Легковесный",
+                    fLightDesc: "Без тяжёлых фреймворков. Чистый Vanilla JS.",
+                    rooms: "комнаты"
                 }
+            };
+
+            // IP Detection & Language Setup
+            async function detectLanguage() {
+                // Check localStorage first
+                let lang = localStorage.getItem('talk2_lang');
+                
+                if (!lang) {
+                    try {
+                        // Fetch IP info
+                        const res = await fetch('https://ipapi.co/json/');
+                        const data = await res.json();
+                        if (data.country_code === 'TR') {
+                            lang = 'tr';
+                        } else if (data.country_code === 'PH') {
+                            lang = 'ph';
+                        } else if (data.country_code === 'DE' || data.country_code === 'AT' || data.country_code === 'CH') {
+                            lang = 'de';
+                        } else if (data.country_code === 'RU') {
+                            lang = 'ru';
+                        } else {
+                            lang = 'en';
+                        }
+                    } catch (e) {
+                        console.error("IP check failed, defaulting based on browser");
+                        if (navigator.language.startsWith('tr')) {
+                            lang = 'tr';
+                        } else if (navigator.language.startsWith('fil') || navigator.language.startsWith('tl')) {
+                            lang = 'ph';
+                        } else if (navigator.language.startsWith('de')) {
+                            lang = 'de';
+                        } else if (navigator.language.startsWith('ru')) {
+                            lang = 'ru';
+                        } else {
+                            lang = 'en';
+                        }
+                    }
+                    localStorage.setItem('talk2_lang', lang);
+                }
+                applyLanguage(lang);
+                
+                // Set the selector to current language
+                const selector = document.getElementById('lang-select');
+                if (selector) {
+                    selector.value = lang;
+                }
+            }
+
+            function applyLanguage(lang) {
+                const t = translations[lang];
+                if (!t) return;
+
+                document.title = t.title;
+                
+                // Replaces all elements with data-i18n attribute
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (t[key]) {
+                        el.innerHTML = t[key];
+                    }
+                });
+            }
+
+            // Language selector change handler
+            document.getElementById('lang-select').addEventListener('change', (e) => {
+                const lang = e.target.value;
                 localStorage.setItem('talk2_lang', lang);
-            }
-            applyLanguage(lang);
+                applyLanguage(lang);
+            });
             
-            // Set the selector to current language
-            const selector = document.getElementById('lang-select');
-            if (selector) {
-                selector.value = lang;
+            // Live Stats Fetcher
+            async function updateStats() {
+                try {
+                    const res = await fetch('/api/stats');
+                    const data = await res.json();
+                    const activeRoomsEl = document.getElementById('active-rooms');
+                    const onlineUsersEl = document.getElementById('online-users');
+                    if (activeRoomsEl) activeRoomsEl.innerText = data.rooms.toLocaleString();
+                    if (onlineUsersEl) onlineUsersEl.innerText = data.users.toLocaleString();
+                } catch (e) {
+                    console.error("Failed to fetch stats", e);
+                }
             }
-        }
+            setInterval(updateStats, 10000); // Every 10 seconds
+            updateStats(); // Initial call
 
-        function applyLanguage(lang) {
-            const t = translations[lang];
-            if (!t) return;
+            detectLanguage();
 
-            document.title = t.title;
-            
-            // Replaces all elements with data-i18n attribute
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (t[key]) {
-                    el.innerHTML = t[key];
+            document.getElementById('room-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const roomName = document.getElementById('room-name').value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+                if (roomName) {
+                    window.location.href = '/' + encodeURIComponent(roomName);
                 }
             });
-        }
 
-        // Language selector change handler
-        document.getElementById('lang-select').addEventListener('change', (e) => {
-            const lang = e.target.value;
-            localStorage.setItem('talk2_lang', lang);
-            applyLanguage(lang);
-        });
-        
-        // Live Stats Fetcher
-        async function updateStats() {
-            try {
-                const res = await fetch('/api/stats');
-                const data = await res.json();
-                const activeRoomsEl = document.getElementById('active-rooms');
-                const onlineUsersEl = document.getElementById('online-users');
-                if (activeRoomsEl) activeRoomsEl.innerText = data.rooms.toLocaleString();
-                if (onlineUsersEl) onlineUsersEl.innerText = data.users.toLocaleString();
-            } catch (e) {
-                console.error("Failed to fetch stats", e);
+            // Particles
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 10 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 20) + 's';
+                particle.style.opacity = Math.random() * 0.5;
+                particlesContainer.appendChild(particle);
             }
-        }
-        setInterval(updateStats, 10000); // Every 10 seconds
-        updateStats(); // Initial call
 
-        detectLanguage();
-
-        document.getElementById('room-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const roomName = document.getElementById('room-name').value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-            if (roomName) {
-                window.location.href = '/' + encodeURIComponent(roomName);
-            }
-        });
-
-        // Particles
-        const particlesContainer = document.getElementById('particles');
-        for (let i = 0; i < 30; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 10 + 's';
-            particle.style.animationDuration = (10 + Math.random() * 20) + 's';
-            particle.style.opacity = Math.random() * 0.5;
-            particlesContainer.appendChild(particle);
-        }
-
-    </script>
-</body>
+        </script>
+    </body>
 </html>
