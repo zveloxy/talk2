@@ -1157,7 +1157,22 @@ socket.on('system', (data) => {
     scrollToBottom();
 });
 
-socket.on('userList', updateUserList);
+socket.on('userList', (users) => {
+    // Update sidebar user list
+    if (usersList) {
+        usersList.innerHTML = '';
+        users.forEach(user => {
+            const li = document.createElement('li');
+            li.innerHTML = `<i class="fas fa-user"></i> ${user.nickname}${user.nickname === nickname ? ' (sen)' : ''}`;
+            usersList.appendChild(li);
+        });
+    }
+    
+    // Update user count badges
+    const count = users.length;
+    if (userCount) userCount.textContent = count;
+    if (sidebarUserCount) sidebarUserCount.textContent = count;
+});
 
 socket.on('userTyping', (data) => {
     if (data.isTyping) typingUsers[data.nickname] = true;
