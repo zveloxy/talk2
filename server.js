@@ -1,4 +1,6 @@
 // --- Startup Logging for cPanel Debug ---
+console.error('=== SERVER.JS STARTING ==='); // This should appear in stderr.log
+console.error('Current directory:', __dirname);
 const fs = require('fs');
 const path = require('path');
 
