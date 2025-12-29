@@ -186,10 +186,10 @@ function deleteFileByUrl(url) {
 
 // 3. Upload Route (Encrypts and saves)
 app.post('/api/upload', (req, res) => {
-    upload.single('file')(req, res, (err) => {
+    // Use .any() for broader compatibility with cPanel proxies
+    upload.any()(req, res, (err) => {
         if (err) {
             console.error("Multer upload error:", err);
-            // SEND DETAILED ERROR TO CLIENT
             return res.status(500).json({ 
                 error: "Upload Middleware Failed", 
                 message: err.message,
@@ -197,10 +197,14 @@ app.post('/api/upload', (req, res) => {
             });
         }
         
-        if (!req.file) return res.status(400).send('No file uploaded.');
-
-        const tempPath = req.file.path;
-        const finalFilename = req.file.filename + '.enc'; // Add .enc extension
+        // .any() puts files in req.files array
+        if (!req.files || req.files.length === 0) {
+            return res.status(400).send('No file uploaded.');
+        }
+        
+        const uploadedFile = req.files[0]; // Take the first file
+        const tempPath = uploadedFile.path;
+        const finalFilename = uploadedFile.filename + '.enc';
         const finalPath = path.join(UPLOAD_DIR, finalFilename);
         
         // Debug Log
