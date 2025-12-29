@@ -441,13 +441,14 @@ function addMessageToDOM(msg) {
 
 function scrollToBottom() {
     if (messagesList) {
+        const container = messagesList.parentElement;
         // Use requestAnimationFrame to ensure DOM paint is complete
         requestAnimationFrame(() => {
-            messagesList.scrollTop = messagesList.scrollHeight;
+            container.scrollTop = container.scrollHeight;
         });
         // Double check a bit later for slow rendering elements
         setTimeout(() => {
-            if(messagesList) messagesList.scrollTop = messagesList.scrollHeight;
+            if(container) container.scrollTop = container.scrollHeight;
         }, 100);
     }
 }
@@ -720,13 +721,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Scroll event for scroll-to-bottom button visibility
         const scrollBottomBtn = document.getElementById('scroll-bottom-btn');
         if (scrollBottomBtn) {
-            messagesList.addEventListener('scroll', () => {
-                const isNearBottom = messagesList.scrollHeight - messagesList.scrollTop - messagesList.clientHeight < 200;
+            // The scrollable element is the container, not the messages list itself
+            const scrollContainer = messagesList.parentElement; // .chat-container
+            
+            scrollContainer.addEventListener('scroll', () => {
+                const isNearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 200;
                 scrollBottomBtn.classList.toggle('hidden', isNearBottom);
             });
             
             scrollBottomBtn.addEventListener('click', () => {
-                messagesList.scrollTo({ top: messagesList.scrollHeight, behavior: 'smooth' });
+                scrollContainer.scrollTo({ top: scrollContainer.scrollHeight, behavior: 'smooth' });
             });
         }
     }
