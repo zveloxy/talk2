@@ -1165,7 +1165,11 @@ function initVideoPlayer(videoId) {
     
     function togglePlay() {
         if (video.paused) {
-            video.play();
+            video.play().catch(err => {
+                console.error('Video play error:', err);
+                console.log('Video source:', video.src);
+                showToast('Video oynatılamıyor. Dosya yüklenemedi.');
+            });
             overlay.style.opacity = '0';
             playToggle.innerHTML = '<i class="fas fa-pause"></i>';
         } else {
