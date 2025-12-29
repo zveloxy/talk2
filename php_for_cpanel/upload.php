@@ -19,11 +19,13 @@ $MAX_SIZE = 200 * 1024 * 1024; // 200MB
 // WHITELIST: Only allow these extensions
 $ALLOWED_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mp3', 'wav', 'ogg', 'mov'];
 
-// WHITELIST: Only allow these MIME types
+// WHITELIST: Only allow these MIME types (expanded for video compatibility)
 $ALLOWED_MIME_TYPES = [
     'image/jpeg', 'image/png', 'image/gif', 'image/webp',
-    'video/mp4', 'video/webm', 'video/quicktime',
-    'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3'
+    'video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 
+    'video/x-m4v', 'video/mpeg', 'video/3gpp', 'video/x-matroska',
+    'application/octet-stream', // Some servers return this for unknown types
+    'audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/mp3', 'audio/mp4'
 ];
 
 // BLACKLIST: Never allow these patterns (even if renamed)
