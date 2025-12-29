@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,14 +21,14 @@
     <div id="app">
         <!-- Nickname Modal -->
         <div id="nickname-overlay" class="overlay">
-            <div class="modal">
+            <div class="modal" id="nickname-modal" style="opacity: 0; transition: opacity 0.3s;">
                 <div class="modal-icon"><i class="fas fa-satellite"></i></div>
-                <h2 data-i18n="modalTitle">Talk2'ya Girin</h2>
-                <p><span data-i18n="modalText">odayı katılmak için bir takma ad seçin:</span> <strong id="room-display"></strong></p>
+                <h2 data-i18n="modalTitle"></h2>
+                <p><span data-i18n="modalText"></span> <strong id="room-display"></strong></p>
                 <form id="nickname-form" onsubmit="return false;">
-                    <input type="text" id="nickname-input" placeholder="örn. KozmikGezgin" maxlength="15" required autocomplete="off" data-i18n-placeholder="placeholderNickname">
-                    <button type="submit" data-i18n="btnConnect">Bağlan</button>
-                    <button type="button" id="random-nickname" data-i18n="btnRandom">Rastgele Oluştur</button>
+                    <input type="text" id="nickname-input" maxlength="15" required autocomplete="off" data-i18n-placeholder="placeholderNickname">
+                    <button type="submit" data-i18n="btnConnect"></button>
+                    <button type="button" id="random-nickname" data-i18n="btnRandom"></button>
                 </form>
             </div>
         </div>
@@ -37,11 +37,11 @@
         <div id="confirm-overlay" class="overlay hidden">
             <div class="modal confirm-modal">
                 <div class="modal-icon warning"><i class="fas fa-exclamation-triangle"></i></div>
-                <h3 id="confirm-title">Onay</h3>
-                <p id="confirm-text">Bu işlemi yapmak istediğine emin misin?</p>
+                <h3 id="confirm-title">Confirm</h3>
+                <p id="confirm-text">Are you sure you want to do this?</p>
                 <div class="modal-actions">
-                    <button id="confirm-cancel-btn" class="secondary-btn">İptal</button>
-                    <button id="confirm-yes-btn" class="danger-btn">Evet, Sil</button>
+                    <button id="confirm-cancel-btn" class="secondary-btn">Cancel</button>
+                    <button id="confirm-yes-btn" class="danger-btn">Yes, Delete</button>
                 </div>
             </div>
         </div>
@@ -50,16 +50,16 @@
         <div id="expiry-overlay" class="overlay hidden">
             <div class="modal">
                 <div class="modal-icon"><i class="fas fa-hourglass-half"></i></div>
-                <h3 data-i18n="expiryTitle">Mesaj Süresi</h3>
-                <p data-i18n="expiryDesc">Bu odadaki mesajların ne kadar süre sonra silineceğini seçin.</p>
+                <h3 data-i18n="expiryTitle">Message Expiry</h3>
+                <p data-i18n="expiryDesc">Choose how long messages last in this room.</p>
                 <div class="expiry-options">
-                    <button class="expiry-option" data-value="1">1 Saat</button>
-                    <button class="expiry-option" data-value="6">6 Saat</button>
-                    <button class="expiry-option" data-value="12">12 Saat</button>
-                    <button class="expiry-option active" data-value="24">24 Saat</button>
-                    <button class="expiry-option" data-value="168">7 Gün</button>
+                    <button class="expiry-option" data-value="1">1 Hour</button>
+                    <button class="expiry-option" data-value="6">6 Hours</button>
+                    <button class="expiry-option" data-value="12">12 Hours</button>
+                    <button class="expiry-option active" data-value="24">24 Hours</button>
+                    <button class="expiry-option" data-value="168">7 Days</button>
                 </div>
-                <button id="expiry-close-btn" class="secondary-btn" style="margin-top: 1rem;">Kapat</button>
+                <button id="expiry-close-btn" class="secondary-btn" style="margin-top: 1rem;">Close</button>
             </div>
         </div>
 
@@ -173,6 +173,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=6"></script>
+    <script src="/client.js?v=7"></script>
 </body>
 </html>

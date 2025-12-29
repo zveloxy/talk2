@@ -224,6 +224,10 @@ async function detectLanguage() {
     currentLang = storedLang;
     if (!['en', 'tr', 'de', 'ru', 'ph'].includes(currentLang)) currentLang = 'en';
     applyLanguage(currentLang);
+    
+    // Show nickname modal after language is applied
+    const nicknameModal = document.getElementById('nickname-modal');
+    if (nicknameModal) nicknameModal.style.opacity = '1';
 }
 
 function applyLanguage(lang) {
