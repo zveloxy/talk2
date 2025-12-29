@@ -91,6 +91,7 @@ app.use(helmet({
         directives: {
             defaultSrc: ["'self'"],
             scriptSrc: ["'self'", "'unsafe-inline'", "cdnjs.cloudflare.com"],
+            scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers like onclick
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "blob:", "cdnjs.cloudflare.com"],
@@ -131,24 +132,33 @@ const upload = multer({
 
 // 2. Encryption Helper (File -> Encrypted File)
 function encryptFile(inputPath, outputPath, cb) {
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
-    
-    const input = fs.createReadStream(inputPath);
-    const output = fs.createWriteStream(outputPath);
+    if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 32) {
+        return cb(new Error("Invalid Encryption Key"));
+    }
 
-    // Write IV first
-    output.write(iv);
+    try {
+        const iv = crypto.randomBytes(IV_LENGTH);
+        const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+        
+        const input = fs.createReadStream(inputPath);
+        const output = fs.createWriteStream(outputPath);
 
-    input.pipe(cipher).pipe(output);
+        // Write IV first
+        output.write(iv);
 
-    output.on('finish', () => {
-        cb(null);
-    });
-    output.on('error', (err) => {
-        console.error("Stream encryption error:", err);
+        input.pipe(cipher).pipe(output);
+
+        output.on('finish', () => {
+            cb(null);
+        });
+        output.on('error', (err) => {
+            console.error("Stream encryption error:", err);
+            cb(err);
+        });
+    } catch (err) {
+        console.error("Crypto setup error:", err);
         cb(err);
-    });
+    }
 }
 
 // Helper to delete file by URL (handles encrypted and legacy paths)
