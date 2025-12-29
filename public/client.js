@@ -1,6 +1,26 @@
 // Talk2 Chat Client - Cleaned Version
 
-const socket = io();
+// Socket with reconnection options for cPanel reliability
+const socket = io({
+    reconnection: true,
+    reconnectionAttempts: 10,
+    reconnectionDelay: 1000,
+    reconnectionDelayMax: 5000,
+    timeout: 20000
+});
+
+// Socket connection error handling
+socket.on('connect_error', (err) => {
+    console.error('Socket connection error:', err.message);
+});
+
+socket.on('reconnect', (attemptNumber) => {
+    console.log('Reconnected after', attemptNumber, 'attempts');
+    // Re-join room on reconnect if we have nickname
+    if (nickname && roomId) {
+        socket.emit('join', roomId, nickname, userId);
+    }
+});
 
 // State
 let nickname = localStorage.getItem('antigravity_nickname');
