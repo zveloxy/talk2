@@ -90,12 +90,12 @@ app.use(helmet({
     contentSecurityPolicy: {
         directives: {
             defaultSrc: ["'self'"],
-            scriptSrc: ["'self'", "'unsafe-inline'", "cdnjs.cloudflare.com"],
-            scriptSrcAttr: ["'unsafe-inline'"], // Allow inline event handlers like onclick
+            scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdnjs.cloudflare.com"], // Added unsafe-eval
+            scriptSrcAttr: ["'self'", "'unsafe-inline'"], // Explicitly allow inline event handlers
             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
             fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
             imgSrc: ["'self'", "data:", "blob:", "cdnjs.cloudflare.com"],
-            connectSrc: ["'self'", "ws:", "wss:", "https://ipapi.co", "https://fonts.googleapis.com", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"]
+            connectSrc: ["'self'", "ws:", "wss:", "*"] // Allow all connections to rule out CSP for now
         }
     },
     crossOriginEmbedderPolicy: false // Required for socket.io
@@ -132,8 +132,10 @@ const upload = multer({
 
 // 2. Encryption Helper (File -> Encrypted File)
 function encryptFile(inputPath, outputPath, cb) {
+    // Check Key - Log if missing
     if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 32) {
-        return cb(new Error("Invalid Encryption Key"));
+        console.error("Encryption Failed: Invalid Key", ENCRYPTION_KEY ? "Length mismatch" : "Missing");
+        return cb(new Error("Invalid Encryption Key (Check .secret file permissions)"));
     }
 
     try {
@@ -187,7 +189,12 @@ app.post('/api/upload', (req, res) => {
     upload.single('file')(req, res, (err) => {
         if (err) {
             console.error("Multer upload error:", err);
-            return res.status(500).json({ error: "Upload failed", details: err.message });
+            // SEND DETAILED ERROR TO CLIENT
+            return res.status(500).json({ 
+                error: "Upload Middleware Failed", 
+                message: err.message,
+                stack: err.stack 
+            });
         }
         
         if (!req.file) return res.status(400).send('No file uploaded.');
@@ -195,14 +202,25 @@ app.post('/api/upload', (req, res) => {
         const tempPath = req.file.path;
         const finalFilename = req.file.filename + '.enc'; // Add .enc extension
         const finalPath = path.join(UPLOAD_DIR, finalFilename);
+        
+        // Debug Log
+        console.log(`Starting Encryption: Temp=${tempPath}, Final=${finalPath}, KeyLen=${ENCRYPTION_KEY ? ENCRYPTION_KEY.length : 'NULL'}`);
 
         encryptFile(tempPath, finalPath, (err) => {
             // Always delete temp file (using fs.unlink to avoid callback nesting hell if simple)
-            fs.unlink(tempPath, () => {});
+            fs.unlink(tempPath, (unlinkErr) => {
+                if (unlinkErr) console.error("Temp file cleanup warning:", unlinkErr.message);
+            });
 
             if (err) {
-                console.error("Encryption error:", err);
-                return res.status(500).send("Encryption failed");
+                console.error("Encryption failed:", err);
+                // SEND DETAILED ERROR TO CLIENT
+                return res.status(500).json({ 
+                    error: "Encryption Failed", 
+                    message: err.message,
+                    code: err.code || 'UNKNOWN',
+                    path: finalPath // Debugging help
+                });
             }
 
             res.json({ url: '/api/file/' + finalFilename });
