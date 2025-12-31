@@ -7,19 +7,7 @@ $STORAGE_DIR = '/home/talk2/public_html/talk2/storage/uploads/';
 $SECRET_FILE = '/home/talk2/public_html/talk2/.secret';
 $MAX_SIZE = 200 * 1024 * 1024; // 200MB
 
-// DEBUG MODE - Remove after testing
-if (isset($_GET['debug'])) {
-    echo json_encode([
-        'current_dir' => __DIR__,
-        'secret_path' => $SECRET_FILE,
-        'secret_exists' => file_exists($SECRET_FILE),
-        'storage_path' => $STORAGE_DIR,
-        'storage_exists' => file_exists($STORAGE_DIR),
-        'parent_dir' => dirname(__DIR__),
-        'parent_files' => scandir(dirname(__DIR__))
-    ]);
-    exit;
-}
+// DEBUG MODE REMOVED FOR SECURITY
 
 // Ensure storage directory exists
 if (!file_exists($STORAGE_DIR)) {
@@ -35,7 +23,7 @@ if (!file_exists($SECRET_FILE)) {
 $key = hex2bin(trim(file_get_contents($SECRET_FILE)));
 
 // Handle CORS
-header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Origin: https://talk2.app.tc');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
