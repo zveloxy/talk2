@@ -24,5 +24,8 @@
     "btnCancel": "Abbrechen",
     "btnConfirm": "Ja, löschen",
     "expiryTitle": "Ablaufzeit",
-    "expiryDesc": "Wie lange sollen Nachrichten bleiben?"
+    "expiryDesc": "Wie lange sollen Nachrichten bleiben?",
+    "expirySelected1h": "Nachrichten werden in 1 Stunde gelöscht.",
+    "expirySelectedHours": "Nachrichten werden in {hours} Stunden gelöscht.",
+    "expirySelected7d": "Nachrichten werden in 7 Tagen gelöscht."
 }

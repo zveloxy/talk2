@@ -25,5 +25,8 @@
     "btnCancel": "Cancel",
     "btnConfirm": "Yes, Delete",
     "expiryTitle": "Message Expiry",
-    "expiryDesc": "Choose how long messages last in this room."
+    "expiryDesc": "Choose how long messages last in this room.",
+    "expirySelected1h": "Messages will be deleted in 1 hour.",
+    "expirySelectedHours": "Messages will be deleted in {hours} hours.",
+    "expirySelected7d": "Messages will be deleted in 7 days."
 }

@@ -24,5 +24,8 @@
     "btnCancel": "Cancelar",
     "btnConfirm": "Sim, Deletar",
     "expiryTitle": "Expiração",
-    "expiryDesc": "Duração das mensagens."
+    "expiryDesc": "Duração das mensagens.",
+    "expirySelected1h": "Mensagens serão deletadas em 1 hora.",
+    "expirySelectedHours": "Mensagens serão deletadas em {hours} horas.",
+    "expirySelected7d": "Mensagens serão deletadas em 7 dias."
 }

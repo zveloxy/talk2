@@ -25,5 +25,8 @@
     "btnCancel": "İptal",
     "btnConfirm": "Evet, Sil",
     "expiryTitle": "Mesaj Süresi",
-    "expiryDesc": "Bu odadaki mesajların silinme süresini seçin."
+    "expiryDesc": "Bu odadaki mesajların silinme süresini seçin.",
+    "expirySelected1h": "Mesajlar 1 saat içinde silinecek.",
+    "expirySelectedHours": "Mesajlar {hours} saat içinde silinecek.",
+    "expirySelected7d": "Mesajlar 7 gün içinde silinecek."
 }

@@ -24,5 +24,8 @@
     "btnCancel": "Kanselahin",
     "btnConfirm": "Oo, Burahin",
     "expiryTitle": "Mensahe Expiry",
-    "expiryDesc": "Piliin kung gaano katagal ang mensahe."
+    "expiryDesc": "Piliin kung gaano katagal ang mensahe.",
+    "expirySelected1h": "Mabubura ang mga mensahe sa loob ng 1 oras.",
+    "expirySelectedHours": "Mabubura ang mga mensahe sa loob ng {hours} oras.",
+    "expirySelected7d": "Mabubura ang mga mensahe sa loob ng 7 araw."
 }

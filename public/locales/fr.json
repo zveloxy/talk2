@@ -24,5 +24,8 @@
     "btnCancel": "Annuler",
     "btnConfirm": "Oui, Supprimer",
     "expiryTitle": "Expiration",
-    "expiryDesc": "Durée de vie des messages."
+    "expiryDesc": "Durée de vie des messages.",
+    "expirySelected1h": "Les messages seront supprimés dans 1 heure.",
+    "expirySelectedHours": "Les messages seront supprimés dans {hours} heures.",
+    "expirySelected7d": "Les messages seront supprimés dans 7 jours."
 }

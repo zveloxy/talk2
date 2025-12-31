@@ -169,8 +169,31 @@ function applyTranslations(lang, t) {
 }
 
 // Wrapper for existing applyLanguage calls from dropdown
-function applyLanguage(lang) {
-    loadLanguage(lang);
+async function applyLanguage(lang) {
+    await loadLanguage(lang);
+    // Update language display after translations are loaded
+    const currentFlag = document.getElementById('current-flag');
+    const currentLangText = document.getElementById('current-lang-text');
+    const langData = {
+        en: { flag: '/flags/us.svg', text: 'EN' },
+        tr: { flag: '/flags/tr.svg', text: 'TR' },
+        de: { flag: '/flags/de.svg', text: 'DE' },
+        ru: { flag: '/flags/ru.svg', text: 'RU' },
+        ph: { flag: '/flags/ph.svg', text: 'PH' },
+        es: { flag: '/flags/es.svg', text: 'ES' },
+        fr: { flag: '/flags/fr.svg', text: 'FR' },
+        it: { flag: '/flags/it.svg', text: 'IT' },
+        pt: { flag: '/flags/br.svg', text: 'PT' }
+    };
+    if (currentFlag && langData[lang]) {
+        currentFlag.src = langData[lang].flag;
+    }
+    if (currentLangText && langData[lang]) {
+        currentLangText.textContent = langData[lang].text;
+    }
+    document.querySelectorAll('.lang-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.lang === lang);
+    });
 }
 
 // --- Core Functions ---
@@ -1026,6 +1049,21 @@ document.addEventListener('DOMContentLoaded', () => {
             opt.addEventListener('click', () => {
                 expiryOptions.forEach(o => o.classList.remove('active'));
                 opt.classList.add('active');
+                
+                // Update expiry description to show selected time
+                const hours = parseInt(opt.getAttribute('data-value'));
+                const expiryDesc = document.querySelector('[data-i18n="expiryDesc"]');
+                if (expiryDesc) {
+                    const t = loadedTranslations[currentLang] || loadedTranslations['en'] || {};
+                    if (hours === 1) {
+                        expiryDesc.textContent = t.expirySelected1h || 'Messages will be deleted in 1 hour.';
+                    } else if (hours === 168) {
+                        expiryDesc.textContent = t.expirySelected7d || 'Messages will be deleted in 7 days.';
+                    } else {
+                        expiryDesc.textContent = (t.expirySelectedHours || 'Messages will be deleted in {hours} hours.').replace('{hours}', hours);
+                    }
+                }
+                
                 socket.emit('setExpiry', parseInt(opt.getAttribute('data-value')));
                 setTimeout(() => {
                     expiryOverlay.classList.add('hidden');
@@ -1089,12 +1127,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         document.querySelectorAll('.lang-option').forEach(opt => {
-            opt.addEventListener('click', () => {
+            opt.addEventListener('click', async () => {
                 const lang = opt.dataset.lang;
                 currentLang = lang;
                 localStorage.setItem('talk2_lang', currentLang);
-                applyLanguage(currentLang);
-                updateLangDisplay(lang);
+                await applyLanguage(currentLang);
                 updateExistingMessages(); // Update (sen)/(you) on existing messages
                 langDropdown.classList.remove('open');
             });
