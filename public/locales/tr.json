@@ -66,5 +66,8 @@
     "expiryDesc": "Bu odadaki mesajların silinme süresini seçin.",
     "expirySelected1h": "Mesajlar 1 saat içinde silinecek.",
     "expirySelectedHours": "Mesajlar {hours} saat içinde silinecek.",
-    "expirySelected7d": "Mesajlar 7 gün içinde silinecek."
+    "expirySelected7d": "Mesajlar 7 gün içinde silinecek.",
+    "expiryChanged1h": "{nickname} mesaj süresini 1 saat olarak ayarladı",
+    "expiryChangedHours": "{nickname} mesaj süresini {hours} saat olarak ayarladı",
+    "expiryChanged7d": "{nickname} mesaj süresini 7 gün olarak ayarladı"
 }

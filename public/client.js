@@ -482,15 +482,26 @@ function addSystemMessage(data) {
     const div = document.createElement('div');
     div.className = `system-message ${data.type || 'info'}`;
     
-    const t = loadedTranslations[currentLang] || loadedTranslations['en'];
+    const t = loadedTranslations[currentLang] || loadedTranslations['en'] || {};
     let text = data.content || '';
     
-    if (data.type === 'join') text = `${data.nickname} ${t.msgJoined}`;
-    else if (data.type === 'leave') text = `${data.nickname} ${t.msgLeft}`;
+    if (data.type === 'join') text = `${data.nickname} ${t.msgJoined || 'joined the room'}`;
+    else if (data.type === 'leave') text = `${data.nickname} ${t.msgLeft || 'left the room'}`;
+    else if (data.type === 'expiry') {
+        const hours = data.hours;
+        if (hours === 1) {
+            text = (t.expiryChanged1h || '{nickname} set message expiry to 1 hour').replace('{nickname}', data.nickname);
+        } else if (hours === 168) {
+            text = (t.expiryChanged7d || '{nickname} set message expiry to 7 days').replace('{nickname}', data.nickname);
+        } else {
+            text = (t.expiryChangedHours || '{nickname} set message expiry to {hours} hours').replace('{nickname}', data.nickname).replace('{hours}', hours);
+        }
+    }
     
     let icon = 'info-circle';
     if (data.type === 'join') icon = 'arrow-right-to-bracket';
     else if (data.type === 'leave') icon = 'arrow-right-from-bracket';
+    else if (data.type === 'expiry') icon = 'clock';
     
     div.innerHTML = `<i class="fas fa-${icon}"></i> ${text}`;
     messagesList.appendChild(div);

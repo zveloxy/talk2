@@ -66,5 +66,8 @@
     "expiryDesc": "Duración de los mensajes.",
     "expirySelected1h": "Los mensajes se eliminarán en 1 hora.",
     "expirySelectedHours": "Los mensajes se eliminarán en {hours} horas.",
-    "expirySelected7d": "Los mensajes se eliminarán en 7 días."
+    "expirySelected7d": "Los mensajes se eliminarán en 7 días.",
+    "expiryChanged1h": "{nickname} estableció la expiración a 1 hora",
+    "expiryChangedHours": "{nickname} estableció la expiración a {hours} horas",
+    "expiryChanged7d": "{nickname} estableció la expiración a 7 días"
 }

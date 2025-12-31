@@ -66,5 +66,8 @@
     "expiryDesc": "Wie lange sollen Nachrichten bleiben?",
     "expirySelected1h": "Nachrichten werden in 1 Stunde gelöscht.",
     "expirySelectedHours": "Nachrichten werden in {hours} Stunden gelöscht.",
-    "expirySelected7d": "Nachrichten werden in 7 Tagen gelöscht."
+    "expirySelected7d": "Nachrichten werden in 7 Tagen gelöscht.",
+    "expiryChanged1h": "{nickname} hat die Ablaufzeit auf 1 Stunde gesetzt",
+    "expiryChangedHours": "{nickname} hat die Ablaufzeit auf {hours} Stunden gesetzt",
+    "expiryChanged7d": "{nickname} hat die Ablaufzeit auf 7 Tage gesetzt"
 }

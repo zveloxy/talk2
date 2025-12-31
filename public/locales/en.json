@@ -66,5 +66,8 @@
     "expiryDesc": "Choose how long messages last in this room.",
     "expirySelected1h": "Messages will be deleted in 1 hour.",
     "expirySelectedHours": "Messages will be deleted in {hours} hours.",
-    "expirySelected7d": "Messages will be deleted in 7 days."
+    "expirySelected7d": "Messages will be deleted in 7 days.",
+    "expiryChanged1h": "{nickname} set message expiry to 1 hour",
+    "expiryChangedHours": "{nickname} set message expiry to {hours} hours",
+    "expiryChanged7d": "{nickname} set message expiry to 7 days"
 }

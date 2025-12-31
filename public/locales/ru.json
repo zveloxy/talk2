@@ -66,5 +66,8 @@
     "expiryDesc": "Выберите срок хранения сообщений.",
     "expirySelected1h": "Сообщения будут удалены через 1 час.",
     "expirySelectedHours": "Сообщения будут удалены через {hours} часов.",
-    "expirySelected7d": "Сообщения будут удалены через 7 дней."
+    "expirySelected7d": "Сообщения будут удалены через 7 дней.",
+    "expiryChanged1h": "{nickname} установил срок жизни 1 час",
+    "expiryChangedHours": "{nickname} установил срок жизни {hours} часов",
+    "expiryChanged7d": "{nickname} установил срок жизни 7 дней"
 }

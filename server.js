@@ -460,9 +460,16 @@ io.on('connection', (socket) => {
         if (user && user.roomId) {
              db.setRoomExpiry(user.roomId, hours);
              io.to(user.roomId).emit('roomConfig', { expiry: hours });
-             // io.to(user.roomId).emit('system', { type: 'info', content: `Message expiry set to ${hours} hours` }); 
-             // System message might be annoying if frequent, but good for feedback.
-             // Let's rely on roomConfig update for UI.
+             // Send system notification to chat
+             const nickname = roomUsers[user.roomId] && roomUsers[user.roomId][user.userId] 
+                 ? roomUsers[user.roomId][user.userId].nickname 
+                 : 'Someone';
+             io.to(user.roomId).emit('system', { 
+                 type: 'expiry', 
+                 nickname: nickname,
+                 hours: hours,
+                 timestamp: Date.now()
+             });
         }
     });
 
