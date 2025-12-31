@@ -878,8 +878,9 @@
             }
 
             // Wrapper for existing calls
-            function applyLanguage(lang) {
-                loadLanguage(lang);
+            async function applyLanguage(lang) {
+                await loadLanguage(lang);
+                updateLangDisplay(lang);
             }
 
             // Language Dropdown Handlers
@@ -923,11 +924,10 @@
                 });
                 
                 document.querySelectorAll('.lang-option').forEach(opt => {
-                    opt.addEventListener('click', () => {
+                    opt.addEventListener('click', async () => {
                         const lang = opt.dataset.lang;
                         localStorage.setItem('talk2_lang', lang);
-                        applyLanguage(lang);
-                        updateLangDisplay(lang);
+                        await applyLanguage(lang);
                         langDropdown.classList.remove('open');
                     });
                 });
