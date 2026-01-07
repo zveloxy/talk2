@@ -1,11 +1,10 @@
 # Talk2
 
 > **Secure, ephemeral, and anonymous chat platform.**  
-> _Formerly known as Antigravity._
 
 Talk2 is a privacy-focused real-time messaging application built with Node.js and Socket.io. It creates a space where conversations are guaranteed to be temporary. No logs are kept, no accounts are required, and everything—including shared media—is physically deleted after 24 hours.
 
-![Talk2 Hero](./public/favicon.ico) _Add a screenshot here_
+![Talk2 Hero](./public/favicon.ico)
 
 ## 🚀 Features
 
