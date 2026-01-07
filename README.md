@@ -18,7 +18,7 @@ Talk2 is a privacy-focused real-time messaging application built with Node.js an
   - **User Presence** list with online status.
 - **Smart UI/UX:**
   - **Glassmorphism Design:** A modern, dark-themed interface.
-  - **Auto-Language Detection:** Automatically serves Turkish (TR) or English (EN) content based on user IP.
+  - **Auto-Language Detection:** Automatically serves languages(TR/EN/DE/RU/ES/FR/IT/PT/PH) content based on user IP.
   - **Responsive:** Fully optimized for desktop, tablet, and mobile.
 - **Session Persistence:** Intelligent session handling ensures you don't disconnect on page refreshes.
 
