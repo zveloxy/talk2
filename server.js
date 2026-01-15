@@ -132,6 +132,13 @@ async function translateText(text, sourceLang, targetLang) {
             
             res.on('end', () => {
                 try {
+                    // Check if data is valid JSON
+                    if (!data) {
+                        console.error('Translation API returned empty response');
+                        resolve(text);
+                        return;
+                    }
+                    
                     const jsonData = JSON.parse(data);
                     console.log('API Status:', jsonData.responseStatus);
                     
@@ -160,6 +167,7 @@ async function translateText(text, sourceLang, targetLang) {
                     }
                 } catch (e) {
                     console.error('Error parsing translation API response:', e);
+                    console.error('Raw response:', data);
                     resolve(text);
                 }
             });
@@ -167,6 +175,13 @@ async function translateText(text, sourceLang, targetLang) {
         
         req.on('error', (err) => {
             console.error('Translation API request error:', err);
+            resolve(text);
+        });
+        
+        // standard timeout
+        req.setTimeout(5000, () => {
+            console.error('Translation API request timed out');
+            req.destroy();
             resolve(text);
         });
         
