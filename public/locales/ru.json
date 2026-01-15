@@ -69,5 +69,9 @@
     "expirySelected7d": "Сообщения будут удалены через 7 дней.",
     "expiryChanged1h": "{nickname} установил срок жизни 1 час",
     "expiryChangedHours": "{nickname} установил срок жизни {hours} часов",
-    "expiryChanged7d": "{nickname} установил срок жизни 7 дней"
+    "expiryChanged7d": "{nickname} установил срок жизни 7 дней",
+    "translateBtn": "Перевести",
+    "translating": "Перевод...",
+    "autoTranslateOn": "Авто-перевод включён",
+    "autoTranslateOff": "Авто-перевод выключен"
 }

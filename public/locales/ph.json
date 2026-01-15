@@ -69,5 +69,9 @@
     "expirySelected7d": "Mabubura ang mga mensahe sa loob ng 7 araw.",
     "expiryChanged1h": "{nickname} itinakda ang expiry sa 1 oras",
     "expiryChangedHours": "{nickname} itinakda ang expiry sa {hours} oras",
-    "expiryChanged7d": "{nickname} itinakda ang expiry sa 7 araw"
+    "expiryChanged7d": "{nickname} itinakda ang expiry sa 7 araw",
+    "translateBtn": "Isalin",
+    "translating": "Isinasalin...",
+    "autoTranslateOn": "Auto-translate naka-on",
+    "autoTranslateOff": "Auto-translate naka-off"
 }

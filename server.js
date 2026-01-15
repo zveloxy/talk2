@@ -76,6 +76,82 @@ const socketToUser = {};
 // Track pending timeouts for disconnects
 const disconnectTimeouts = {};
 
+// --- Translation API Integration (MyMemory) ---
+// Language code mapping for MyMemory API
+const LANG_CODES = {
+    'en': 'en', 'tr': 'tr', 'de': 'de', 'ru': 'ru',
+    'ph': 'tl', // Filipino -> Tagalog
+    'es': 'es', 'fr': 'fr', 'it': 'it', 'pt': 'pt',
+    'auto': 'autodetect' // Auto-detect source language
+};
+
+// Simple translation cache to reduce API calls
+const translationCache = new Map();
+const CACHE_MAX_SIZE = 500;
+
+async function translateText(text, sourceLang, targetLang) {
+    if (!text) return text;
+    
+    // Map to MyMemory codes
+    // Use 'autodetect' if source is not specified or is 'auto'
+    const srcCode = (!sourceLang || sourceLang === 'auto') ? 'autodetect' : (LANG_CODES[sourceLang] || sourceLang);
+    const tgtCode = LANG_CODES[targetLang] || targetLang;
+    
+    console.log('=== TRANSLATION DEBUG ===');
+    console.log('Text:', text);
+    console.log('Source:', sourceLang, '->', srcCode);
+    console.log('Target:', targetLang, '->', tgtCode);
+    
+    // Don't translate if source and target appear to be the same (skip auto-detect check)
+    if (srcCode === tgtCode && srcCode !== 'autodetect') {
+        console.log('Skipping: same language');
+        return text;
+    }
+    
+    // Check cache (use 'auto' in key for autodetect to allow re-translation)
+    const cacheKey = `${text}|${srcCode}|${tgtCode}`;
+    if (translationCache.has(cacheKey)) {
+        console.log('Cache hit:', translationCache.get(cacheKey));
+        return translationCache.get(cacheKey);
+    }
+    
+    try {
+        const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${srcCode}|${tgtCode}`;
+        console.log('API URL:', url);
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        console.log('API Status:', data.responseStatus);
+        console.log('API Response:', data.responseData?.translatedText);
+        
+        if (data.responseStatus === 200 && data.responseData?.translatedText) {
+            const translated = data.responseData.translatedText;
+            
+            // Don't cache if the translation is the same as original (same language detected)
+            if (translated.toLowerCase() === text.toLowerCase()) {
+                console.log('Skipping: translation same as original');
+                return text;
+            }
+            
+            // Store in cache (with size limit)
+            if (translationCache.size >= CACHE_MAX_SIZE) {
+                const firstKey = translationCache.keys().next().value;
+                translationCache.delete(firstKey);
+            }
+            translationCache.set(cacheKey, translated);
+            
+            console.log('Translation success:', translated);
+            return translated;
+        }
+        console.log('Translation failed: No valid response');
+        return text; // Fallback to original
+    } catch (err) {
+        console.error('Translation API error:', err.message);
+        return text; // Fallback to original
+    }
+}
+
+
 // Ensure upload directory exists
 if (!fs.existsSync(UPLOAD_DIR)) {
     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
@@ -298,12 +374,14 @@ function broadcastUserList(roomId) {
 // --- Socket.io Logic ---
 io.on('connection', (socket) => {
     
-    socket.on('join', (roomId, nickname, userId) => {
+    socket.on('join', (roomId, nickname, userId, userLang) => {
         // userId is expected from client (generated if not exists)
         if (!userId) {
              // Fallback if client doesn't send one (backward compat), though client should.
              userId = 'anon_' + socket.id; 
         }
+        // Default language to English if not provided
+        userLang = userLang || 'en';
 
         socket.join(roomId);
         
@@ -333,6 +411,7 @@ io.on('connection', (socket) => {
             userId: userId,
             socketId: socket.id,
             nickname: nickname,
+            lang: userLang,
             joinedAt: existingUser ? existingUser.joinedAt : Date.now()
         };
         
@@ -453,6 +532,33 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- Translation Handler ---
+    socket.on('translateMessage', async (data) => {
+        const { msgId, text, sourceLang, targetLang: clientTargetLang } = data;
+        const user = socketToUser[socket.id];
+        
+        if (!user) return;
+        
+        const { roomId, userId } = user;
+        // Use client-provided targetLang, fallback to user's language, then 'en'
+        const targetLang = clientTargetLang || roomUsers[roomId]?.[userId]?.lang || 'en';
+        
+        try {
+            const translated = await translateText(text, sourceLang || 'auto', targetLang);
+            socket.emit('translatedMessage', { 
+                msgId, 
+                translated,
+                targetLang 
+            });
+        } catch (err) {
+            console.error('Translation socket error:', err);
+            socket.emit('translatedMessage', { 
+                msgId, 
+                translated: text, // Return original on error
+                error: true 
+            });
+        }
+    });
 
 
     socket.on('setExpiry', (hours) => {

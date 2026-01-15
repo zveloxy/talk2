@@ -69,5 +69,11 @@
     "expirySelected7d": "Messages will be deleted in 7 days.",
     "expiryChanged1h": "{nickname} set message expiry to 1 hour",
     "expiryChangedHours": "{nickname} set message expiry to {hours} hours",
-    "expiryChanged7d": "{nickname} set message expiry to 7 days"
+    "expiryChanged7d": "{nickname} set message expiry to 7 days",
+    "translateBtn": "Translate",
+    "translating": "Translating...",
+    "autoTranslateOn": "Auto-translate enabled",
+    "autoTranslateOff": "Auto-translate disabled",
+    "translateTitle": "Translate To",
+    "translateDesc": "Select target language"
 }

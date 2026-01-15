@@ -892,6 +892,172 @@ body {
     font-weight: 600;
 }
 
+/* Translation Language Selector Modal */
+.translate-modal {
+    max-width: 550px;
+    max-height: 90vh;
+}
+
+.translate-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.4rem;
+    margin: 1rem 0;
+    max-height: 350px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+}
+
+.translate-options::-webkit-scrollbar {
+    width: 6px;
+}
+
+.translate-options::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 3px;
+}
+
+.translate-option {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.5rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.translate-option:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.translate-option .lang-flag {
+    width: 16px;
+    height: 12px;
+}
+
+.translate-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.translate-modal-actions .danger-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+}
+
+/* Translation Language Dropdown */
+.translate-dropdown {
+    position: relative;
+}
+
+.translate-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.translate-dropdown-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.translate-dropdown-btn.active {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.translate-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.5rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    min-width: 200px;
+    z-index: 1000;
+    display: none;
+    overflow: hidden;
+}
+
+.translate-dropdown-menu.show {
+    display: block;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.translate-dropdown-header {
+    padding: 0.6rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.translate-dropdown-scroll {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.translate-dropdown-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+
+.translate-dropdown-scroll::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 3px;
+}
+
+.translate-lang-option {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.translate-lang-option:hover {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--text-primary);
+}
+
+.translate-lang-option.selected {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent);
+}
+
+.translate-lang-option .lang-flag {
+    width: 18px;
+    height: 14px;
+}
+
 /* Header Controls Improvements */
 .header-controls {
     display: flex;
@@ -1427,4 +1593,80 @@ body {
 
 .chat-container {
     position: relative;
+}
+
+/* Translation Button */
+.translate-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 2px 6px;
+    opacity: 0.6;
+    transition: all 0.2s;
+    font-size: 0.85rem;
+    margin-left: 4px;
+}
+
+.translate-btn:hover {
+    opacity: 1;
+    color: var(--accent);
+}
+
+.translate-btn:disabled {
+    cursor: wait;
+    opacity: 0.4;
+}
+
+.translate-btn.translated {
+    color: var(--success);
+    opacity: 0.8;
+}
+
+.translate-btn.translated:hover {
+    opacity: 1;
+}
+
+/* Translated Text Display */
+.translated-text {
+    background: rgba(99, 102, 241, 0.1);
+    border-left: 2px solid var(--accent);
+    padding: 8px 12px;
+    margin-top: 8px;
+    font-style: italic;
+    font-size: 0.9em;
+    border-radius: 0 8px 8px 0;
+    color: var(--text-secondary);
+}
+
+.message.other .translated-text {
+    background: rgba(99, 102, 241, 0.1);
+}
+
+/* Auto-translate button active state */
+.auto-translate-active {
+    color: var(--accent) !important;
+    position: relative;
+}
+
+.auto-translate-active::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: var(--accent);
+    border-radius: 50%;
+}
+
+/* Spinner animation for loading */
+@keyframes fa-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.fa-spin {
+    animation: fa-spin 1s linear infinite;
 }

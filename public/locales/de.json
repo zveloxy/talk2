@@ -69,5 +69,9 @@
     "expirySelected7d": "Nachrichten werden in 7 Tagen gelöscht.",
     "expiryChanged1h": "{nickname} hat die Ablaufzeit auf 1 Stunde gesetzt",
     "expiryChangedHours": "{nickname} hat die Ablaufzeit auf {hours} Stunden gesetzt",
-    "expiryChanged7d": "{nickname} hat die Ablaufzeit auf 7 Tage gesetzt"
+    "expiryChanged7d": "{nickname} hat die Ablaufzeit auf 7 Tage gesetzt",
+    "translateBtn": "Übersetzen",
+    "translating": "Übersetze...",
+    "autoTranslateOn": "Auto-Übersetzung aktiviert",
+    "autoTranslateOff": "Auto-Übersetzung deaktiviert"
 }

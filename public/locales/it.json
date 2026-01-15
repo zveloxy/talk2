@@ -69,5 +69,9 @@
     "expirySelected7d": "I messaggi saranno eliminati tra 7 giorni.",
     "expiryChanged1h": "{nickname} ha impostato la scadenza a 1 ora",
     "expiryChangedHours": "{nickname} ha impostato la scadenza a {hours} ore",
-    "expiryChanged7d": "{nickname} ha impostato la scadenza a 7 giorni"
+    "expiryChanged7d": "{nickname} ha impostato la scadenza a 7 giorni",
+    "translateBtn": "Traduci",
+    "translating": "Traduzione...",
+    "autoTranslateOn": "Auto-traduzione attivata",
+    "autoTranslateOff": "Auto-traduzione disattivata"
 }

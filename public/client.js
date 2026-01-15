@@ -62,8 +62,11 @@ let typingUsers = {};
 // Video Upload Variables
 // Voice variables removed
 let soundEnabled = localStorage.getItem('talk2_sound') !== 'false';
+let autoTranslate = localStorage.getItem('talk2_autotranslate') === 'true'; // Default OFF
+let translateTargetLang = localStorage.getItem('talk2_translateLang') || null; // Persisted translation target
 let replyingTo = null;
 let notificationSound = null;
+let pendingTranslations = new Set(); // Track messages being translated
 
 // DOM Elements (assigned in DOMContentLoaded)
 let modal, confirmModal, confirmTitle, confirmText, confirmYesBtn, confirmCancelBtn;
@@ -75,6 +78,7 @@ let emojiBtn, emojiPicker, clearMsgsBtn, langToggleBtn;
 let shareLinkBtn, soundToggleBtn, replyPreview, replyToName, replyToText, cancelReplyBtn, toast;
 let expiryBtn, expiryOverlay, expiryCloseBtn, expiryOptions;
 let uploadBtn, imageInput;
+let autoTranslateBtn;
 
 // --- Language Detection & Loading ---
 async function detectLanguage() {
@@ -205,7 +209,7 @@ function setNickname(name) {
 }
 
 function joinRoom() {
-    socket.emit('join', roomId, nickname, userId);
+    socket.emit('join', roomId, nickname, userId, currentLang);
 }
 
 function sendMessage(content, type) {
@@ -322,6 +326,130 @@ function updateSoundButtonIcon() {
     }
 }
 
+// --- Translation Functions ---
+let pendingTranslateData = null; // Store msgId and text while user selects language
+
+function showTranslateModal(msgId, text) {
+    // If user already has a preferred translation language, use it directly
+    if (translateTargetLang) {
+        requestTranslation(msgId, text, translateTargetLang);
+        return;
+    }
+    
+    // Store pending data and open the dropdown
+    pendingTranslateData = { msgId, text };
+    const translateDropdownMenu = document.getElementById('translate-dropdown-menu');
+    if (translateDropdownMenu) {
+        translateDropdownMenu.classList.add('show');
+    }
+}
+
+function hideTranslateModal() {
+    const translateOverlay = document.getElementById('translate-overlay');
+    if (translateOverlay) {
+        translateOverlay.classList.add('hidden');
+        translateOverlay.style.display = 'none';
+    }
+    pendingTranslateData = null;
+}
+
+function setTranslateTargetLang(lang) {
+    translateTargetLang = lang;
+    localStorage.setItem('talk2_translateLang', lang);
+    updateTranslateLangDisplay();
+}
+
+function clearTranslateTargetLang() {
+    translateTargetLang = null;
+    localStorage.removeItem('talk2_translateLang');
+    updateTranslateLangDisplay();
+}
+
+function updateTranslateLangDisplay() {
+    const btn = document.getElementById('translate-dropdown-btn');
+    const textSpan = document.getElementById('translate-lang-text');
+    
+    if (btn && textSpan) {
+        if (translateTargetLang) {
+            const langName = TRANSLATE_LANGS[translateTargetLang]?.name || translateTargetLang.toUpperCase();
+            textSpan.textContent = langName.length > 8 ? langName.substring(0, 6) + '...' : langName;
+            btn.classList.add('active');
+        } else {
+            textSpan.textContent = '--';
+            btn.classList.remove('active');
+        }
+    }
+    
+    // Update selected state in dropdown options
+    document.querySelectorAll('.translate-lang-option').forEach(opt => {
+        opt.classList.toggle('selected', opt.dataset.lang === translateTargetLang);
+    });
+}
+
+function requestTranslation(msgId, text, targetLang) {
+    if (pendingTranslations.has(msgId)) return; // Already translating
+    
+    pendingTranslations.add(msgId);
+    
+    // Show loading state on translate button
+    const msgEl = document.getElementById(`msg-${msgId}`);
+    if (msgEl) {
+        const translateBtn = msgEl.querySelector('.translate-btn');
+        if (translateBtn) {
+            translateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            translateBtn.disabled = true;
+        }
+    }
+    
+    // Source language is auto-detected, target language is user's choice
+    socket.emit('translateMessage', { msgId, text, sourceLang: 'auto', targetLang });
+}
+
+function updateAutoTranslateButton() {
+    if (!autoTranslateBtn) return;
+    const icon = autoTranslateBtn.querySelector('i');
+    if (icon) {
+        autoTranslateBtn.classList.toggle('auto-translate-active', autoTranslate);
+        autoTranslateBtn.title = autoTranslate 
+            ? (loadedTranslations[currentLang]?.autoTranslateOn || 'Auto-translate enabled')
+            : (loadedTranslations[currentLang]?.autoTranslateOff || 'Auto-translate disabled');
+    }
+}
+
+// Supported translation languages
+const TRANSLATE_LANGS = {
+    'en': { name: 'English', flag: '/flags/us.svg' },
+    'tr': { name: 'Türkçe', flag: '/flags/tr.svg' },
+    'de': { name: 'Deutsch', flag: '/flags/de.svg' },
+    'ru': { name: 'Русский', flag: '/flags/ru.svg' },
+    'es': { name: 'Español', flag: '/flags/es.svg' },
+    'fr': { name: 'Français', flag: '/flags/fr.svg' },
+    'it': { name: 'Italiano', flag: '/flags/it.svg' },
+    'pt': { name: 'Português', flag: '/flags/br.svg' },
+    'zh': { name: '中文', flag: '/flags/cn.svg' },
+    'ja': { name: '日本語', flag: '/flags/jp.svg' },
+    'ko': { name: '한국어', flag: '/flags/kr.svg' },
+    'ar': { name: 'العربية', flag: '/flags/sa.svg' },
+    'hi': { name: 'हिन्दी', flag: '/flags/in.svg' },
+    'nl': { name: 'Nederlands', flag: '/flags/nl.svg' },
+    'pl': { name: 'Polski', flag: '/flags/pl.svg' },
+    'sv': { name: 'Svenska', flag: '/flags/se.svg' },
+    'da': { name: 'Dansk', flag: '/flags/dk.svg' },
+    'no': { name: 'Norsk', flag: '/flags/no.svg' },
+    'fi': { name: 'Suomi', flag: '/flags/fi.svg' },
+    'el': { name: 'Ελληνικά', flag: '/flags/gr.svg' },
+    'cs': { name: 'Čeština', flag: '/flags/cz.svg' },
+    'ro': { name: 'Română', flag: '/flags/ro.svg' },
+    'hu': { name: 'Magyar', flag: '/flags/hu.svg' },
+    'uk': { name: 'Українська', flag: '/flags/ua.svg' },
+    'th': { name: 'ไทย', flag: '/flags/th.svg' },
+    'vi': { name: 'Tiếng Việt', flag: '/flags/vn.svg' },
+    'id': { name: 'Indonesia', flag: '/flags/id.svg' },
+    'ms': { name: 'Melayu', flag: '/flags/my.svg' },
+    'tl': { name: 'Filipino', flag: '/flags/ph.svg' },
+    'he': { name: 'עברית', flag: '/flags/il.svg' }
+};
+
 function escapeHtml(str) {
     const div = document.createElement('div');
     div.innerText = str || '';
@@ -433,6 +561,10 @@ function addMessageToDOM(msg) {
     const t = loadedTranslations[currentLang] || loadedTranslations['en'];
     const displayName = isSelf ? (t.you || '(you)') : escapeHtml(msg.nickname);
     const deleteTitle = t.btnConfirm ? t.btnConfirm.split(',')[0] : 'Delete';
+    const translateTitle = t.translateBtn || 'Translate';
+    
+    // Only show translate button for text messages from others
+    const showTranslateBtn = !isSelf && msg.type === 'text' && msg.content;
 
     div.innerHTML = `
         <div class="meta">
@@ -442,7 +574,8 @@ function addMessageToDOM(msg) {
                    <button class="delete-msg-btn" data-delete-id="${msg.id}" data-file-url="${msg.image_path || msg.video_path || ''}" title="${deleteTitle}"><i class="fas fa-times"></i></button>
                    <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayName}</span>
-                   <span class="time">${time}</span>`
+                   <span class="time">${time}</span>
+                   ${showTranslateBtn ? `<button class="translate-btn" data-msg-id="${msg.id}" data-text="${escapeHtml(msg.content)}" title="${translateTitle}"><i class="fas fa-language"></i></button>` : ''}`
             }
         </div>
         <div class="body">${contentHtml}</div>
@@ -459,6 +592,11 @@ function addMessageToDOM(msg) {
 
     if (!isSelf && window.msgObserver) {
         window.msgObserver.observe(div);
+    }
+    
+    // Auto-translate if enabled and it's a text message from another user
+    if (autoTranslate && showTranslateBtn) {
+        requestTranslation(msg.id, msg.content, currentLang);
     }
 }
 
@@ -1016,6 +1154,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Auto-Translate Toggle
+    autoTranslateBtn = document.getElementById('auto-translate-btn');
+    if (autoTranslateBtn) {
+        updateAutoTranslateButton();
+        autoTranslateBtn.addEventListener('click', () => {
+            autoTranslate = !autoTranslate;
+            localStorage.setItem('talk2_autotranslate', autoTranslate);
+            updateAutoTranslateButton();
+            const t = loadedTranslations[currentLang] || loadedTranslations['en'] || {};
+            showToast(autoTranslate 
+                ? (t.autoTranslateOn || 'Otomatik çeviri açık') 
+                : (t.autoTranslateOff || 'Otomatik çeviri kapalı'));
+        });
+    }
+    
     // Reply feature removed
     
     // Emoji Picker
@@ -1244,6 +1397,95 @@ socket.on('roomConfig', (config) => {
 socket.on('messageRead', (data) => {
     const statusEl = document.getElementById(`read-${data.msgId}`);
     if (statusEl) statusEl.innerHTML = '<i class="fas fa-check-double" style="color: #4ade80;"></i>';
+});
+
+// --- Translation Response Handler ---
+socket.on('translatedMessage', (data) => {
+    const { msgId, translated, error } = data;
+    
+    // Remove from pending
+    pendingTranslations.delete(msgId);
+    
+    const msgEl = document.getElementById(`msg-${msgId}`);
+    if (!msgEl) return;
+    
+    // Update translate button
+    const translateBtn = msgEl.querySelector('.translate-btn');
+    if (translateBtn) {
+        translateBtn.innerHTML = '<i class="fas fa-language"></i>';
+        translateBtn.disabled = false;
+        if (!error) {
+            translateBtn.classList.add('translated');
+        }
+    }
+    
+    // Add translated text to message body
+    const body = msgEl.querySelector('.body');
+    if (body && !error) {
+        // Remove any existing translation
+        const existingTranslation = body.querySelector('.translated-text');
+        if (existingTranslation) existingTranslation.remove();
+        
+        // Add new translation
+        const translatedDiv = document.createElement('div');
+        translatedDiv.className = 'translated-text';
+        translatedDiv.textContent = translated;
+        body.appendChild(translatedDiv);
+    }
+});
+
+// --- Translation Button Click Handler (Event Delegation) ---
+document.addEventListener('click', (e) => {
+    const translateBtn = e.target.closest('.translate-btn');
+    if (translateBtn && !translateBtn.disabled) {
+        const msgId = translateBtn.dataset.msgId;
+        const text = translateBtn.dataset.text;
+        if (msgId && text) {
+            // Show language selector modal
+            showTranslateModal(msgId, text);
+        }
+    }
+});
+
+// --- Translation Dropdown Event Handlers ---
+document.addEventListener('DOMContentLoaded', () => {
+    const translateDropdownBtn = document.getElementById('translate-dropdown-btn');
+    const translateDropdownMenu = document.getElementById('translate-dropdown-menu');
+    
+    // Toggle dropdown on button click
+    if (translateDropdownBtn && translateDropdownMenu) {
+        translateDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            translateDropdownMenu.classList.toggle('show');
+        });
+    }
+    
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (translateDropdownMenu && !e.target.closest('.translate-dropdown')) {
+            translateDropdownMenu.classList.remove('show');
+        }
+    });
+    
+    // Language option click handlers
+    document.querySelectorAll('.translate-lang-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            const targetLang = opt.dataset.lang;
+            if (targetLang) {
+                setTranslateTargetLang(targetLang);
+                translateDropdownMenu.classList.remove('show');
+                
+                // If there's a pending translation, do it
+                if (pendingTranslateData) {
+                    requestTranslation(pendingTranslateData.msgId, pendingTranslateData.text, targetLang);
+                    pendingTranslateData = null;
+                }
+            }
+        });
+    });
+    
+    // Initialize display on load
+    updateTranslateLangDisplay();
 });
 
 // Custom Video Player Logic
