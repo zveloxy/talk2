@@ -89,6 +89,9 @@ const LANG_CODES = {
 const translationCache = new Map();
 const CACHE_MAX_SIZE = 500;
 
+// Native https module for compatibility with older Node versions (cPanel)
+const https = require('https');
+
 async function translateText(text, sourceLang, targetLang) {
     if (!text) return text;
     
@@ -97,6 +100,7 @@ async function translateText(text, sourceLang, targetLang) {
     const srcCode = (!sourceLang || sourceLang === 'auto') ? 'autodetect' : (LANG_CODES[sourceLang] || sourceLang);
     const tgtCode = LANG_CODES[targetLang] || targetLang;
     
+    // Debug logging
     console.log('=== TRANSLATION DEBUG ===');
     console.log('Text:', text);
     console.log('Source:', sourceLang, '->', srcCode);
@@ -115,40 +119,59 @@ async function translateText(text, sourceLang, targetLang) {
         return translationCache.get(cacheKey);
     }
     
-    try {
+    return new Promise((resolve) => {
         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${srcCode}|${tgtCode}`;
         console.log('API URL:', url);
-        const response = await fetch(url);
-        const data = await response.json();
         
-        console.log('API Status:', data.responseStatus);
-        console.log('API Response:', data.responseData?.translatedText);
+        const req = https.get(url, (res) => {
+            let data = '';
+            
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+            
+            res.on('end', () => {
+                try {
+                    const jsonData = JSON.parse(data);
+                    console.log('API Status:', jsonData.responseStatus);
+                    
+                    if (jsonData.responseStatus === 200 && jsonData.responseData?.translatedText) {
+                        const translated = jsonData.responseData.translatedText;
+                        
+                        // Don't cache if the translation is the same as original (same language detected)
+                        if (translated.toLowerCase() === text.toLowerCase()) {
+                            console.log('Skipping: translation same as original');
+                            resolve(text);
+                            return;
+                        }
+                        
+                        // Store in cache (with size limit)
+                        if (translationCache.size >= CACHE_MAX_SIZE) {
+                            const firstKey = translationCache.keys().next().value;
+                            translationCache.delete(firstKey);
+                        }
+                        translationCache.set(cacheKey, translated);
+                        
+                        console.log('Translation success:', translated);
+                        resolve(translated);
+                    } else {
+                        console.log('Translation API error or invalid response:', jsonData);
+                        resolve(text);
+                    }
+                } catch (e) {
+                    console.error('Error parsing translation API response:', e);
+                    resolve(text);
+                }
+            });
+        });
         
-        if (data.responseStatus === 200 && data.responseData?.translatedText) {
-            const translated = data.responseData.translatedText;
-            
-            // Don't cache if the translation is the same as original (same language detected)
-            if (translated.toLowerCase() === text.toLowerCase()) {
-                console.log('Skipping: translation same as original');
-                return text;
-            }
-            
-            // Store in cache (with size limit)
-            if (translationCache.size >= CACHE_MAX_SIZE) {
-                const firstKey = translationCache.keys().next().value;
-                translationCache.delete(firstKey);
-            }
-            translationCache.set(cacheKey, translated);
-            
-            console.log('Translation success:', translated);
-            return translated;
-        }
-        console.log('Translation failed: No valid response');
-        return text; // Fallback to original
-    } catch (err) {
-        console.error('Translation API error:', err.message);
-        return text; // Fallback to original
-    }
+        req.on('error', (err) => {
+            console.error('Translation API request error:', err);
+            resolve(text);
+        });
+        
+        req.end();
+    });
 }
 
 
