@@ -119,7 +119,8 @@ async function translateText(text, sourceLang, targetLang) {
         return translationCache.get(cacheKey);
     }
     
-    return new Promise((resolve) => {
+    // Promise that handles the API request
+    const apiRequest = new Promise((resolve) => {
         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${srcCode}|${tgtCode}`;
         console.log('API URL:', url);
         
@@ -132,7 +133,6 @@ async function translateText(text, sourceLang, targetLang) {
             
             res.on('end', () => {
                 try {
-                    // Check if data is valid JSON
                     if (!data) {
                         console.error('Translation API returned empty response');
                         resolve(text);
@@ -145,14 +145,14 @@ async function translateText(text, sourceLang, targetLang) {
                     if (jsonData.responseStatus === 200 && jsonData.responseData?.translatedText) {
                         const translated = jsonData.responseData.translatedText;
                         
-                        // Don't cache if the translation is the same as original (same language detected)
+                        // Don't cache if the translation is the same as original
                         if (translated.toLowerCase() === text.toLowerCase()) {
                             console.log('Skipping: translation same as original');
                             resolve(text);
                             return;
                         }
                         
-                        // Store in cache (with size limit)
+                        // Store in cache
                         if (translationCache.size >= CACHE_MAX_SIZE) {
                             const firstKey = translationCache.keys().next().value;
                             translationCache.delete(firstKey);
@@ -162,12 +162,12 @@ async function translateText(text, sourceLang, targetLang) {
                         console.log('Translation success:', translated);
                         resolve(translated);
                     } else {
-                        console.log('Translation API error or invalid response:', jsonData);
+                        console.log('Translation API error:', jsonData);
+                        // If limit reached etc, just return original
                         resolve(text);
                     }
                 } catch (e) {
                     console.error('Error parsing translation API response:', e);
-                    console.error('Raw response:', data);
                     resolve(text);
                 }
             });
@@ -178,15 +178,25 @@ async function translateText(text, sourceLang, targetLang) {
             resolve(text);
         });
         
-        // standard timeout
-        req.setTimeout(5000, () => {
-            console.error('Translation API request timed out');
-            req.destroy();
-            resolve(text);
-        });
-        
-        req.end();
+        // Ensure request is sent
+        // req.end() is called automatically by https.get
     });
+
+    // Timeout promise (5 seconds)
+    const timeoutPromise = new Promise((resolve) => {
+        setTimeout(() => {
+            console.error('Translation TIMEOUT (5s)');
+            resolve(text);
+        }, 5000);
+    });
+    
+    // Race them
+    try {
+        return await Promise.race([apiRequest, timeoutPromise]);
+    } catch (e) {
+        console.error('Translation unexpected error:', e);
+        return text;
+    }
 }
 
 
@@ -575,11 +585,19 @@ io.on('connection', (socket) => {
         const { msgId, text, sourceLang, targetLang: clientTargetLang } = data;
         const user = socketToUser[socket.id];
         
+        console.log('=== TRANSLATION REQUEST ===');
+        console.log('Received data:', JSON.stringify(data));
+        console.log('clientTargetLang:', clientTargetLang);
+        
         if (!user) return;
         
         const { roomId, userId } = user;
+        const userLang = roomUsers[roomId]?.[userId]?.lang;
         // Use client-provided targetLang, fallback to user's language, then 'en'
-        const targetLang = clientTargetLang || roomUsers[roomId]?.[userId]?.lang || 'en';
+        const targetLang = clientTargetLang || userLang || 'en';
+        
+        console.log('userLang from roomUsers:', userLang);
+        console.log('FINAL targetLang:', targetLang);
         
         try {
             const translated = await translateText(text, sourceLang || 'auto', targetLang);

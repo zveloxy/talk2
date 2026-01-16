@@ -357,6 +357,21 @@ function setTranslateTargetLang(lang) {
     translateTargetLang = lang;
     localStorage.setItem('talk2_translateLang', lang);
     updateTranslateLangDisplay();
+    
+    // Re-translate all existing messages with translate buttons
+    retranslateAllMessages(lang);
+}
+
+function retranslateAllMessages(targetLang) {
+    // Find all translate buttons and trigger re-translation
+    const translateBtns = document.querySelectorAll('.translate-btn');
+    translateBtns.forEach(btn => {
+        const msgId = btn.dataset.msgId;
+        const text = btn.dataset.text;
+        if (msgId && text && !pendingTranslations.has(msgId)) {
+            requestTranslation(msgId, text, targetLang);
+        }
+    });
 }
 
 function clearTranslateTargetLang() {
@@ -402,6 +417,9 @@ function requestTranslation(msgId, text, targetLang) {
     }
     
     // Source language is auto-detected, target language is user's choice
+    console.log('=== CLIENT TRANSLATION REQUEST ===');
+    console.log('Sending targetLang:', targetLang);
+    console.log('translateTargetLang variable is:', translateTargetLang);
     socket.emit('translateMessage', { msgId, text, sourceLang: 'auto', targetLang });
 }
 
@@ -596,7 +614,7 @@ function addMessageToDOM(msg) {
     
     // Auto-translate if enabled and it's a text message from another user
     if (autoTranslate && showTranslateBtn) {
-        requestTranslation(msg.id, msg.content, currentLang);
+        requestTranslation(msg.id, msg.content, translateTargetLang || currentLang);
     }
 }
 
@@ -1297,6 +1315,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('talk2_lang', currentLang);
                 await applyLanguage(currentLang);
                 updateExistingMessages(); // Update (sen)/(you) on existing messages
+                updateTranslateLangDisplay(); // Ensure translation dropdown display stays correct
                 langDropdown.classList.remove('open');
             });
         });
