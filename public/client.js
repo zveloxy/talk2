@@ -1008,7 +1008,71 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Image Upload
+    // Image/Video Upload
+    let pendingUploadFile = null;
+    let pendingUploadType = null;
+    const spoilerBar = document.getElementById('spoiler-toggle-bar');
+    const spoilerCheckbox = document.getElementById('spoiler-checkbox');
+    const uploadFilenameEl = document.getElementById('upload-filename');
+    
+    function doUpload(file, type, isSpoiler) {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        uploadBtn.disabled = true;
+        
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', '/upload.php', true);
+        xhr.timeout = 120000;
+
+        xhr.upload.onprogress = (e) => {
+            if (e.lengthComputable) {
+                const percentComplete = Math.round((e.loaded / e.total) * 100);
+                uploadBtn.innerHTML = `<span style="font-size: 10px; font-weight: 800; line-height: 1;">${percentComplete}%</span>`;
+            }
+        };
+
+        xhr.onload = () => {
+            if (xhr.status === 200) {
+                try {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log('UPLOAD SUCCESS:', data.url, 'Type:', type, 'Spoiler:', isSpoiler);
+                    sendMessage(data.url, type, { spoiler: isSpoiler });
+                    imageInput.value = '';
+                } catch (e) {
+                    console.error('JSON Parse error', e);
+                    alert(loadedTranslations[currentLang].uploadError);
+                }
+            } else {
+                console.error('Upload failed', xhr.statusText);
+                alert(loadedTranslations[currentLang].uploadError);
+            }
+            uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
+            uploadBtn.disabled = false;
+            // Hide spoiler bar
+            if (spoilerBar) spoilerBar.classList.add('hidden');
+            pendingUploadFile = null;
+            pendingUploadType = null;
+        };
+
+        xhr.onerror = () => {
+            console.error('Upload network error');
+            alert(loadedTranslations[currentLang].uploadError);
+            uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
+            uploadBtn.disabled = false;
+        };
+
+        xhr.ontimeout = () => {
+            console.error('Upload timed out');
+            alert("Upload timed out");
+            uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
+            uploadBtn.disabled = false;
+        };
+
+        xhr.send(formData);
+    }
+    
     if (uploadBtn && imageInput) {
         uploadBtn.addEventListener('click', () => imageInput.click());
         imageInput.addEventListener('change', async (e) => {
@@ -1021,81 +1085,44 @@ document.addEventListener('DOMContentLoaded', () => {
             const isImage = file.type.startsWith('image/');
             
             const type = isVideo ? 'video' : 'image';
-            const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB video, 10MB image
+            const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024;
 
             if (file.size > maxSize) {
                 const t = loadedTranslations[currentLang] || loadedTranslations['en'];
                 const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
                 const maxMB = Math.round(maxSize / (1024 * 1024));
                 showToast(`${t.fileTooBig || 'Dosya boyutu çok büyük!'} (${fileSizeMB}MB / Max: ${maxMB}MB)`);
+                imageInput.value = '';
                 return;
             }
-            // Show spoiler toggle for images
-            const spoilerBar = document.getElementById('spoiler-toggle-bar');
-            const spoilerCheckbox = document.getElementById('spoiler-checkbox');
-            const uploadFilename = document.getElementById('upload-filename');
-            if (isImage && spoilerBar) {
-                spoilerBar.classList.remove('hidden');
-                if (uploadFilename) uploadFilename.textContent = file.name;
+            
+            if (isImage) {
+                // For images: show spoiler toggle, wait for user to click send
+                pendingUploadFile = file;
+                pendingUploadType = type;
+                if (spoilerBar) spoilerBar.classList.remove('hidden');
+                if (uploadFilenameEl) uploadFilenameEl.textContent = file.name;
                 if (spoilerCheckbox) spoilerCheckbox.checked = false;
+                showToast('Dosya hazır — göndermek için ✈️ butonuna basın');
+            } else {
+                // For video: upload immediately (no spoiler option)
+                doUpload(file, type, false);
             }
-            
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-            uploadBtn.disabled = true;
-            
-            const xhr = new XMLHttpRequest();
-            xhr.open('POST', '/upload.php', true); // PHP handler in public_html root
-            xhr.timeout = 120000; // 2m timeout
-
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    const percentComplete = Math.round((e.loaded / e.total) * 100);
-                    uploadBtn.innerHTML = `<span style="font-size: 10px; font-weight: 800; line-height: 1;">${percentComplete}%</span>`;
-                }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status === 200) {
-                    try {
-                        const data = JSON.parse(xhr.responseText);
-                        console.log('UPLOAD SUCCESS - Response:', data);
-                        console.log('UPLOAD SUCCESS - URL:', data.url);
-                        console.log('UPLOAD SUCCESS - Type:', type);
-                        const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
-                        sendMessage(data.url, type, { spoiler: isSpoiler });
-                        imageInput.value = '';
-                        // Hide spoiler bar
-                        if (spoilerBar) spoilerBar.classList.add('hidden');
-                    } catch (e) {
-                        console.error('JSON Parse error', e);
-                        alert(loadedTranslations[currentLang].uploadError);
-                    }
-                } else {
-                    console.error('Upload failed', xhr.statusText);
-                    alert(loadedTranslations[currentLang].uploadError);
-                }
-                uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
-                uploadBtn.disabled = false;
-            };
-
-            xhr.onerror = () => {
-                console.error('Upload network error');
-                alert(loadedTranslations[currentLang].uploadError);
-                uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
-                uploadBtn.disabled = false;
-            };
-
-            xhr.ontimeout = () => {
-                console.error('Upload timed out');
-                alert("Upload timed out");
-                uploadBtn.innerHTML = '<i class="fas fa-paperclip"></i>';
-                uploadBtn.disabled = false;
-            };
-
-            xhr.send(formData);
+        });
+    }
+    
+    // Send pending image when user clicks main send button (if file pending)
+    const chatForm = document.getElementById('chat-form');
+    if (chatForm) {
+        const originalSubmit = chatForm.onsubmit;
+        document.getElementById('send-btn').addEventListener('click', (e) => {
+            if (pendingUploadFile) {
+                e.preventDefault();
+                e.stopPropagation();
+                const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
+                doUpload(pendingUploadFile, pendingUploadType, isSpoiler);
+                return;
+            }
         });
     }
 
