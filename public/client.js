@@ -223,7 +223,7 @@ function sendMessage(content, type, extra = {}) {
         content: content,
         type: type,
         image_path: (type === 'image' || type === 'spoiler_image') ? content : null,
-        video_path: type === 'video' ? content : null,
+        video_path: (type === 'video' || type === 'spoiler_video') ? content : null,
         audio_path: type === 'audio' ? content : null,
         spoiler: extra.spoiler || false
     };
@@ -582,6 +582,31 @@ function addMessageToDOM(msg) {
         
         // Initialize player after adding to DOM
         requestAnimationFrame(() => initVideoPlayer(videoId));
+    } else if (msg.type === 'spoiler_video') {
+        let videoPath = msg.video_path || msg.media_url || msg.content;
+        const videoId = `video-${msg.id}`;
+        contentHtml = `<div class="spoiler-container" id="spoiler-${msg.id}">
+            <div class="spoiler-cover" onclick="document.getElementById('spoiler-${msg.id}').classList.add('revealed'); setTimeout(function(){ initVideoPlayer('${videoId}'); }, 100);">
+                <i class="fas fa-eye-slash"></i> Video
+            </div>
+            <div class="custom-video-player" id="player-${videoId}" style="display:none">
+                <video id="${videoId}" src="${videoPath}" playsinline></video>
+                <div class="video-overlay">
+                    <button class="play-btn"><i class="fas fa-play"></i></button>
+                </div>
+                <div class="video-controls">
+                    <button class="control-btn play-toggle"><i class="fas fa-play"></i></button>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar"><div class="progress-fill"></div></div>
+                    </div>
+                    <span class="time-display">0:00 / 0:00</span>
+                    <button class="control-btn seek-btn" data-skip="-10" title="-10s"><i class="fas fa-undo"></i> 10</button>
+                    <button class="control-btn seek-btn" data-skip="10" title="+10s"><i class="fas fa-redo"></i> 10</button>
+                    <button class="control-btn fullscreen-toggle"><i class="fas fa-expand"></i></button>
+                </div>
+            </div>
+        </div>`;
+        msgTextForReply = '[Spoiler Video]';
     } else {
         msgTextForReply = msg.content || '';
         contentHtml = escapeHtml(msgTextForReply);
@@ -992,7 +1017,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // If there's a pending image upload, send that instead of text
             if (pendingUploadFile) {
                 const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
-                const uploadType = isSpoiler ? 'spoiler_image' : pendingUploadType;
+                const uploadType = isSpoiler ? ('spoiler_' + pendingUploadType) : pendingUploadType;
                 console.log('Sending pending file, type:', uploadType);
                 doUpload(pendingUploadFile, uploadType, false);
                 return false;
@@ -1108,18 +1133,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            if (isImage) {
-                // For images: show spoiler toggle, wait for user to click send
-                pendingUploadFile = file;
-                pendingUploadType = type;
-                if (spoilerBar) spoilerBar.classList.remove('hidden');
-                if (uploadFilenameEl) uploadFilenameEl.textContent = file.name;
-                if (spoilerCheckbox) spoilerCheckbox.checked = false;
-                showToast('Dosya hazır — göndermek için ✈️ butonuna basın');
-            } else {
-                // For video: upload immediately (no spoiler option)
-                doUpload(file, type, false);
-            }
+            // Show spoiler toggle for images and videos
+            pendingUploadFile = file;
+            pendingUploadType = type;
+            if (spoilerBar) spoilerBar.classList.remove('hidden');
+            if (uploadFilenameEl) uploadFilenameEl.textContent = file.name;
+            if (spoilerCheckbox) spoilerCheckbox.checked = false;
+            showToast('Dosya hazır — göndermek için ✈️ butonuna basın');
         });
     }
     

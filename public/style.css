@@ -1315,7 +1315,8 @@ body {
     display: none;
 }
 
-.spoiler-container.revealed img {
+.spoiler-container.revealed img,
+.spoiler-container.revealed .custom-video-player {
     display: block !important;
     max-width: 100%;
     border-radius: 8px;
