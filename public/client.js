@@ -1105,11 +1105,63 @@ document.addEventListener('DOMContentLoaded', () => {
     const recordingTimeEl = document.getElementById('recording-time');
     const cancelRecordingBtn = document.getElementById('cancel-recording');
     const sendRecordingBtn = document.getElementById('send-recording');
+    const waveformCanvas = document.getElementById('recording-waveform');
+    let audioContext = null;
+    let analyser = null;
+    let waveformAnimId = null;
     
     function formatRecordTime(seconds) {
         const m = Math.floor(seconds / 60);
         const s = seconds % 60;
         return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+    
+    function drawWaveform() {
+        if (!analyser || !waveformCanvas) return;
+        const ctx = waveformCanvas.getContext('2d');
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+        
+        function draw() {
+            waveformAnimId = requestAnimationFrame(draw);
+            analyser.getByteTimeDomainData(dataArray);
+            
+            const w = waveformCanvas.width;
+            const h = waveformCanvas.height;
+            ctx.clearRect(0, 0, w, h);
+            
+            // Draw waveform bars
+            const barCount = 40;
+            const barWidth = w / barCount - 1;
+            const step = Math.floor(bufferLength / barCount);
+            
+            for (let i = 0; i < barCount; i++) {
+                const val = dataArray[i * step];
+                const barHeight = Math.max(2, ((val - 128) / 128) * h * 0.8 + h * 0.1);
+                const x = i * (barWidth + 1);
+                const y = (h - barHeight) / 2;
+                
+                ctx.fillStyle = `rgba(239, 68, 68, ${0.4 + Math.abs(val - 128) / 128 * 0.6})`;
+                ctx.fillRect(x, y, barWidth, barHeight);
+            }
+        }
+        draw();
+    }
+    
+    function stopWaveform() {
+        if (waveformAnimId) {
+            cancelAnimationFrame(waveformAnimId);
+            waveformAnimId = null;
+        }
+        if (audioContext) {
+            audioContext.close().catch(() => {});
+            audioContext = null;
+            analyser = null;
+        }
+        if (waveformCanvas) {
+            const ctx = waveformCanvas.getContext('2d');
+            ctx.clearRect(0, 0, waveformCanvas.width, waveformCanvas.height);
+        }
     }
     
     function startRecording() {
@@ -1118,6 +1170,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
                 audioChunks = [];
                 recordingSeconds = 0;
+                
+                // Setup AudioContext for waveform
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const source = audioContext.createMediaStreamSource(stream);
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 256;
+                source.connect(analyser);
                 
                 mediaRecorder.ondataavailable = (e) => {
                     if (e.data.size > 0) audioChunks.push(e.data);
@@ -1134,11 +1193,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (micBtn) micBtn.classList.add('recording');
                 if (recordingTimeEl) recordingTimeEl.textContent = '0:00';
                 
+                // Start waveform visualization
+                drawWaveform();
+                
                 // Start timer
                 recordingTimer = setInterval(() => {
                     recordingSeconds++;
                     if (recordingTimeEl) recordingTimeEl.textContent = formatRecordTime(recordingSeconds);
-                    // Max 2 minutes
                     if (recordingSeconds >= 120) {
                         stopAndSendRecording();
                     }
@@ -1155,6 +1216,7 @@ document.addEventListener('DOMContentLoaded', () => {
             mediaRecorder.stop();
         }
         clearInterval(recordingTimer);
+        stopWaveform();
         audioChunks = [];
         if (recordingBar) recordingBar.classList.add('hidden');
         if (micBtn) micBtn.classList.remove('recording');
@@ -1164,6 +1226,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
         
         clearInterval(recordingTimer);
+        stopWaveform();
         
         mediaRecorder.onstop = () => {
             mediaRecorder.stream.getTracks().forEach(t => t.stop());
