@@ -65,7 +65,8 @@ if (!fs.existsSync(UPLOAD_DIR)) {
 }
 
 const ENCRYPTION_KEY = db.getKey(); // Get key from DB logic
-const IV_LENGTH = 16; // 24 hours
+const IV_LENGTH = 16;
+const RETENTION_MS = 24 * 60 * 60 * 1000; // Default retention: 24 hours
 const DISCONNECT_GRACE_PERIOD = 5000; // 5 seconds wait before announcing leave
 
 // Track users in rooms: { roomId: { userId: { id, nickname, socketId, ... } } }
@@ -671,20 +672,42 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- Cleanup Cron Job ---
-cron.schedule('0 * * * *', () => {
-    console.log('Running auto-deletion task...');
+// --- Cleanup Cron Job (runs every 5 minutes) ---
+cron.schedule('*/5 * * * *', () => {
+    const now = new Date();
+    console.log(`[${now.toISOString()}] Running auto-deletion task...`);
+    console.log(`Default retention: ${RETENTION_MS / (60 * 60 * 1000)} hours`);
     
-    const deletedMessages = db.cleanup(RETENTION_MS);
-
-    deletedMessages.forEach(msg => {
-        if ((msg.type === 'image' && msg.image_path) || 
-            (msg.type === 'audio' && msg.audio_path) ||
-            (msg.type === 'video' && msg.video_path)) {
-            const filePath = msg.type === 'image' ? msg.image_path : (msg.type === 'audio' ? msg.audio_path : msg.video_path);
-            deleteFileByUrl(filePath);
+    try {
+        const deletedMessages = db.cleanup(RETENTION_MS);
+        
+        if (deletedMessages.length > 0) {
+            console.log(`Deleted ${deletedMessages.length} expired messages`);
+            
+            // Delete associated files
+            deletedMessages.forEach(msg => {
+                if ((msg.type === 'image' && msg.image_path) || 
+                    (msg.type === 'audio' && msg.audio_path) ||
+                    (msg.type === 'video' && msg.video_path)) {
+                    const filePath = msg.type === 'image' ? msg.image_path : (msg.type === 'audio' ? msg.audio_path : msg.video_path);
+                    deleteFileByUrl(filePath);
+                }
+            });
+            
+            // Notify connected clients in affected rooms to refresh messages
+            const affectedRooms = [...new Set(deletedMessages.map(m => m.room_id))];
+            affectedRooms.forEach(roomId => {
+                // Send updated message list to room
+                const remainingMessages = db.getMessages(roomId);
+                io.to(roomId).emit('history', remainingMessages);
+                console.log(`Refreshed room ${roomId} (${remainingMessages.length} messages remaining)`);
+            });
+        } else {
+            console.log('No expired messages found');
         }
-    });
+    } catch (err) {
+        console.error('Auto-deletion error:', err);
+    }
 });
 
 // --- Start Server ---

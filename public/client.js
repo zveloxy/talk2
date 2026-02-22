@@ -1087,14 +1087,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Confirm Modal
     if (confirmCancelBtn) {
         confirmCancelBtn.addEventListener('click', () => {
-            if (confirmModal) confirmModal.classList.add('hidden');
+            if (confirmModal) {
+                confirmModal.classList.add('hidden');
+                confirmModal.style.display = '';
+            }
             pendingConfirmAction = null;
         });
     }
     if (confirmYesBtn) {
         confirmYesBtn.addEventListener('click', () => {
+            console.log('Confirm YES clicked, pendingAction:', !!pendingConfirmAction);
             if (pendingConfirmAction) pendingConfirmAction();
-            if (confirmModal) confirmModal.classList.add('hidden');
+            if (confirmModal) {
+                confirmModal.classList.add('hidden');
+                confirmModal.style.display = '';
+            }
             pendingConfirmAction = null;
         });
     }
@@ -1184,6 +1191,60 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast(autoTranslate 
                 ? (t.autoTranslateOn || 'Otomatik çeviri açık') 
                 : (t.autoTranslateOff || 'Otomatik çeviri kapalı'));
+        });
+    }
+    
+    // --- Mobile Sidebar Button Handlers ---
+    const shareBtnMobile = document.getElementById('share-btn-mobile');
+    if (shareBtnMobile) {
+        shareBtnMobile.addEventListener('click', () => {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast(currentLang === 'tr' ? 'Link kopyalandı!' : 'Link copied!');
+            }).catch(() => {
+                showToast(currentLang === 'tr' ? 'Kopyalama başarısız' : 'Copy failed');
+            });
+        });
+    }
+    
+    const soundToggleMobile = document.getElementById('sound-toggle-mobile');
+    if (soundToggleMobile) {
+        soundToggleMobile.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            localStorage.setItem('talk2_sound', soundEnabled);
+            updateSoundButtonIcon();
+            showToast(soundEnabled ? (currentLang === 'tr' ? 'Ses açık' : 'Sound on') : (currentLang === 'tr' ? 'Ses kapalı' : 'Sound off'));
+        });
+    }
+    
+    const expiryBtnMobile = document.getElementById('expiry-btn-mobile');
+    if (expiryBtnMobile) {
+        expiryBtnMobile.addEventListener('click', () => {
+            if (expiryOverlay) {
+                expiryOverlay.classList.remove('hidden');
+                expiryOverlay.style.display = 'flex';
+            }
+        });
+    }
+    
+    const autoTranslateBtnMobile = document.getElementById('auto-translate-btn-mobile');
+    if (autoTranslateBtnMobile) {
+        autoTranslateBtnMobile.addEventListener('click', () => {
+            autoTranslate = !autoTranslate;
+            localStorage.setItem('talk2_autotranslate', autoTranslate);
+            updateAutoTranslateButton();
+            const t = loadedTranslations[currentLang] || loadedTranslations['en'] || {};
+            showToast(autoTranslate 
+                ? (t.autoTranslateOn || 'Otomatik çeviri açık') 
+                : (t.autoTranslateOff || 'Otomatik çeviri kapalı'));
+        });
+    }
+    
+    const logoutBtnMobile = document.getElementById('logout-btn-mobile');
+    if (logoutBtnMobile) {
+        logoutBtnMobile.addEventListener('click', () => {
+            sessionStorage.removeItem('talk2_nickname');
+            sessionStorage.removeItem('talk2_room');
+            window.location.href = '/';
         });
     }
     
@@ -1357,7 +1418,9 @@ socket.on('message', (msg) => {
 });
 
 socket.on('messageDeleted', (msgId) => {
+    console.log('messageDeleted received for:', msgId);
     const el = document.getElementById(`msg-${msgId}`);
+    console.log('Found element:', !!el);
     if (el) el.remove();
 });
 

@@ -165,9 +165,20 @@ class SimpleDB {
 
     cleanup(defaultRetentionMs) {
         const now = Date.now();
+        
+        // Safety: if no default provided, use 24 hours
+        if (!defaultRetentionMs || typeof defaultRetentionMs !== 'number') {
+            console.warn('cleanup: defaultRetentionMs was invalid, using 24h default');
+            defaultRetentionMs = 24 * 60 * 60 * 1000;
+        }
+        
+        // Invalidate cache to read fresh data from disk
+        this.cache = null;
         const db = this._read();
         
         const initialCount = db.messages.length;
+        console.log(`cleanup: Total messages in DB: ${initialCount}`);
+        
         const keptMessages = [];
         const discardedMessages = [];
         
@@ -178,9 +189,11 @@ class SimpleDB {
                 retention = db.rooms[m.room_id].expiry * 60 * 60 * 1000;
             }
             
-            if (now - m.timestamp < retention) {
+            const ageMs = now - m.timestamp;
+            if (ageMs < retention) {
                 keptMessages.push(m);
             } else {
+                console.log(`cleanup: Deleting msg ${m.id} from room ${m.room_id} (age: ${Math.round(ageMs / 60000)}min, retention: ${Math.round(retention / 60000)}min)`);
                 discardedMessages.push(m);
             }
         });
@@ -188,7 +201,7 @@ class SimpleDB {
         if (keptMessages.length !== initialCount) {
             db.messages = keptMessages;
             this._write(db);
-            console.log(`Cleaned up ${discardedMessages.length} messages.`);
+            console.log(`cleanup: Removed ${discardedMessages.length}, kept ${keptMessages.length}`);
         }
         
         return discardedMessages;

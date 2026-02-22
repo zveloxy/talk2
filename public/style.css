@@ -1071,13 +1071,79 @@ body {
     .header-controls {
         gap: 0.25rem;
     }
+    
+    /* Hide complex controls from header on mobile - they go to sidebar */
+    .header-controls #share-link-btn,
+    .header-controls #sound-toggle-btn,
+    .header-controls .lang-dropdown,
+    .header-controls .translate-dropdown,
+    .header-controls #auto-translate-btn,
+    .header-controls #expiry-btn,
+    .header-controls #logout-btn {
+        display: none !important;
+    }
+    
+    /* Keep only sidebar toggle visible in header */
+    .header-controls .toggle-sidebar-btn {
+        display: flex !important;
+    }
+    
+    /* Show room-info on mobile (was hidden) */
+    .room-info {
+        display: flex !important;
+        gap: 0.4rem;
+    }
+    
+    .room-badge, .user-count-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+    
     .icon-btn, .lang-select {
         padding: 0.4rem;
         font-size: 0.9rem;
     }
-    .room-info {
-        display: none; 
+    
+    /* Show mobile controls in sidebar */
+    .sidebar-mobile-controls {
+        display: block !important;
     }
+}
+
+/* Sidebar mobile controls - hidden by default on desktop */
+.sidebar-mobile-controls {
+    display: none;
+    padding: 0.6rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.sidebar-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    gap: 0.3rem;
+}
+
+.sidebar-ctrl-btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.6rem !important;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.sidebar-ctrl-btn:hover,
+.sidebar-ctrl-btn:active {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--accent);
+    border-color: var(--accent);
 }
 
 @keyframes toastIn {
