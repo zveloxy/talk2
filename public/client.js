@@ -550,11 +550,8 @@ function addMessageToDOM(msg) {
         const audioId = `audio-${msg.id}`;
         contentHtml = `<div class="custom-audio-player" id="aplayer-${audioId}">
             <button class="audio-play-btn" data-audio-id="${audioId}"><i class="fas fa-play"></i></button>
-            <div class="audio-waveform-bars">
+            <div class="audio-waveform-bars" data-audio-id="${audioId}">
                 ${Array.from({length: 20}, () => `<div class="audio-bar" style="height:${Math.random() * 60 + 20}%"></div>`).join('')}
-            </div>
-            <div class="audio-progress-wrap" data-audio-id="${audioId}">
-                <div class="audio-progress-bar"><div class="audio-progress-fill"></div></div>
             </div>
             <span class="audio-time" id="atime-${audioId}">0:00</span>
             <audio id="${audioId}" src="${msg.content}" preload="metadata"></audio>
@@ -1844,10 +1841,9 @@ function initAudioPlayer(audioId) {
     if (!container) return;
     
     const playBtn = container.querySelector('.audio-play-btn');
-    const progressWrap = container.querySelector('.audio-progress-wrap');
-    const progressFill = container.querySelector('.audio-progress-fill');
     const timeDisplay = container.querySelector('.audio-time');
     const bars = container.querySelectorAll('.audio-bar');
+    const barsWrap = container.querySelector('.audio-waveform-bars');
     
     function formatTime(s) {
         if (isNaN(s)) return '0:00';
@@ -1856,10 +1852,8 @@ function initAudioPlayer(audioId) {
         return `${m}:${sec.toString().padStart(2, '0')}`;
     }
     
-    // Play/Pause toggle
     playBtn.addEventListener('click', () => {
         if (audio.paused) {
-            // Pause all other audio players first
             document.querySelectorAll('.custom-audio-player audio').forEach(a => {
                 if (a !== audio && !a.paused) a.pause();
             });
@@ -1882,17 +1876,14 @@ function initAudioPlayer(audioId) {
     audio.addEventListener('ended', () => {
         playBtn.innerHTML = '<i class="fas fa-play"></i>';
         container.classList.remove('playing');
-        progressFill.style.width = '0%';
+        bars.forEach(bar => bar.classList.remove('active'));
     });
     
-    // Progress update
     audio.addEventListener('timeupdate', () => {
         if (!audio.duration) return;
         const pct = (audio.currentTime / audio.duration) * 100;
-        progressFill.style.width = pct + '%';
         timeDisplay.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
         
-        // Animate bars based on progress
         const activeCount = Math.floor((pct / 100) * bars.length);
         bars.forEach((bar, i) => {
             bar.classList.toggle('active', i < activeCount);
@@ -1903,9 +1894,9 @@ function initAudioPlayer(audioId) {
         timeDisplay.textContent = `0:00 / ${formatTime(audio.duration)}`;
     });
     
-    // Seek on click
-    progressWrap.addEventListener('click', (e) => {
-        const rect = progressWrap.getBoundingClientRect();
+    // Seek by clicking waveform bars
+    barsWrap.addEventListener('click', (e) => {
+        const rect = barsWrap.getBoundingClientRect();
         const pos = (e.clientX - rect.left) / rect.width;
         if (audio.duration) audio.currentTime = pos * audio.duration;
     });

@@ -1280,6 +1280,7 @@ body {
     height: 28px;
     flex: 1;
     min-width: 0;
+    cursor: pointer;
 }
 
 .audio-bar {
@@ -1301,28 +1302,6 @@ body {
 @keyframes bar-pulse {
     from { transform: scaleY(0.8); }
     to { transform: scaleY(1.2); }
-}
-
-.audio-progress-wrap {
-    flex: 1;
-    cursor: pointer;
-    padding: 4px 0;
-    min-width: 40px;
-}
-
-.audio-progress-bar {
-    height: 4px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 4px;
-    overflow: hidden;
-}
-
-.audio-progress-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, var(--accent), #818cf8);
-    border-radius: 4px;
-    transition: width 0.1s linear;
 }
 
 .audio-time {
