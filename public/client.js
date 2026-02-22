@@ -222,7 +222,7 @@ function sendMessage(content, type, extra = {}) {
         nickname: nickname,
         content: content,
         type: type,
-        image_path: type === 'image' ? content : null,
+        image_path: (type === 'image' || type === 'spoiler_image') ? content : null,
         video_path: type === 'video' ? content : null,
         audio_path: type === 'audio' ? content : null,
         spoiler: extra.spoiler || false
@@ -535,15 +535,17 @@ function addMessageToDOM(msg) {
     
     if (msg.type === 'image') {
         const imgPath = msg.image_path || msg.content;
-        if (msg.spoiler) {
-            contentHtml = `<div class="spoiler-container" onclick="this.classList.toggle('revealed')">
-                <div class="spoiler-overlay"><i class="fas fa-eye-slash"></i><span>Spoiler</span></div>
-                <img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />
-            </div>`;
-        } else {
-            contentHtml = `<img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />`;
-        }
+        contentHtml = `<img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />`;
         msgTextForReply = '[Image]';
+    } else if (msg.type === 'spoiler_image') {
+        const imgPath = msg.image_path || msg.content;
+        contentHtml = `<div class="spoiler-container" id="spoiler-${msg.id}">
+            <div class="spoiler-cover" onclick="document.getElementById('spoiler-${msg.id}').classList.add('revealed')">
+                <i class="fas fa-eye-slash"></i> Fotoğraf
+            </div>
+            <img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" style="display:none" />
+        </div>`;
+        msgTextForReply = '[Spoiler Image]';
     } else if (msg.type === 'audio') {
         contentHtml = `<audio controls src="${msg.content}"></audio>`;
         msgTextForReply = '[Audio]';
@@ -990,8 +992,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // If there's a pending image upload, send that instead of text
             if (pendingUploadFile) {
                 const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
-                console.log('Sending pending file, spoiler:', isSpoiler);
-                doUpload(pendingUploadFile, pendingUploadType, isSpoiler);
+                const uploadType = isSpoiler ? 'spoiler_image' : pendingUploadType;
+                console.log('Sending pending file, type:', uploadType);
+                doUpload(pendingUploadFile, uploadType, false);
                 return false;
             }
             

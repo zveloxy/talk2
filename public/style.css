@@ -1276,51 +1276,49 @@ body {
     max-width: 200px;
 }
 
-/* ===== Spoiler Image Blur ===== */
+/* ===== Spoiler Image Cover ===== */
 .spoiler-container {
     position: relative;
-    cursor: pointer;
-    overflow: hidden;
     border-radius: 8px;
+    overflow: hidden;
 }
 
-.spoiler-container img {
-    filter: blur(30px);
-    transition: filter 0.4s ease;
+.spoiler-cover {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem 3rem;
+    background: linear-gradient(135deg, #1e1e2e, #2d2d44);
+    border: 2px dashed rgba(99, 102, 241, 0.4);
+    border-radius: 8px;
+    color: #a0a0b8;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    user-select: none;
+}
+
+.spoiler-cover:hover {
+    background: linear-gradient(135deg, #252540, #3a3a5c);
+    color: #c0c0d8;
+    border-color: rgba(99, 102, 241, 0.7);
+}
+
+.spoiler-cover i {
+    font-size: 1.2rem;
+    color: var(--accent);
+}
+
+.spoiler-container.revealed .spoiler-cover {
+    display: none;
 }
 
 .spoiler-container.revealed img {
-    filter: none;
-}
-
-.spoiler-overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(0, 0, 0, 0.4);
-    color: white;
-    gap: 0.3rem;
-    transition: opacity 0.4s ease;
-    z-index: 2;
-}
-
-.spoiler-container.revealed .spoiler-overlay {
-    opacity: 0;
-    pointer-events: none;
-}
-
-.spoiler-overlay i {
-    font-size: 1.5rem;
-}
-
-.spoiler-overlay span {
-    font-size: 0.8rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    display: block !important;
+    max-width: 100%;
+    border-radius: 8px;
 }
 @keyframes toastIn {
     from { opacity: 0; transform: translateX(-50%) translateY(20px); }
