@@ -1146,6 +1146,176 @@ body {
     border-color: var(--accent);
 }
 
+/* ===== Voice Recording Bar ===== */
+.recording-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.6rem 1rem;
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+}
+
+.recording-bar.hidden { display: none; }
+
+.recording-pulse {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ef4444;
+    animation: pulse-recording 1s ease-in-out infinite;
+}
+
+@keyframes pulse-recording {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.3); }
+}
+
+#recording-time {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ef4444;
+    min-width: 3rem;
+    font-variant-numeric: tabular-nums;
+}
+
+.recording-cancel-btn {
+    margin-left: auto;
+    background: rgba(239, 68, 68, 0.15);
+    border: none;
+    color: #ef4444;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.2s;
+}
+
+.recording-cancel-btn:hover {
+    background: rgba(239, 68, 68, 0.3);
+}
+
+.recording-send-btn {
+    background: var(--accent);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.recording-send-btn:hover {
+    background: var(--accent-hover);
+    transform: scale(1.05);
+}
+
+/* Mic button active state */
+#mic-btn.recording {
+    color: #ef4444;
+    animation: pulse-recording 1s ease-in-out infinite;
+}
+
+/* ===== Spoiler Toggle Bar ===== */
+.spoiler-toggle-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 0.5rem;
+}
+
+.spoiler-toggle-bar.hidden { display: none; }
+
+.spoiler-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    user-select: none;
+}
+
+.spoiler-label input[type="checkbox"] {
+    accent-color: var(--accent);
+    width: 16px;
+    height: 16px;
+}
+
+.spoiler-label i {
+    color: var(--accent);
+}
+
+.upload-filename {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
+/* ===== Spoiler Image Blur ===== */
+.spoiler-container {
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 8px;
+}
+
+.spoiler-container img {
+    filter: blur(30px);
+    transition: filter 0.4s ease;
+}
+
+.spoiler-container.revealed img {
+    filter: none;
+}
+
+.spoiler-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    gap: 0.3rem;
+    transition: opacity 0.4s ease;
+    z-index: 2;
+}
+
+.spoiler-container.revealed .spoiler-overlay {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.spoiler-overlay i {
+    font-size: 1.5rem;
+}
+
+.spoiler-overlay span {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
 @keyframes toastIn {
     from { opacity: 0; transform: translateX(-50%) translateY(20px); }
     to { opacity: 1; transform: translateX(-50%) translateY(0); }

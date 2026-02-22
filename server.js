@@ -501,6 +501,9 @@ io.on('connection', (socket) => {
             nickname: msgData.nickname,
             content: msgData.content,
             image_path: msgData.image_path || null,
+            video_path: msgData.video_path || null,
+            audio_path: msgData.audio_path || null,
+            spoiler: msgData.spoiler || false,
             type: msgData.type,
             timestamp: timestamp,
             replyTo: msgData.replyTo || null

@@ -192,12 +192,27 @@
                         </button>
                     </div>
                     <form id="chat-form" onsubmit="return false;">
+                    <!-- Recording Indicator -->
+                    <div id="recording-bar" class="recording-bar hidden">
+                        <div class="recording-pulse"></div>
+                        <span id="recording-time">0:00</span>
+                        <button type="button" id="cancel-recording" class="recording-cancel-btn"><i class="fas fa-times"></i></button>
+                        <button type="button" id="send-recording" class="recording-send-btn"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                    <!-- Spoiler Toggle (shown when image selected) -->
+                    <div id="spoiler-toggle-bar" class="spoiler-toggle-bar hidden">
+                        <label class="spoiler-label">
+                            <input type="checkbox" id="spoiler-checkbox">
+                            <i class="fas fa-eye-slash"></i> Spoiler
+                        </label>
+                        <span id="upload-filename" class="upload-filename"></span>
+                    </div>
                     <div class="input-wrapper">
                         <button type="button" id="emoji-btn" class="icon-btn"><i class="far fa-smile"></i></button>
                         <button type="button" id="upload-btn" class="icon-btn"><i class="fas fa-paperclip"></i></button>
                         <input type="file" id="image-input" accept="image/*,video/*" style="display: none;">
                         <input type="text" id="message-input" autocomplete="off" data-i18n-placeholder="placeholderMessage">
-
+                        <button type="button" id="mic-btn" class="icon-btn" title="Ses Kaydet"><i class="fas fa-microphone"></i></button>
                         <button type="submit" id="send-btn"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </form>

@@ -59,8 +59,11 @@ let pendingConfirmAction = null;
 let typingTimeout = null;
 let isTyping = false;
 let typingUsers = {};
-// Video Upload Variables
-// Voice variables removed
+// Voice Recording Variables
+let mediaRecorder = null;
+let audioChunks = [];
+let recordingTimer = null;
+let recordingSeconds = 0;
 let soundEnabled = localStorage.getItem('talk2_sound') !== 'false';
 let autoTranslate = localStorage.getItem('talk2_autotranslate') === 'true'; // Default OFF
 let translateTargetLang = localStorage.getItem('talk2_translateLang') || null; // Persisted translation target
@@ -212,18 +215,17 @@ function joinRoom() {
     socket.emit('join', roomId, nickname, userId, currentLang);
 }
 
-function sendMessage(content, type) {
-    if (type === 'video') {
-        console.warn('Video upload disabled');
-        return;
-    }
+function sendMessage(content, type, extra = {}) {
     
     const msgData = {
         room: roomId,
         nickname: nickname,
         content: content,
         type: type,
-        image_path: type === 'image' ? content : null
+        image_path: type === 'image' ? content : null,
+        video_path: type === 'video' ? content : null,
+        audio_path: type === 'audio' ? content : null,
+        spoiler: extra.spoiler || false
     };
     
     socket.emit('message', msgData);
@@ -533,7 +535,14 @@ function addMessageToDOM(msg) {
     
     if (msg.type === 'image') {
         const imgPath = msg.image_path || msg.content;
-        contentHtml = `<img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />`;
+        if (msg.spoiler) {
+            contentHtml = `<div class="spoiler-container" onclick="this.classList.toggle('revealed')">
+                <div class="spoiler-overlay"><i class="fas fa-eye-slash"></i><span>Spoiler</span></div>
+                <img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />
+            </div>`;
+        } else {
+            contentHtml = `<img src="${imgPath}" alt="Image" class="lightbox-trigger" loading="lazy" />`;
+        }
         msgTextForReply = '[Image]';
     } else if (msg.type === 'audio') {
         contentHtml = `<audio controls src="${msg.content}"></audio>`;
@@ -1006,22 +1015,29 @@ document.addEventListener('DOMContentLoaded', () => {
             const file = e.target.files[0];
             if (!file) return;
             
-            // Only allow images
-            if (file.type.startsWith('video/') || 
-                ['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'].includes(file.name.split('.').pop().toLowerCase())) {
-                const t = loadedTranslations[currentLang] || loadedTranslations['en'];
-                showToast(t.videoNotSupported || 'Video yükleme şu an desteklenmiyor. Sadece resim yükleyebilirsiniz.');
-                imageInput.value = '';
-                return;
-            }
+            // Determine file type
+            const isVideo = file.type.startsWith('video/') || 
+                ['mp4', 'webm', 'mov', 'avi', 'mkv', 'm4v'].includes(file.name.split('.').pop().toLowerCase());
+            const isImage = file.type.startsWith('image/');
             
-            const type = 'image';
+            const type = isVideo ? 'video' : 'image';
+            const maxSize = isVideo ? 100 * 1024 * 1024 : 10 * 1024 * 1024; // 100MB video, 10MB image
 
-            if (file.size > 10 * 1024 * 1024) { // 10MB limit for images
+            if (file.size > maxSize) {
                 const t = loadedTranslations[currentLang] || loadedTranslations['en'];
                 const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
-                showToast(`${t.fileTooBig || 'Dosya boyutu çok büyük!'} (${fileSizeMB}MB / Max: 10MB)`);
+                const maxMB = Math.round(maxSize / (1024 * 1024));
+                showToast(`${t.fileTooBig || 'Dosya boyutu çok büyük!'} (${fileSizeMB}MB / Max: ${maxMB}MB)`);
                 return;
+            }
+            // Show spoiler toggle for images
+            const spoilerBar = document.getElementById('spoiler-toggle-bar');
+            const spoilerCheckbox = document.getElementById('spoiler-checkbox');
+            const uploadFilename = document.getElementById('upload-filename');
+            if (isImage && spoilerBar) {
+                spoilerBar.classList.remove('hidden');
+                if (uploadFilename) uploadFilename.textContent = file.name;
+                if (spoilerCheckbox) spoilerCheckbox.checked = false;
             }
             
             const formData = new FormData();
@@ -1048,8 +1064,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         console.log('UPLOAD SUCCESS - Response:', data);
                         console.log('UPLOAD SUCCESS - URL:', data.url);
                         console.log('UPLOAD SUCCESS - Type:', type);
-                        sendMessage(data.url, type);
+                        const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
+                        sendMessage(data.url, type, { spoiler: isSpoiler });
                         imageInput.value = '';
+                        // Hide spoiler bar
+                        if (spoilerBar) spoilerBar.classList.add('hidden');
                     } catch (e) {
                         console.error('JSON Parse error', e);
                         alert(loadedTranslations[currentLang].uploadError);
@@ -1080,7 +1099,130 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Voice recording logic removed
+    // ===== Voice Recording Logic =====
+    const micBtn = document.getElementById('mic-btn');
+    const recordingBar = document.getElementById('recording-bar');
+    const recordingTimeEl = document.getElementById('recording-time');
+    const cancelRecordingBtn = document.getElementById('cancel-recording');
+    const sendRecordingBtn = document.getElementById('send-recording');
+    
+    function formatRecordTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+    
+    function startRecording() {
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+                audioChunks = [];
+                recordingSeconds = 0;
+                
+                mediaRecorder.ondataavailable = (e) => {
+                    if (e.data.size > 0) audioChunks.push(e.data);
+                };
+                
+                mediaRecorder.onstop = () => {
+                    stream.getTracks().forEach(t => t.stop());
+                };
+                
+                mediaRecorder.start();
+                
+                // Show recording UI
+                if (recordingBar) recordingBar.classList.remove('hidden');
+                if (micBtn) micBtn.classList.add('recording');
+                if (recordingTimeEl) recordingTimeEl.textContent = '0:00';
+                
+                // Start timer
+                recordingTimer = setInterval(() => {
+                    recordingSeconds++;
+                    if (recordingTimeEl) recordingTimeEl.textContent = formatRecordTime(recordingSeconds);
+                    // Max 2 minutes
+                    if (recordingSeconds >= 120) {
+                        stopAndSendRecording();
+                    }
+                }, 1000);
+            })
+            .catch(err => {
+                console.error('Mic access denied:', err);
+                showToast('Mikrofon erişimi reddedildi');
+            });
+    }
+    
+    function cancelRecording() {
+        if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+            mediaRecorder.stop();
+        }
+        clearInterval(recordingTimer);
+        audioChunks = [];
+        if (recordingBar) recordingBar.classList.add('hidden');
+        if (micBtn) micBtn.classList.remove('recording');
+    }
+    
+    function stopAndSendRecording() {
+        if (!mediaRecorder || mediaRecorder.state === 'inactive') return;
+        
+        clearInterval(recordingTimer);
+        
+        mediaRecorder.onstop = () => {
+            mediaRecorder.stream.getTracks().forEach(t => t.stop());
+            
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            audioChunks = [];
+            
+            if (recordingBar) recordingBar.classList.add('hidden');
+            if (micBtn) micBtn.classList.remove('recording');
+            
+            // Upload audio
+            const formData = new FormData();
+            formData.append('file', audioBlob, `voice_${Date.now()}.webm`);
+            
+            showToast('Ses gönderiliyor...');
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/upload.php', true);
+            xhr.timeout = 30000;
+            
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        sendMessage(data.url, 'audio');
+                    } catch (e) {
+                        console.error('Audio upload parse error:', e);
+                        showToast('Ses yükleme hatası');
+                    }
+                } else {
+                    showToast('Ses yükleme başarısız');
+                }
+            };
+            
+            xhr.onerror = () => showToast('Ses yükleme ağ hatası');
+            xhr.ontimeout = () => showToast('Ses yükleme zaman aşımı');
+            xhr.send(formData);
+        };
+        
+        mediaRecorder.stop();
+    }
+    
+    if (micBtn) {
+        micBtn.addEventListener('click', () => {
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                stopAndSendRecording();
+            } else {
+                startRecording();
+            }
+        });
+    }
+    
+    if (cancelRecordingBtn) {
+        cancelRecordingBtn.addEventListener('click', cancelRecording);
+    }
+    
+    if (sendRecordingBtn) {
+        sendRecordingBtn.addEventListener('click', stopAndSendRecording);
+    }
 
     // Confirm Modal
     
