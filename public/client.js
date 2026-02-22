@@ -986,6 +986,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (chatForm) {
         chatForm.addEventListener('submit', (e) => {
             e.preventDefault();
+            
+            // If there's a pending image upload, send that instead of text
+            if (pendingUploadFile) {
+                const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
+                console.log('Sending pending file, spoiler:', isSpoiler);
+                doUpload(pendingUploadFile, pendingUploadType, isSpoiler);
+                return false;
+            }
+            
             const content = messageInput ? messageInput.value.trim() : '';
             if (content) {
                 sendMessage(content, 'text');
@@ -1111,18 +1120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Send pending image when user clicks main send button (if file pending)
-    if (chatForm) {
-        document.getElementById('send-btn').addEventListener('click', (e) => {
-            if (pendingUploadFile) {
-                e.preventDefault();
-                e.stopPropagation();
-                const isSpoiler = spoilerCheckbox ? spoilerCheckbox.checked : false;
-                doUpload(pendingUploadFile, pendingUploadType, isSpoiler);
-                return;
-            }
-        });
-    }
+
 
     // ===== Voice Recording Logic =====
     const micBtn = document.getElementById('mic-btn');
