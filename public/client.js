@@ -1112,9 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Send pending image when user clicks main send button (if file pending)
-    const chatForm = document.getElementById('chat-form');
     if (chatForm) {
-        const originalSubmit = chatForm.onsubmit;
         document.getElementById('send-btn').addEventListener('click', (e) => {
             if (pendingUploadFile) {
                 e.preventDefault();
