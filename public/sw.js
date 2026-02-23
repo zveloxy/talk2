@@ -1,5 +1,5 @@
 // Talk2 Service Worker - v6 (Updated Strategy)
-const CACHE_NAME = 'talk2-v6';
+const CACHE_NAME = 'talk2-v7';
 const ASSETS = [
     '/manifest.json',
     '/icon.png',
@@ -34,7 +34,7 @@ self.addEventListener('fetch', (e) => {
     }
 
     // 2. Network-First: Updates important files immediately
-    if (NETWORK_FIRST.some(path => url.pathname === path || (url.pathname.endsWith('.html') || url.pathname.endsWith('.js') && !url.pathname.includes('sw.js')))) {
+    if (NETWORK_FIRST.some(path => url.pathname === path || (url.pathname.endsWith('.html') || url.pathname.endsWith('.js') || url.pathname.endsWith('.css')) && !url.pathname.includes('sw.js'))) {
         e.respondWith(
             fetch(e.request)
                 .then(res => {
