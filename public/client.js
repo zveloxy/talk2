@@ -70,6 +70,9 @@ let translateTargetLang = localStorage.getItem('talk2_translateLang') || null; /
 let replyingTo = null;
 let notificationSound = null;
 let pendingTranslations = new Set(); // Track messages being translated
+let roomPassword = null; // Current room password (plain text, for E2E key derivation)
+let e2eKey = null; // Derived CryptoKey for E2E encryption
+let roomHasPassword = false;
 
 // DOM Elements (assigned in DOMContentLoaded)
 let modal, confirmModal, confirmTitle, confirmText, confirmYesBtn, confirmCancelBtn;
@@ -215,12 +218,18 @@ function joinRoom() {
     socket.emit('join', roomId, nickname, userId, currentLang);
 }
 
-function sendMessage(content, type, extra = {}) {
+async function sendMessage(content, type, extra = {}) {
+    
+    // E2E encrypt text messages only
+    let encryptedContent = content;
+    if (e2eKey && type === 'text' && content) {
+        encryptedContent = await encryptE2E(content);
+    }
     
     const msgData = {
         room: roomId,
         nickname: nickname,
-        content: content,
+        content: encryptedContent,
         type: type,
         image_path: (type === 'image' || type === 'spoiler_image') ? content : null,
         video_path: (type === 'video' || type === 'spoiler_video') ? content : null,
@@ -239,6 +248,55 @@ function stopTyping() {
         socket.emit('typing', false);
     }
     clearTimeout(typingTimeout);
+}
+
+// --- E2E Encryption (Web Crypto API) ---
+async function deriveKey(password) {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+        'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt: enc.encode('talk2_' + roomId), iterations: 100000, hash: 'SHA-256' },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+async function encryptE2E(text) {
+    if (!e2eKey) return text;
+    try {
+        const enc = new TextEncoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const encrypted = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv }, e2eKey, enc.encode(text)
+        );
+        // Combine IV + ciphertext, encode as base64
+        const combined = new Uint8Array(iv.length + encrypted.byteLength);
+        combined.set(iv);
+        combined.set(new Uint8Array(encrypted), iv.length);
+        return 'E2E:' + btoa(String.fromCharCode(...combined));
+    } catch (err) {
+        console.error('E2E encrypt error:', err);
+        return text;
+    }
+}
+
+async function decryptE2E(ciphertext) {
+    if (!e2eKey || !ciphertext.startsWith('E2E:')) return ciphertext;
+    try {
+        const data = Uint8Array.from(atob(ciphertext.slice(4)), c => c.charCodeAt(0));
+        const iv = data.slice(0, 12);
+        const encrypted = data.slice(12);
+        const decrypted = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv }, e2eKey, encrypted
+        );
+        return new TextDecoder().decode(decrypted);
+    } catch (err) {
+        return '🔒 [Şifreli Mesaj]';
+    }
 }
 
 // --- Reply System ---
@@ -531,7 +589,7 @@ function updateTypingIndicator() {
     }
 }
 
-function addMessageToDOM(msg) {
+async function addMessageToDOM(msg) {
     // Debug video messages
     if (msg.type === 'video') {
         console.log('VIDEO MESSAGE RECEIVED:', JSON.stringify(msg));
@@ -636,8 +694,16 @@ function addMessageToDOM(msg) {
         </div>`;
         msgTextForReply = '[Spoiler Video]';
     } else {
-        msgTextForReply = msg.content || '';
-        contentHtml = escapeHtml(msgTextForReply);
+        // Decrypt E2E if needed
+        let textContent = msg.content || '';
+        if (textContent.startsWith('E2E:')) {
+            textContent = await decryptE2E(textContent);
+        }
+        msgTextForReply = textContent;
+        contentHtml = escapeHtml(textContent);
+        if (textContent === '🔒 [Şifreli Mesaj]') {
+            contentHtml = '<span class="e2e-locked">' + contentHtml + '</span>';
+        }
     }
 
     // Reply quote bubble
@@ -1771,6 +1837,98 @@ socket.on('roomConfig', (config) => {
     if (config.expiry && expiryOptions) {
         expiryOptions.forEach(opt => {
             opt.classList.toggle('active', parseInt(opt.getAttribute('data-value')) === config.expiry);
+        });
+    }
+    // Track room password state
+    roomHasPassword = !!config.hasPassword;
+    const lockBtn = document.getElementById('lock-room-btn');
+    if (lockBtn) {
+        lockBtn.innerHTML = roomHasPassword ? '<i class="fas fa-lock"></i>' : '<i class="fas fa-lock-open"></i>';
+    }
+});
+
+// Password required — show password modal
+socket.on('passwordRequired', () => {
+    const overlay = document.getElementById('password-overlay');
+    if (overlay) overlay.classList.remove('hidden');
+    // Hide nickname modal
+    if (modal) modal.classList.add('hidden');
+});
+
+socket.on('passwordWrong', () => {
+    const errEl = document.getElementById('password-error');
+    if (errEl) errEl.classList.remove('hidden');
+    const input = document.getElementById('password-input');
+    if (input) { input.value = ''; input.focus(); }
+});
+
+// Password form submit
+document.addEventListener('DOMContentLoaded', () => {
+    const pwForm = document.getElementById('password-form');
+    if (pwForm) {
+        pwForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('password-input');
+            const pw = input ? input.value.trim() : '';
+            if (!pw) return;
+            // Store password for E2E key derivation
+            roomPassword = pw;
+            e2eKey = await deriveKey(pw);
+            socket.emit('joinWithPassword', pw);
+            const errEl = document.getElementById('password-error');
+            if (errEl) errEl.classList.add('hidden');
+        });
+    }
+    
+    // Close password overlay on successful join (history event means we joined)
+    const origHistoryHandler = socket.listeners('history')[0];
+    socket.on('history', () => {
+        const overlay = document.getElementById('password-overlay');
+        if (overlay) overlay.classList.add('hidden');
+    });
+    
+    // Lock button — set/manage room password
+    const lockBtn = document.getElementById('lock-room-btn');
+    const setPwOverlay = document.getElementById('set-password-overlay');
+    const setPwForm = document.getElementById('set-password-form');
+    const setPwClose = document.getElementById('set-password-close');
+    const removePwBtn = document.getElementById('remove-password-btn');
+    
+    if (lockBtn && setPwOverlay) {
+        lockBtn.addEventListener('click', () => {
+            setPwOverlay.classList.remove('hidden');
+            if (removePwBtn) {
+                removePwBtn.classList.toggle('hidden', !roomHasPassword);
+            }
+        });
+    }
+    
+    if (setPwClose && setPwOverlay) {
+        setPwClose.addEventListener('click', () => setPwOverlay.classList.add('hidden'));
+    }
+    
+    if (setPwForm) {
+        setPwForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const input = document.getElementById('set-password-input');
+            const pw = input ? input.value.trim() : '';
+            if (!pw || pw.length < 3) return;
+            socket.emit('setRoomPassword', pw);
+            roomPassword = pw;
+            e2eKey = await deriveKey(pw);
+            input.value = '';
+            setPwOverlay.classList.add('hidden');
+            showToast('🔒 Oda şifresi belirlendi');
+        });
+    }
+    
+    if (removePwBtn) {
+        removePwBtn.addEventListener('click', () => {
+            socket.emit('removeRoomPassword');
+            roomPassword = null;
+            e2eKey = null;
+            setPwOverlay.classList.add('hidden');
+            showToast('🔓 Oda şifresi kaldırıldı');
         });
     }
 });

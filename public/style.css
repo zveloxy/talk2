@@ -1479,6 +1479,23 @@ body {
     color: var(--danger);
 }
 
+/* Error text for password modal */
+.error-text {
+    color: var(--danger);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.error-text.hidden {
+    display: none;
+}
+
+/* E2E encrypted message indicator */
+.e2e-locked {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 /* Reply Button on Messages */
 .reply-msg-btn {
     background: rgba(255, 255, 255, 0.1);

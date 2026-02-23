@@ -423,71 +423,102 @@ function broadcastUserList(roomId) {
 // --- Socket.io Logic ---
 io.on('connection', (socket) => {
     
-    socket.on('join', (roomId, nickname, userId, userLang) => {
-        // userId is expected from client (generated if not exists)
-        if (!userId) {
-             // Fallback if client doesn't send one (backward compat), though client should.
-             userId = 'anon_' + socket.id; 
-        }
-        // Default language to English if not provided
-        userLang = userLang || 'en';
-
+    // Helper: complete the join process (shared between join and joinWithPassword)
+    function completeJoin(roomId, nickname, userId, userLang) {
         socket.join(roomId);
-        
-        // Map socket to user
         socketToUser[socket.id] = { roomId, userId };
-
-        // Initialize room if needed
-        if (!roomUsers[roomId]) {
-            roomUsers[roomId] = {};
-        }
-
+        
+        if (!roomUsers[roomId]) roomUsers[roomId] = {};
+        
         const existingUser = roomUsers[roomId][userId];
-
-        // Cancel any pending disconnect timeout for this user
+        
         if (disconnectTimeouts[userId]) {
             clearTimeout(disconnectTimeouts[userId]);
             delete disconnectTimeouts[userId];
-            // If we canceled a timeout, it means they reconnected quickly.
-            // We just update their socket ID.
-            if (existingUser) {
-                existingUser.socketId = socket.id;
-            }
+            if (existingUser) existingUser.socketId = socket.id;
         }
-
-        // Add or update user to room
+        
         roomUsers[roomId][userId] = {
-            userId: userId,
-            socketId: socket.id,
-            nickname: nickname,
-            lang: userLang,
+            userId, socketId: socket.id, nickname, lang: userLang || 'en',
             joinedAt: existingUser ? existingUser.joinedAt : Date.now()
         };
         
-        // Send history
         const messages = db.getMessages(roomId);
         socket.emit('history', messages);
-        
-        // Broadcast updated user list
         broadcastUserList(roomId);
         
-        // ONLY send "User joined" if they weren't already in the room (e.g. fresh join)
-        // If they were in `roomUsers` and we just canceled a timeout, it's a reconnect (F5), so stay silent.
+        const expiry = db.getRoomExpiry(roomId) || 24;
+        const hasPassword = !!db.getRoomPassword(roomId);
+        socket.emit('roomConfig', { expiry, hasPassword });
+        
         if (!existingUser) {
             io.to(roomId).emit('system', {
-                type: 'join',
-                nickname: nickname,
-                timestamp: Date.now()
+                type: 'join', nickname, timestamp: Date.now()
             });
-            
-            // Send room config to the joining user
-            const expiry = db.getRoomExpiry(roomId) || 24;
-            socket.emit('roomConfig', { expiry });
-        } else {
-            // Also send to reconnecting user
-            const expiry = db.getRoomExpiry(roomId) || 24;
-            socket.emit('roomConfig', { expiry });
         }
+    }
+    
+    socket.on('join', (roomId, nickname, userId, userLang) => {
+        if (!userId) userId = 'anon_' + socket.id;
+        
+        // Check if room has password
+        const passwordHash = db.getRoomPassword(roomId);
+        if (passwordHash) {
+            // Room is locked — ask for password
+            socket.emit('passwordRequired', { roomId });
+            // Store pending join data on socket
+            socket._pendingJoin = { roomId, nickname, userId, userLang };
+            return;
+        }
+        
+        completeJoin(roomId, nickname, userId, userLang);
+    });
+    
+    // Join with password verification
+    socket.on('joinWithPassword', (password) => {
+        const pending = socket._pendingJoin;
+        if (!pending) return;
+        
+        const storedHash = db.getRoomPassword(pending.roomId);
+        const inputHash = crypto.createHash('sha256').update(password).digest('hex');
+        
+        if (storedHash === inputHash) {
+            delete socket._pendingJoin;
+            completeJoin(pending.roomId, pending.nickname, pending.userId, pending.userLang);
+        } else {
+            socket.emit('passwordWrong');
+        }
+    });
+    
+    // Set room password
+    socket.on('setRoomPassword', (password) => {
+        const user = socketToUser[socket.id];
+        if (!user) return;
+        const hash = crypto.createHash('sha256').update(password).digest('hex');
+        db.setRoomPassword(user.roomId, hash);
+        io.to(user.roomId).emit('roomConfig', { 
+            expiry: db.getRoomExpiry(user.roomId) || 24, 
+            hasPassword: true 
+        });
+        const nick = roomUsers[user.roomId]?.[user.userId]?.nickname || 'Someone';
+        io.to(user.roomId).emit('system', {
+            type: 'info', content: `🔒 ${nick} set a room password`, timestamp: Date.now()
+        });
+    });
+    
+    // Remove room password
+    socket.on('removeRoomPassword', () => {
+        const user = socketToUser[socket.id];
+        if (!user) return;
+        db.removeRoomPassword(user.roomId);
+        io.to(user.roomId).emit('roomConfig', { 
+            expiry: db.getRoomExpiry(user.roomId) || 24, 
+            hasPassword: false 
+        });
+        const nick = roomUsers[user.roomId]?.[user.userId]?.nickname || 'Someone';
+        io.to(user.roomId).emit('system', {
+            type: 'info', content: `🔓 ${nick} removed the room password`, timestamp: Date.now()
+        });
     });
 
     // Message handler

@@ -163,6 +163,30 @@ class SimpleDB {
         return null;
     }
 
+    setRoomPassword(roomId, passwordHash) {
+        const db = this._read();
+        if (!db.rooms) db.rooms = {};
+        if (!db.rooms[roomId]) db.rooms[roomId] = {};
+        db.rooms[roomId].passwordHash = passwordHash;
+        this._write(db);
+    }
+
+    getRoomPassword(roomId) {
+        const db = this._read();
+        if (db.rooms && db.rooms[roomId] && db.rooms[roomId].passwordHash) {
+            return db.rooms[roomId].passwordHash;
+        }
+        return null;
+    }
+
+    removeRoomPassword(roomId) {
+        const db = this._read();
+        if (db.rooms && db.rooms[roomId]) {
+            delete db.rooms[roomId].passwordHash;
+            this._write(db);
+        }
+    }
+
     cleanup(defaultRetentionMs) {
         const now = Date.now();
         
