@@ -423,8 +423,10 @@ function broadcastUserList(roomId) {
 // --- Socket.io Logic ---
 io.on('connection', (socket) => {
     
-    // Helper: complete the join process (shared between join and joinWithPassword)
-    function completeJoin(roomId, nickname, userId, userLang) {
+    socket.on('join', (roomId, nickname, userId, userLang) => {
+        if (!userId) userId = 'anon_' + socket.id;
+        userLang = userLang || 'en';
+
         socket.join(roomId);
         socketToUser[socket.id] = { roomId, userId };
         
@@ -439,7 +441,7 @@ io.on('connection', (socket) => {
         }
         
         roomUsers[roomId][userId] = {
-            userId, socketId: socket.id, nickname, lang: userLang || 'en',
+            userId, socketId: socket.id, nickname, lang: userLang,
             joinedAt: existingUser ? existingUser.joinedAt : Date.now()
         };
         
@@ -448,79 +450,13 @@ io.on('connection', (socket) => {
         broadcastUserList(roomId);
         
         const expiry = db.getRoomExpiry(roomId) || 24;
-        const hasPassword = !!db.getRoomPassword(roomId);
-        socket.emit('roomConfig', { expiry, hasPassword });
+        socket.emit('roomConfig', { expiry });
         
         if (!existingUser) {
             io.to(roomId).emit('system', {
                 type: 'join', nickname, timestamp: Date.now()
             });
         }
-    }
-    
-    socket.on('join', (roomId, nickname, userId, userLang) => {
-        if (!userId) userId = 'anon_' + socket.id;
-        
-        // Check if room has password
-        const passwordHash = db.getRoomPassword(roomId);
-        console.log(`[JOIN] Room: ${roomId}, User: ${nickname}, HasPassword: ${!!passwordHash}`);
-        if (passwordHash) {
-            // Room is locked — ask for password
-            console.log(`[JOIN] Password required for room ${roomId}, sending passwordRequired to ${nickname}`);
-            socket.emit('passwordRequired', { roomId });
-            // Store pending join data on socket
-            socket._pendingJoin = { roomId, nickname, userId, userLang };
-            return;
-        }
-        
-        completeJoin(roomId, nickname, userId, userLang);
-    });
-    
-    // Join with password verification
-    socket.on('joinWithPassword', (password) => {
-        const pending = socket._pendingJoin;
-        if (!pending) return;
-        
-        const storedHash = db.getRoomPassword(pending.roomId);
-        const inputHash = crypto.createHash('sha256').update(password).digest('hex');
-        
-        if (storedHash === inputHash) {
-            delete socket._pendingJoin;
-            completeJoin(pending.roomId, pending.nickname, pending.userId, pending.userLang);
-        } else {
-            socket.emit('passwordWrong');
-        }
-    });
-    
-    // Set room password
-    socket.on('setRoomPassword', (password) => {
-        const user = socketToUser[socket.id];
-        if (!user) return;
-        const hash = crypto.createHash('sha256').update(password).digest('hex');
-        db.setRoomPassword(user.roomId, hash);
-        io.to(user.roomId).emit('roomConfig', { 
-            expiry: db.getRoomExpiry(user.roomId) || 24, 
-            hasPassword: true 
-        });
-        const nick = roomUsers[user.roomId]?.[user.userId]?.nickname || 'Someone';
-        io.to(user.roomId).emit('system', {
-            type: 'info', content: `🔒 ${nick} set a room password`, timestamp: Date.now()
-        });
-    });
-    
-    // Remove room password
-    socket.on('removeRoomPassword', () => {
-        const user = socketToUser[socket.id];
-        if (!user) return;
-        db.removeRoomPassword(user.roomId);
-        io.to(user.roomId).emit('roomConfig', { 
-            expiry: db.getRoomExpiry(user.roomId) || 24, 
-            hasPassword: false 
-        });
-        const nick = roomUsers[user.roomId]?.[user.userId]?.nickname || 'Someone';
-        io.to(user.roomId).emit('system', {
-            type: 'info', content: `🔓 ${nick} removed the room password`, timestamp: Date.now()
-        });
     });
 
     // Message handler

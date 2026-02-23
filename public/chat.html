@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Talk2 Chat</title>
-    <link rel="stylesheet" href="/style.css?v=62">
+    <link rel="stylesheet" href="/style.css?v=63">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/7.2.3/css/flag-icons.min.css">
@@ -65,34 +65,6 @@
             </div>
         </div>
 
-        <!-- Password Entry Modal (when joining locked room) -->
-        <div id="password-overlay" class="overlay hidden">
-            <div class="modal">
-                <div class="modal-icon"><i class="fas fa-lock"></i></div>
-                <h3>🔒 Bu oda şifreli</h3>
-                <p>Devam etmek için oda şifresini girin.</p>
-                <form id="password-form" onsubmit="return false;">
-                    <input type="password" id="password-input" placeholder="Oda şifresi..." required autocomplete="off">
-                    <button type="submit">Giriş</button>
-                </form>
-                <p id="password-error" class="error-text hidden">Yanlış şifre!</p>
-            </div>
-        </div>
-
-        <!-- Set Password Modal -->
-        <div id="set-password-overlay" class="overlay hidden">
-            <div class="modal">
-                <div class="modal-icon"><i class="fas fa-key"></i></div>
-                <h3 id="set-password-title">Oda Şifresi Belirle</h3>
-                <p>Bu odaya girmek için şifre gerekecek.</p>
-                <form id="set-password-form" onsubmit="return false;">
-                    <input type="password" id="set-password-input" placeholder="Yeni şifre..." required autocomplete="off" minlength="3">
-                    <button type="submit">Şifreyi Kaydet</button>
-                </form>
-                <button id="remove-password-btn" class="secondary-btn hidden" style="margin-top: 0.5rem; width: 100%;">🔓 Şifreyi Kaldır</button>
-                <button id="set-password-close" class="secondary-btn" style="margin-top: 0.5rem;">Kapat</button>
-            </div>
-        </div>
 
         <!-- Header -->
         <header class="chat-header">
@@ -112,9 +84,6 @@
                 </button>
                 <button id="sound-toggle-btn" class="icon-btn" title="Bildirim Sesi">
                     <i class="fas fa-volume-up"></i>
-                </button>
-                <button id="lock-room-btn" class="icon-btn" title="Oda Şifresi">
-                    <i class="fas fa-lock-open"></i>
                 </button>
                 <div class="lang-dropdown" id="lang-dropdown">
                     <button class="lang-dropdown-btn" id="lang-dropdown-btn">
@@ -311,6 +280,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=66"></script>
+    <script src="/client.js?v=67"></script>
 </body>
 </html>
