@@ -225,10 +225,12 @@ function sendMessage(content, type, extra = {}) {
         image_path: (type === 'image' || type === 'spoiler_image') ? content : null,
         video_path: (type === 'video' || type === 'spoiler_video') ? content : null,
         audio_path: type === 'audio' ? content : null,
-        spoiler: extra.spoiler || false
+        spoiler: extra.spoiler || false,
+        replyTo: replyingTo ? { id: replyingTo.id, nickname: replyingTo.nickname, text: replyingTo.text } : null
     };
     
     socket.emit('message', msgData);
+    cancelReply();
 }
 
 function stopTyping() {
@@ -239,7 +241,22 @@ function stopTyping() {
     clearTimeout(typingTimeout);
 }
 
-// Reply feature removed
+// --- Reply System ---
+
+function startReply(msgId, msgNickname, msgText) {
+    replyingTo = { id: msgId, nickname: msgNickname, text: msgText };
+    if (replyPreview) replyPreview.classList.remove('hidden');
+    if (replyToName) replyToName.textContent = msgNickname;
+    if (replyToText) replyToText.textContent = msgText.length > 50 ? msgText.substring(0, 50) + '...' : msgText;
+    if (messageInput) messageInput.focus();
+}
+
+function cancelReply() {
+    replyingTo = null;
+    if (replyPreview) replyPreview.classList.add('hidden');
+}
+
+window.startReply = startReply;
 
 function deleteMessage(id, fileUrl = null) {
     const t = (loadedTranslations && loadedTranslations[currentLang]) || (loadedTranslations && loadedTranslations['en']) || {};
@@ -488,7 +505,7 @@ function updateUserList(users) {
         const li = document.createElement('li');
         const isMe = user.nickname === nickname;
         const t = loadedTranslations[currentLang] || loadedTranslations['en'];
-        li.innerHTML = `<i class="fas fa-user"></i> ${escapeHtml(user.nickname)} ${isMe ? t.you : ''}`;
+        li.innerHTML = `<span class="status-dot online"></span> ${escapeHtml(user.nickname)} ${isMe ? t.you : ''}`;
         if (isMe) li.classList.add('self');
         usersList.appendChild(li);
     });
@@ -623,6 +640,16 @@ function addMessageToDOM(msg) {
         contentHtml = escapeHtml(msgTextForReply);
     }
 
+    // Reply quote bubble
+    let replyHtml = '';
+    if (msg.replyTo && msg.replyTo.nickname) {
+        const replyText = msg.replyTo.text ? escapeHtml(msg.replyTo.text.length > 60 ? msg.replyTo.text.substring(0, 60) + '...' : msg.replyTo.text) : '';
+        replyHtml = `<div class="quoted-reply">
+            <strong>${escapeHtml(msg.replyTo.nickname)}</strong>
+            <span>${replyText || '[Medya]'}</span>
+        </div>`;
+    }
+
     const t = loadedTranslations[currentLang] || loadedTranslations['en'];
     const displayName = isSelf ? (t.you || '(you)') : escapeHtml(msg.nickname);
     const deleteTitle = t.btnConfirm ? t.btnConfirm.split(',')[0] : 'Delete';
@@ -630,6 +657,9 @@ function addMessageToDOM(msg) {
     
     // Only show translate button for text messages from others
     const showTranslateBtn = !isSelf && msg.type === 'text' && msg.content;
+
+    // Reply button data
+    const replyBtnText = msg.type === 'text' ? escapeHtml(msg.content || '') : `[${msg.type}]`;
 
     div.innerHTML = `
         <div class="meta">
@@ -640,9 +670,11 @@ function addMessageToDOM(msg) {
                    <span class="read-status" id="read-${msg.id}"></span>`
                 : `<span class="nickname">${displayName}</span>
                    <span class="time">${time}</span>
+                   <button class="reply-msg-btn" onclick="startReply('${msg.id}', '${escapeHtml(msg.nickname)}', '${replyBtnText.replace(/'/g, "\\'").replace(/"/g, '&quot;')}')" title="Yanıtla"><i class="fas fa-reply"></i></button>
                    ${showTranslateBtn ? `<button class="translate-btn" data-msg-id="${msg.id}" data-text="${escapeHtml(msg.content)}" title="${translateTitle}"><i class="fas fa-language"></i></button>` : ''}`
             }
         </div>
+        ${replyHtml}
         <div class="body">${contentHtml}</div>
     `;
     
@@ -1430,6 +1462,11 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
+    // Cancel Reply
+    if (cancelReplyBtn) {
+        cancelReplyBtn.addEventListener('click', cancelReply);
+    }
+    
     // Sound Toggle
     if (soundToggleBtn) {
         updateSoundButtonIcon();
@@ -1438,6 +1475,29 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('talk2_sound', soundEnabled);
             updateSoundButtonIcon();
             showToast(soundEnabled ? (currentLang === 'tr' ? 'Ses açık' : 'Sound on') : (currentLang === 'tr' ? 'Ses kapalı' : 'Sound off'));
+        });
+    }
+    
+    // Theme Toggle
+    const themeToggleBtn = document.getElementById('theme-toggle-btn');
+    function updateThemeIcon() {
+        if (!themeToggleBtn) return;
+        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+        themeToggleBtn.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
+    }
+    // Apply saved theme
+    const savedTheme = localStorage.getItem('talk2_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon();
+    
+    if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme') || 'dark';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('talk2_theme', next);
+            updateThemeIcon();
+            showToast(next === 'dark' ? '🌙 Karanlık Tema' : '☀️ Aydınlık Tema');
         });
     }
     
