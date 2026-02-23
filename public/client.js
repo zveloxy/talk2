@@ -215,7 +215,7 @@ function joinRoom() {
     socket.emit('join', roomId, nickname, userId, currentLang);
 }
 
-async function sendMessage(content, type, extra = {}) {
+function sendMessage(content, type, extra = {}) {
     
     const msgData = {
         room: roomId,
@@ -531,7 +531,7 @@ function updateTypingIndicator() {
     }
 }
 
-async function addMessageToDOM(msg) {
+function addMessageToDOM(msg) {
     // Debug video messages
     if (msg.type === 'video') {
         console.log('VIDEO MESSAGE RECEIVED:', JSON.stringify(msg));

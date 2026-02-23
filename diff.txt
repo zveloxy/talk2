@@ -1,0 +1,2211 @@
+Line 0
+< // --- Startup Logging for cPanel Debug ---
+> // --- Startup Logging for cPanel Debug ---
+Line 1
+< console.error('=== SERVER.JS STARTING ==='); // This should appear in stderr.log
+> console.error('=== SERVER.JS STARTING ==='); // This should appear in stderr.log
+Line 2
+< console.error('Current directory:', __dirname);
+> console.error('Current directory:', __dirname);
+Line 3
+< const fs = require('fs');
+> const fs = require('fs');
+Line 4
+< const path = require('path');
+> const path = require('path');
+Line 5
+< 
+> 
+Line 6
+< const LOG_FILE = path.join(__dirname, 'startup.log');
+> const LOG_FILE = path.join(__dirname, 'startup.log');
+Line 7
+< 
+> 
+Line 8
+< function log(message) {
+> function log(message) {
+Line 9
+<     const timestamp = new Date().toISOString();
+>     const timestamp = new Date().toISOString();
+Line 10
+<     const logMessage = `[${timestamp}] ${message}\n`;
+>     const logMessage = `[${timestamp}] ${message}\n`;
+Line 11
+<     fs.appendFileSync(LOG_FILE, logMessage);
+>     fs.appendFileSync(LOG_FILE, logMessage);
+Line 12
+<     console.log(message);
+>     console.log(message);
+Line 13
+< }
+> }
+Line 14
+< 
+> 
+Line 15
+< // Clear old log on startup
+> // Clear old log on startup
+Line 16
+< fs.writeFileSync(LOG_FILE, `=== Server Starting at ${new Date().toISOString()} ===\n`);
+> fs.writeFileSync(LOG_FILE, `=== Server Starting at ${new Date().toISOString()} ===\n`);
+Line 17
+< 
+> 
+Line 18
+< log('Loading modules...');
+> log('Loading modules...');
+Line 19
+< 
+> 
+Line 20
+< try {
+> try {
+Line 21
+<     const express = require('express');
+>     const express = require('express');
+Line 22
+<     log('✓ express loaded');
+>     log('✓ express loaded');
+Line 23
+<     
+>     
+Line 24
+<     const http = require('http');
+>     const http = require('http');
+Line 25
+<     log('✓ http loaded');
+>     log('✓ http loaded');
+Line 26
+<     
+>     
+Line 27
+<     const { Server } = require('socket.io');
+>     const { Server } = require('socket.io');
+Line 28
+<     log('✓ socket.io loaded');
+>     log('✓ socket.io loaded');
+Line 29
+<     
+>     
+Line 30
+<     const multer = require('multer');
+>     const multer = require('multer');
+Line 31
+<     log('✓ multer loaded');
+>     log('✓ multer loaded');
+Line 32
+<     
+>     
+Line 33
+<     const cron = require('node-cron');
+>     const cron = require('node-cron');
+Line 34
+<     log('✓ node-cron loaded');
+>     log('✓ node-cron loaded');
+Line 35
+<     
+>     
+Line 36
+<     const compression = require('compression');
+>     const compression = require('compression');
+Line 37
+<     log('✓ compression loaded');
+>     log('✓ compression loaded');
+Line 38
+<     
+>     
+Line 39
+<     const helmet = require('helmet');
+>     const helmet = require('helmet');
+Line 40
+<     log('✓ helmet loaded');
+>     log('✓ helmet loaded');
+Line 41
+<     
+>     
+Line 42
+<     log('Loading database...');
+>     log('Loading database...');
+Line 43
+<     const db = require('./database');
+>     const db = require('./database');
+Line 44
+<     log('✓ database loaded');
+>     log('✓ database loaded');
+Line 45
+<     // The database module is now loaded outside the try block for key initialization
+>     // The database module is now loaded outside the try block for key initialization
+Line 46
+<     // log('Loading database...');
+>     // log('Loading database...');
+Line 47
+<     // const db = require('./database');
+>     // const db = require('./database');
+Line 48
+<     // log('✓ database loaded');
+>     // log('✓ database loaded');
+Line 49
+<     
+>     
+Line 50
+<     log('All modules loaded successfully!');
+>     log('All modules loaded successfully!');
+Line 51
+< 
+> 
+Line 52
+< // --- Rest of the application wrapped in try-catch ---
+> // --- Rest of the application wrapped in try-catch ---
+Line 53
+< 
+> 
+Line 54
+< const app = express();
+> const app = express();
+Line 55
+< const server = http.createServer(app);
+> const server = http.createServer(app);
+Line 56
+< const io = new Server(server);
+> const io = new Server(server);
+Line 57
+< // db and fs are already loaded above
+> // db and fs are already loaded above
+Line 58
+< const crypto = require('crypto');
+> const crypto = require('crypto');
+Line 59
+< 
+> 
+Line 60
+< // Use hidden storage for encrypted files
+> // Use hidden storage for encrypted files
+Line 61
+< const UPLOAD_DIR = path.join(__dirname, 'storage', 'uploads');
+> const UPLOAD_DIR = path.join(__dirname, 'storage', 'uploads');
+Line 62
+< if (!fs.existsSync(UPLOAD_DIR)) {
+> if (!fs.existsSync(UPLOAD_DIR)) {
+Line 63
+<     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+>     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+Line 64
+< }
+> }
+Line 65
+< 
+> 
+Line 66
+< const ENCRYPTION_KEY = db.getKey(); // Get key from DB logic
+> const ENCRYPTION_KEY = db.getKey(); // Get key from DB logic
+Line 67
+< const IV_LENGTH = 16;
+> const IV_LENGTH = 16;
+Line 68
+< const RETENTION_MS = 24 * 60 * 60 * 1000; // Default retention: 24 hours
+> const RETENTION_MS = 24 * 60 * 60 * 1000; // Default retention: 24 hours
+Line 69
+< const DISCONNECT_GRACE_PERIOD = 5000; // 5 seconds wait before announcing leave
+> const DISCONNECT_GRACE_PERIOD = 5000; // 5 seconds wait before announcing leave
+Line 70
+< 
+> 
+Line 71
+< // Track users in rooms: { roomId: { userId: { id, nickname, socketId, ... } } }
+> // Track users in rooms: { roomId: { userId: { id, nickname, socketId, ... } } }
+Line 72
+< // We track by userId now, not socket.id, to handle reconnects
+> // We track by userId now, not socket.id, to handle reconnects
+Line 73
+< const roomUsers = {}; 
+> const roomUsers = {}; 
+Line 74
+< // Map socketId to userId for easier lookup on disconnect
+> // Map socketId to userId for easier lookup on disconnect
+Line 75
+< const socketToUser = {};
+> const socketToUser = {};
+Line 76
+< // Track pending timeouts for disconnects
+> // Track pending timeouts for disconnects
+Line 77
+< const disconnectTimeouts = {};
+> const disconnectTimeouts = {};
+Line 78
+< 
+> 
+Line 79
+< // --- Translation API Integration (MyMemory) ---
+> // --- Translation API Integration (MyMemory) ---
+Line 80
+< // Language code mapping for MyMemory API
+> // Language code mapping for MyMemory API
+Line 81
+< const LANG_CODES = {
+> const LANG_CODES = {
+Line 82
+<     'en': 'en', 'tr': 'tr', 'de': 'de', 'ru': 'ru',
+>     'en': 'en', 'tr': 'tr', 'de': 'de', 'ru': 'ru',
+Line 83
+<     'ph': 'tl', // Filipino -> Tagalog
+>     'ph': 'tl', // Filipino -> Tagalog
+Line 84
+<     'es': 'es', 'fr': 'fr', 'it': 'it', 'pt': 'pt',
+>     'es': 'es', 'fr': 'fr', 'it': 'it', 'pt': 'pt',
+Line 85
+<     'auto': 'autodetect' // Auto-detect source language
+>     'auto': 'autodetect' // Auto-detect source language
+Line 86
+< };
+> };
+Line 87
+< 
+> 
+Line 88
+< // Simple translation cache to reduce API calls
+> // Simple translation cache to reduce API calls
+Line 89
+< const translationCache = new Map();
+> const translationCache = new Map();
+Line 90
+< const CACHE_MAX_SIZE = 500;
+> const CACHE_MAX_SIZE = 500;
+Line 91
+< 
+> 
+Line 92
+< // Native https module for compatibility with older Node versions (cPanel)
+> // Native https module for compatibility with older Node versions (cPanel)
+Line 93
+< const https = require('https');
+> const https = require('https');
+Line 94
+< 
+> 
+Line 95
+< async function translateText(text, sourceLang, targetLang) {
+> async function translateText(text, sourceLang, targetLang) {
+Line 96
+<     if (!text) return text;
+>     if (!text) return text;
+Line 97
+<     
+>     
+Line 98
+<     // Map to MyMemory codes
+>     // Map to MyMemory codes
+Line 99
+<     // Use 'autodetect' if source is not specified or is 'auto'
+>     // Use 'autodetect' if source is not specified or is 'auto'
+Line 100
+<     const srcCode = (!sourceLang || sourceLang === 'auto') ? 'autodetect' : (LANG_CODES[sourceLang] || sourceLang);
+>     const srcCode = (!sourceLang || sourceLang === 'auto') ? 'autodetect' : (LANG_CODES[sourceLang] || sourceLang);
+Line 101
+<     const tgtCode = LANG_CODES[targetLang] || targetLang;
+>     const tgtCode = LANG_CODES[targetLang] || targetLang;
+Line 102
+<     
+>     
+Line 103
+<     // Debug logging
+>     // Debug logging
+Line 104
+<     console.log('=== TRANSLATION DEBUG ===');
+>     console.log('=== TRANSLATION DEBUG ===');
+Line 105
+<     console.log('Text:', text);
+>     console.log('Text:', text);
+Line 106
+<     console.log('Source:', sourceLang, '->', srcCode);
+>     console.log('Source:', sourceLang, '->', srcCode);
+Line 107
+<     console.log('Target:', targetLang, '->', tgtCode);
+>     console.log('Target:', targetLang, '->', tgtCode);
+Line 108
+<     
+>     
+Line 109
+<     // Don't translate if source and target appear to be the same (skip auto-detect check)
+>     // Don't translate if source and target appear to be the same (skip auto-detect check)
+Line 110
+<     if (srcCode === tgtCode && srcCode !== 'autodetect') {
+>     if (srcCode === tgtCode && srcCode !== 'autodetect') {
+Line 111
+<         console.log('Skipping: same language');
+>         console.log('Skipping: same language');
+Line 112
+<         return text;
+>         return text;
+Line 113
+<     }
+>     }
+Line 114
+<     
+>     
+Line 115
+<     // Check cache (use 'auto' in key for autodetect to allow re-translation)
+>     // Check cache (use 'auto' in key for autodetect to allow re-translation)
+Line 116
+<     const cacheKey = `${text}|${srcCode}|${tgtCode}`;
+>     const cacheKey = `${text}|${srcCode}|${tgtCode}`;
+Line 117
+<     if (translationCache.has(cacheKey)) {
+>     if (translationCache.has(cacheKey)) {
+Line 118
+<         console.log('Cache hit:', translationCache.get(cacheKey));
+>         console.log('Cache hit:', translationCache.get(cacheKey));
+Line 119
+<         return translationCache.get(cacheKey);
+>         return translationCache.get(cacheKey);
+Line 120
+<     }
+>     }
+Line 121
+<     
+>     
+Line 122
+<     // Promise that handles the API request
+>     // Promise that handles the API request
+Line 123
+<     const apiRequest = new Promise((resolve) => {
+>     const apiRequest = new Promise((resolve) => {
+Line 124
+<         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${srcCode}|${tgtCode}`;
+>         const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${srcCode}|${tgtCode}`;
+Line 125
+<         console.log('API URL:', url);
+>         console.log('API URL:', url);
+Line 126
+<         
+>         
+Line 127
+<         const req = https.get(url, (res) => {
+>         const req = https.get(url, (res) => {
+Line 128
+<             let data = '';
+>             let data = '';
+Line 129
+<             
+>             
+Line 130
+<             res.on('data', (chunk) => {
+>             res.on('data', (chunk) => {
+Line 131
+<                 data += chunk;
+>                 data += chunk;
+Line 132
+<             });
+>             });
+Line 133
+<             
+>             
+Line 134
+<             res.on('end', () => {
+>             res.on('end', () => {
+Line 135
+<                 try {
+>                 try {
+Line 136
+<                     if (!data) {
+>                     if (!data) {
+Line 137
+<                         console.error('Translation API returned empty response');
+>                         console.error('Translation API returned empty response');
+Line 138
+<                         resolve(text);
+>                         resolve(text);
+Line 139
+<                         return;
+>                         return;
+Line 140
+<                     }
+>                     }
+Line 141
+<                     
+>                     
+Line 142
+<                     const jsonData = JSON.parse(data);
+>                     const jsonData = JSON.parse(data);
+Line 143
+<                     console.log('API Status:', jsonData.responseStatus);
+>                     console.log('API Status:', jsonData.responseStatus);
+Line 144
+<                     
+>                     
+Line 145
+<                     if (jsonData.responseStatus === 200 && jsonData.responseData?.translatedText) {
+>                     if (jsonData.responseStatus === 200 && jsonData.responseData?.translatedText) {
+Line 146
+<                         const translated = jsonData.responseData.translatedText;
+>                         const translated = jsonData.responseData.translatedText;
+Line 147
+<                         
+>                         
+Line 148
+<                         // Don't cache if the translation is the same as original
+>                         // Don't cache if the translation is the same as original
+Line 149
+<                         if (translated.toLowerCase() === text.toLowerCase()) {
+>                         if (translated.toLowerCase() === text.toLowerCase()) {
+Line 150
+<                             console.log('Skipping: translation same as original');
+>                             console.log('Skipping: translation same as original');
+Line 151
+<                             resolve(text);
+>                             resolve(text);
+Line 152
+<                             return;
+>                             return;
+Line 153
+<                         }
+>                         }
+Line 154
+<                         
+>                         
+Line 155
+<                         // Store in cache
+>                         // Store in cache
+Line 156
+<                         if (translationCache.size >= CACHE_MAX_SIZE) {
+>                         if (translationCache.size >= CACHE_MAX_SIZE) {
+Line 157
+<                             const firstKey = translationCache.keys().next().value;
+>                             const firstKey = translationCache.keys().next().value;
+Line 158
+<                             translationCache.delete(firstKey);
+>                             translationCache.delete(firstKey);
+Line 159
+<                         }
+>                         }
+Line 160
+<                         translationCache.set(cacheKey, translated);
+>                         translationCache.set(cacheKey, translated);
+Line 161
+<                         
+>                         
+Line 162
+<                         console.log('Translation success:', translated);
+>                         console.log('Translation success:', translated);
+Line 163
+<                         resolve(translated);
+>                         resolve(translated);
+Line 164
+<                     } else {
+>                     } else {
+Line 165
+<                         console.log('Translation API error:', jsonData);
+>                         console.log('Translation API error:', jsonData);
+Line 166
+<                         // If limit reached etc, just return original
+>                         // If limit reached etc, just return original
+Line 167
+<                         resolve(text);
+>                         resolve(text);
+Line 168
+<                     }
+>                     }
+Line 169
+<                 } catch (e) {
+>                 } catch (e) {
+Line 170
+<                     console.error('Error parsing translation API response:', e);
+>                     console.error('Error parsing translation API response:', e);
+Line 171
+<                     resolve(text);
+>                     resolve(text);
+Line 172
+<                 }
+>                 }
+Line 173
+<             });
+>             });
+Line 174
+<         });
+>         });
+Line 175
+<         
+>         
+Line 176
+<         req.on('error', (err) => {
+>         req.on('error', (err) => {
+Line 177
+<             console.error('Translation API request error:', err);
+>             console.error('Translation API request error:', err);
+Line 178
+<             resolve(text);
+>             resolve(text);
+Line 179
+<         });
+>         });
+Line 180
+<         
+>         
+Line 181
+<         // Ensure request is sent
+>         // Ensure request is sent
+Line 182
+<         // req.end() is called automatically by https.get
+>         // req.end() is called automatically by https.get
+Line 183
+<     });
+>     });
+Line 184
+< 
+> 
+Line 185
+<     // Timeout promise (5 seconds)
+>     // Timeout promise (5 seconds)
+Line 186
+<     const timeoutPromise = new Promise((resolve) => {
+>     const timeoutPromise = new Promise((resolve) => {
+Line 187
+<         setTimeout(() => {
+>         setTimeout(() => {
+Line 188
+<             console.error('Translation TIMEOUT (5s)');
+>             console.error('Translation TIMEOUT (5s)');
+Line 189
+<             resolve(text);
+>             resolve(text);
+Line 190
+<         }, 5000);
+>         }, 5000);
+Line 191
+<     });
+>     });
+Line 192
+<     
+>     
+Line 193
+<     // Race them
+>     // Race them
+Line 194
+<     try {
+>     try {
+Line 195
+<         return await Promise.race([apiRequest, timeoutPromise]);
+>         return await Promise.race([apiRequest, timeoutPromise]);
+Line 196
+<     } catch (e) {
+>     } catch (e) {
+Line 197
+<         console.error('Translation unexpected error:', e);
+>         console.error('Translation unexpected error:', e);
+Line 198
+<         return text;
+>         return text;
+Line 199
+<     }
+>     }
+Line 200
+< }
+> }
+Line 201
+< 
+> 
+Line 202
+< 
+> 
+Line 203
+< // Ensure upload directory exists
+> // Ensure upload directory exists
+Line 204
+< if (!fs.existsSync(UPLOAD_DIR)) {
+> if (!fs.existsSync(UPLOAD_DIR)) {
+Line 205
+<     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+>     fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+Line 206
+< }
+> }
+Line 207
+< 
+> 
+Line 208
+< // --- Security & Performance Middleware ---
+> // --- Security & Performance Middleware ---
+Line 209
+< // Gzip compression for all responses
+> // Gzip compression for all responses
+Line 210
+< app.use(compression());
+> app.use(compression());
+Line 211
+< 
+> 
+Line 212
+< // Security headers (with adjustments for socket.io and inline scripts)
+> // Security headers (with adjustments for socket.io and inline scripts)
+Line 213
+< app.use(helmet({
+> app.use(helmet({
+Line 214
+<     contentSecurityPolicy: {
+>     contentSecurityPolicy: {
+Line 215
+<         directives: {
+>         directives: {
+Line 216
+<             defaultSrc: ["'self'"],
+>             defaultSrc: ["'self'"],
+Line 217
+<             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdnjs.cloudflare.com"], // Added unsafe-eval
+>             scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "cdnjs.cloudflare.com"], // Added unsafe-eval
+Line 218
+<             scriptSrcAttr: ["'self'", "'unsafe-inline'"], // Explicitly allow inline event handlers
+>             scriptSrcAttr: ["'self'", "'unsafe-inline'"], // Explicitly allow inline event handlers
+Line 219
+<             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
+>             styleSrc: ["'self'", "'unsafe-inline'", "fonts.googleapis.com", "cdnjs.cloudflare.com"],
+Line 220
+<             fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
+>             fontSrc: ["'self'", "fonts.gstatic.com", "cdnjs.cloudflare.com"],
+Line 221
+<             imgSrc: ["'self'", "data:", "blob:", "cdnjs.cloudflare.com"],
+>             imgSrc: ["'self'", "data:", "blob:", "cdnjs.cloudflare.com"],
+Line 222
+<             connectSrc: ["'self'", "ws:", "wss:", "*"] // Allow all connections to rule out CSP for now
+>             connectSrc: ["'self'", "ws:", "wss:", "*"] // Allow all connections to rule out CSP for now
+Line 223
+<         }
+>         }
+Line 224
+<     },
+>     },
+Line 225
+<     crossOriginEmbedderPolicy: false // Required for socket.io
+>     crossOriginEmbedderPolicy: false // Required for socket.io
+Line 226
+< }));
+> }));
+Line 227
+< 
+> 
+Line 228
+< // Static files with caching headers
+> // Static files with caching headers
+Line 229
+< app.use(express.static(path.join(__dirname, 'public'), {
+> app.use(express.static(path.join(__dirname, 'public'), {
+Line 230
+<     maxAge: '1h', // Cache for 1 hour
+>     maxAge: '1h', // Cache for 1 hour
+Line 231
+<     etag: true
+>     etag: true
+Line 232
+< }));
+> }));
+Line 233
+< app.use(express.json());
+> app.use(express.json());
+Line 234
+< 
+> 
+Line 235
+< const os = require('os');
+> const os = require('os');
+Line 236
+< 
+> 
+Line 237
+< // --- File Upload Setup (Multer) ---
+> // --- File Upload Setup (Multer) ---
+Line 238
+< // --- Encrypted File Handling ---
+> // --- Encrypted File Handling ---
+Line 239
+< 
+> 
+Line 240
+< // 1. Use system temp directory for reliability
+> // 1. Use system temp directory for reliability
+Line 241
+< const TEMP_DIR = os.tmpdir();
+> const TEMP_DIR = os.tmpdir();
+Line 242
+< 
+> 
+Line 243
+< const storage = multer.diskStorage({
+> const storage = multer.diskStorage({
+Line 244
+<     destination: function (req, file, cb) {
+>     destination: function (req, file, cb) {
+Line 245
+<         cb(null, TEMP_DIR);
+>         cb(null, TEMP_DIR);
+Line 246
+<     },
+>     },
+Line 247
+<     filename: function (req, file, cb) {
+>     filename: function (req, file, cb) {
+Line 248
+<         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+>         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+Line 249
+<         cb(null, uniqueSuffix + path.extname(file.originalname));
+>         cb(null, uniqueSuffix + path.extname(file.originalname));
+Line 250
+<     }
+>     }
+Line 251
+< });
+> });
+Line 252
+< const upload = multer({ 
+> const upload = multer({ 
+Line 253
+<     storage: storage,
+>     storage: storage,
+Line 254
+<     limits: { fileSize: 200 * 1024 * 1024 } // 200MB limit at middleware level
+>     limits: { fileSize: 200 * 1024 * 1024 } // 200MB limit at middleware level
+Line 255
+< });
+> });
+Line 256
+< 
+> 
+Line 257
+< // 2. Encryption Helper (File -> Encrypted File)
+> // 2. Encryption Helper (File -> Encrypted File)
+Line 258
+< function encryptFile(inputPath, outputPath, cb) {
+> function encryptFile(inputPath, outputPath, cb) {
+Line 259
+<     // Check Key - Log if missing
+>     // Check Key - Log if missing
+Line 260
+<     if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 32) {
+>     if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 32) {
+Line 261
+<         console.error("Encryption Failed: Invalid Key", ENCRYPTION_KEY ? "Length mismatch" : "Missing");
+>         console.error("Encryption Failed: Invalid Key", ENCRYPTION_KEY ? "Length mismatch" : "Missing");
+Line 262
+<         return cb(new Error("Invalid Encryption Key (Check .secret file permissions)"));
+>         return cb(new Error("Invalid Encryption Key (Check .secret file permissions)"));
+Line 263
+<     }
+>     }
+Line 264
+< 
+> 
+Line 265
+<     try {
+>     try {
+Line 266
+<         const iv = crypto.randomBytes(IV_LENGTH);
+>         const iv = crypto.randomBytes(IV_LENGTH);
+Line 267
+<         const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+>         const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+Line 268
+<         
+>         
+Line 269
+<         const input = fs.createReadStream(inputPath);
+>         const input = fs.createReadStream(inputPath);
+Line 270
+<         const output = fs.createWriteStream(outputPath);
+>         const output = fs.createWriteStream(outputPath);
+Line 271
+< 
+> 
+Line 272
+<         // Write IV first
+>         // Write IV first
+Line 273
+<         output.write(iv);
+>         output.write(iv);
+Line 274
+< 
+> 
+Line 275
+<         input.pipe(cipher).pipe(output);
+>         input.pipe(cipher).pipe(output);
+Line 276
+< 
+> 
+Line 277
+<         output.on('finish', () => {
+>         output.on('finish', () => {
+Line 278
+<             cb(null);
+>             cb(null);
+Line 279
+<         });
+>         });
+Line 280
+<         output.on('error', (err) => {
+>         output.on('error', (err) => {
+Line 281
+<             console.error("Stream encryption error:", err);
+>             console.error("Stream encryption error:", err);
+Line 282
+<             cb(err);
+>             cb(err);
+Line 283
+<         });
+>         });
+Line 284
+<     } catch (err) {
+>     } catch (err) {
+Line 285
+<         console.error("Crypto setup error:", err);
+>         console.error("Crypto setup error:", err);
+Line 286
+<         cb(err);
+>         cb(err);
+Line 287
+<     }
+>     }
+Line 288
+< }
+> }
+Line 289
+< 
+> 
+Line 290
+< // Helper to delete file by URL (handles encrypted and legacy paths)
+> // Helper to delete file by URL (handles encrypted and legacy paths)
+Line 291
+< function deleteFileByUrl(url) {
+> function deleteFileByUrl(url) {
+Line 292
+<     if (!url) return;
+>     if (!url) return;
+Line 293
+<     
+>     
+Line 294
+<     // New Encrypted Files
+>     // New Encrypted Files
+Line 295
+<     if (url.startsWith('/api/file/')) {
+>     if (url.startsWith('/api/file/')) {
+Line 296
+<         const filename = url.replace('/api/file/', '');
+>         const filename = url.replace('/api/file/', '');
+Line 297
+<         const fullPath = path.join(UPLOAD_DIR, filename);
+>         const fullPath = path.join(UPLOAD_DIR, filename);
+Line 298
+<         fs.unlink(fullPath, (err) => {
+>         fs.unlink(fullPath, (err) => {
+Line 299
+<             if (err && err.code !== 'ENOENT') console.error("Failed to delete encrypted file:", fullPath, err);
+>             if (err && err.code !== 'ENOENT') console.error("Failed to delete encrypted file:", fullPath, err);
+Line 300
+<         });
+>         });
+Line 301
+<     } else {
+>     } else {
+Line 302
+<         // Legacy Public Files
+>         // Legacy Public Files
+Line 303
+<         const relativePath = url.startsWith('/') ? url.substring(1) : url;
+>         const relativePath = url.startsWith('/') ? url.substring(1) : url;
+Line 304
+<         const fullPath = path.join(__dirname, 'public', relativePath);
+>         const fullPath = path.join(__dirname, 'public', relativePath);
+Line 305
+<         fs.unlink(fullPath, (err) => {
+>         fs.unlink(fullPath, (err) => {
+Line 306
+<             if (err && err.code !== 'ENOENT') console.error("Failed to delete legacy file:", fullPath, err);
+>             if (err && err.code !== 'ENOENT') console.error("Failed to delete legacy file:", fullPath, err);
+Line 307
+<         });
+>         });
+Line 308
+<     }
+>     }
+Line 309
+< }
+> }
+Line 310
+< 
+> 
+Line 311
+< // 3. Upload Route (Encrypts and saves)
+> // 3. Upload Route (Encrypts and saves)
+Line 312
+< app.post('/api/upload', (req, res) => {
+> app.post('/api/upload', (req, res) => {
+Line 313
+<     // Use .any() for broader compatibility with cPanel proxies
+>     // Use .any() for broader compatibility with cPanel proxies
+Line 314
+<     upload.any()(req, res, (err) => {
+>     upload.any()(req, res, (err) => {
+Line 315
+<         if (err) {
+>         if (err) {
+Line 316
+<             console.error("Multer upload error:", err);
+>             console.error("Multer upload error:", err);
+Line 317
+<             return res.status(500).json({ 
+>             return res.status(500).json({ 
+Line 318
+<                 error: "Upload Middleware Failed", 
+>                 error: "Upload Middleware Failed", 
+Line 319
+<                 message: err.message,
+>                 message: err.message,
+Line 320
+<                 stack: err.stack 
+>                 stack: err.stack 
+Line 321
+<             });
+>             });
+Line 322
+<         }
+>         }
+Line 323
+<         
+>         
+Line 324
+<         // .any() puts files in req.files array
+>         // .any() puts files in req.files array
+Line 325
+<         if (!req.files || req.files.length === 0) {
+>         if (!req.files || req.files.length === 0) {
+Line 326
+<             return res.status(400).send('No file uploaded.');
+>             return res.status(400).send('No file uploaded.');
+Line 327
+<         }
+>         }
+Line 328
+<         
+>         
+Line 329
+<         const uploadedFile = req.files[0]; // Take the first file
+>         const uploadedFile = req.files[0]; // Take the first file
+Line 330
+<         const tempPath = uploadedFile.path;
+>         const tempPath = uploadedFile.path;
+Line 331
+<         const finalFilename = uploadedFile.filename + '.enc';
+>         const finalFilename = uploadedFile.filename + '.enc';
+Line 332
+<         const finalPath = path.join(UPLOAD_DIR, finalFilename);
+>         const finalPath = path.join(UPLOAD_DIR, finalFilename);
+Line 333
+<         
+>         
+Line 334
+<         // Debug Log
+>         // Debug Log
+Line 335
+<         console.log(`Starting Encryption: Temp=${tempPath}, Final=${finalPath}, KeyLen=${ENCRYPTION_KEY ? ENCRYPTION_KEY.length : 'NULL'}`);
+>         console.log(`Starting Encryption: Temp=${tempPath}, Final=${finalPath}, KeyLen=${ENCRYPTION_KEY ? ENCRYPTION_KEY.length : 'NULL'}`);
+Line 336
+< 
+> 
+Line 337
+<         encryptFile(tempPath, finalPath, (err) => {
+>         encryptFile(tempPath, finalPath, (err) => {
+Line 338
+<             // Always delete temp file (using fs.unlink to avoid callback nesting hell if simple)
+>             // Always delete temp file (using fs.unlink to avoid callback nesting hell if simple)
+Line 339
+<             fs.unlink(tempPath, (unlinkErr) => {
+>             fs.unlink(tempPath, (unlinkErr) => {
+Line 340
+<                 if (unlinkErr) console.error("Temp file cleanup warning:", unlinkErr.message);
+>                 if (unlinkErr) console.error("Temp file cleanup warning:", unlinkErr.message);
+Line 341
+<             });
+>             });
+Line 342
+< 
+> 
+Line 343
+<             if (err) {
+>             if (err) {
+Line 344
+<                 console.error("Encryption failed:", err);
+>                 console.error("Encryption failed:", err);
+Line 345
+<                 // SEND DETAILED ERROR TO CLIENT
+>                 // SEND DETAILED ERROR TO CLIENT
+Line 346
+<                 return res.status(500).json({ 
+>                 return res.status(500).json({ 
+Line 347
+<                     error: "Encryption Failed", 
+>                     error: "Encryption Failed", 
+Line 348
+<                     message: err.message,
+>                     message: err.message,
+Line 349
+<                     code: err.code || 'UNKNOWN',
+>                     code: err.code || 'UNKNOWN',
+Line 350
+<                     path: finalPath // Debugging help
+>                     path: finalPath // Debugging help
+Line 351
+<                 });
+>                 });
+Line 352
+<             }
+>             }
+Line 353
+< 
+> 
+Line 354
+<             res.json({ url: '/api/file/' + finalFilename });
+>             res.json({ url: '/api/file/' + finalFilename });
+Line 355
+<         });
+>         });
+Line 356
+<     });
+>     });
+Line 357
+< });
+> });
+Line 358
+< 
+> 
+Line 359
+< // 4. Decryption Route (serves the file)
+> // 4. Decryption Route (serves the file)
+Line 360
+< app.get('/api/file/:filename', (req, res) => {
+> app.get('/api/file/:filename', (req, res) => {
+Line 361
+<     const filename = req.params.filename;
+>     const filename = req.params.filename;
+Line 362
+<     const filePath = path.join(UPLOAD_DIR, filename);
+>     const filePath = path.join(UPLOAD_DIR, filename);
+Line 363
+< 
+> 
+Line 364
+<     if (!fs.existsSync(filePath)) return res.status(404).send('File not found');
+>     if (!fs.existsSync(filePath)) return res.status(404).send('File not found');
+Line 365
+< 
+> 
+Line 366
+<     // Simple Decryption Stream
+>     // Simple Decryption Stream
+Line 367
+<     // 1. Read first 16 bytes for IV
+>     // 1. Read first 16 bytes for IV
+Line 368
+<     const readStream = fs.createReadStream(filePath, { start: 0, end: IV_LENGTH - 1 });
+>     const readStream = fs.createReadStream(filePath, { start: 0, end: IV_LENGTH - 1 });
+Line 369
+<     
+>     
+Line 370
+<     let iv;
+>     let iv;
+Line 371
+<     readStream.on('data', (chunk) => {
+>     readStream.on('data', (chunk) => {
+Line 372
+<         iv = chunk;
+>         iv = chunk;
+Line 373
+<     });
+>     });
+Line 374
+< 
+> 
+Line 375
+<     readStream.on('end', () => {
+>     readStream.on('end', () => {
+Line 376
+<         if (!iv || iv.length !== IV_LENGTH) return res.status(500).send('Corrupt file');
+>         if (!iv || iv.length !== IV_LENGTH) return res.status(500).send('Corrupt file');
+Line 377
+< 
+> 
+Line 378
+<         const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+>         const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(ENCRYPTION_KEY), iv);
+Line 379
+<         const fileStream = fs.createReadStream(filePath, { start: IV_LENGTH }); // Skip IV
+>         const fileStream = fs.createReadStream(filePath, { start: IV_LENGTH }); // Skip IV
+Line 380
+< 
+> 
+Line 381
+<         // Guess content type based on original extension (stored in filename before .enc)
+>         // Guess content type based on original extension (stored in filename before .enc)
+Line 382
+<         // e.g. 12345.png.enc
+>         // e.g. 12345.png.enc
+Line 383
+<         const originalExt = path.extname(filename.replace('.enc', ''));
+>         const originalExt = path.extname(filename.replace('.enc', ''));
+Line 384
+<         if (originalExt === '.png') res.type('image/png');
+>         if (originalExt === '.png') res.type('image/png');
+Line 385
+<         else if (originalExt === '.jpg' || originalExt === '.jpeg') res.type('image/jpeg');
+>         else if (originalExt === '.jpg' || originalExt === '.jpeg') res.type('image/jpeg');
+Line 386
+<         else if (originalExt === '.gif') res.type('image/gif');
+>         else if (originalExt === '.gif') res.type('image/gif');
+Line 387
+<         else if (originalExt === '.webm') res.type('video/webm');
+>         else if (originalExt === '.webm') res.type('video/webm');
+Line 388
+<         else if (originalExt === '.mp4') res.type('video/mp4');
+>         else if (originalExt === '.mp4') res.type('video/mp4');
+Line 389
+<         else if (originalExt === '.mp3') res.type('audio/mpeg');
+>         else if (originalExt === '.mp3') res.type('audio/mpeg');
+Line 390
+<         else res.type('application/octet-stream');
+>         else res.type('application/octet-stream');
+Line 391
+< 
+> 
+Line 392
+<         fileStream.pipe(decipher).pipe(res);
+>         fileStream.pipe(decipher).pipe(res);
+Line 393
+<     });
+>     });
+Line 394
+< });
+> });
+Line 395
+< 
+> 
+Line 396
+< // API Stats
+> // API Stats
+Line 397
+< app.get('/api/stats', (req, res) => {
+> app.get('/api/stats', (req, res) => {
+Line 398
+<     const activeRooms = Object.keys(roomUsers).length;
+>     const activeRooms = Object.keys(roomUsers).length;
+Line 399
+<     const activeUsers = Object.keys(socketToUser).length;
+>     const activeUsers = Object.keys(socketToUser).length;
+Line 400
+<     res.json({ rooms: activeRooms, users: activeUsers });
+>     res.json({ rooms: activeRooms, users: activeUsers });
+Line 401
+< });
+> });
+Line 402
+< 
+> 
+Line 403
+< // Serve the chat page for any room (must be after static and api routes)
+> // Serve the chat page for any room (must be after static and api routes)
+Line 404
+< app.get('/:room', (req, res) => {
+> app.get('/:room', (req, res) => {
+Line 405
+<     const room = req.params.room;
+>     const room = req.params.room;
+Line 406
+<     if (room === 'api' || room.includes('.')) {
+>     if (room === 'api' || room.includes('.')) {
+Line 407
+<         return res.status(404).send('Not found');
+>         return res.status(404).send('Not found');
+Line 408
+<     }
+>     }
+Line 409
+<     res.sendFile(path.join(__dirname, 'public', 'chat.html'));
+>     res.sendFile(path.join(__dirname, 'public', 'chat.html'));
+Line 410
+< });
+> });
+Line 411
+< 
+> 
+Line 412
+< // --- Helper Functions ---
+> // --- Helper Functions ---
+Line 413
+< function broadcastUserList(roomId) {
+> function broadcastUserList(roomId) {
+Line 414
+<     if (!roomUsers[roomId]) return;
+>     if (!roomUsers[roomId]) return;
+Line 415
+<     const users = Object.values(roomUsers[roomId]).map(u => ({
+>     const users = Object.values(roomUsers[roomId]).map(u => ({
+Line 416
+<         nickname: u.nickname,
+>         nickname: u.nickname,
+Line 417
+<         userId: u.userId
+>         userId: u.userId
+Line 418
+<     }));
+>     }));
+Line 419
+<     io.to(roomId).emit('userList', users);
+>     io.to(roomId).emit('userList', users);
+Line 420
+< }
+> }
+Line 421
+< 
+> 
+Line 422
+< // --- Socket.io Logic ---
+> // --- Socket.io Logic ---
+Line 423
+< io.on('connection', (socket) => {
+> io.on('connection', (socket) => {
+Line 424
+<     
+>     
+Line 425
+<     socket.on('join', (roomId, nickname, userId, userLang) => {
+>     socket.on('join', (roomId, nickname, userId, userLang) => {
+Line 426
+<         // userId is expected from client (generated if not exists)
+>         if (!userId) userId = 'anon_' + socket.id;
+Line 427
+<         if (!userId) {
+>         userLang = userLang || 'en';
+Line 428
+<              // Fallback if client doesn't send one (backward compat), though client should.
+> 
+Line 429
+<              userId = 'anon_' + socket.id; 
+>         socket.join(roomId);
+Line 430
+<         }
+>         socketToUser[socket.id] = { roomId, userId };
+Line 431
+<         // Default language to English if not provided
+>         
+Line 432
+<         userLang = userLang || 'en';
+>         if (!roomUsers[roomId]) roomUsers[roomId] = {};
+Line 433
+< 
+>         
+Line 434
+<         socket.join(roomId);
+>         const existingUser = roomUsers[roomId][userId];
+Line 435
+<         
+>         
+Line 436
+<         // Map socket to user
+>         if (disconnectTimeouts[userId]) {
+Line 437
+<         socketToUser[socket.id] = { roomId, userId };
+>             clearTimeout(disconnectTimeouts[userId]);
+Line 438
+< 
+>             delete disconnectTimeouts[userId];
+Line 439
+<         // Initialize room if needed
+>             if (existingUser) existingUser.socketId = socket.id;
+Line 440
+<         if (!roomUsers[roomId]) {
+>         }
+Line 441
+<             roomUsers[roomId] = {};
+>         
+Line 442
+<         }
+>         roomUsers[roomId][userId] = {
+Line 443
+< 
+>             userId, socketId: socket.id, nickname, lang: userLang,
+Line 444
+<         const existingUser = roomUsers[roomId][userId];
+>             joinedAt: existingUser ? existingUser.joinedAt : Date.now()
+Line 445
+< 
+>         };
+Line 446
+<         // Cancel any pending disconnect timeout for this user
+>         
+Line 447
+<         if (disconnectTimeouts[userId]) {
+>         const messages = db.getMessages(roomId);
+Line 448
+<             clearTimeout(disconnectTimeouts[userId]);
+>         socket.emit('history', messages);
+Line 449
+<             delete disconnectTimeouts[userId];
+>         broadcastUserList(roomId);
+Line 450
+<             // If we canceled a timeout, it means they reconnected quickly.
+>         
+Line 451
+<             // We just update their socket ID.
+>         const expiry = db.getRoomExpiry(roomId) || 24;
+Line 452
+<             if (existingUser) {
+>         socket.emit('roomConfig', { expiry });
+Line 453
+<                 existingUser.socketId = socket.id;
+>         
+Line 454
+<             }
+>         if (!existingUser) {
+Line 455
+<         }
+>             io.to(roomId).emit('system', {
+Line 456
+< 
+>                 type: 'join', nickname, timestamp: Date.now()
+Line 457
+<         // Add or update user to room
+>             });
+Line 458
+<         roomUsers[roomId][userId] = {
+>         }
+Line 459
+<             userId: userId,
+>     });
+Line 460
+<             socketId: socket.id,
+> 
+Line 461
+<             nickname: nickname,
+>     // Message handler
+Line 462
+<             lang: userLang,
+>     socket.on('message', (msgData) => {
+Line 463
+<             joinedAt: existingUser ? existingUser.joinedAt : Date.now()
+>         const timestamp = Date.now();
+Line 464
+<         };
+>         const msgId = timestamp + Math.random().toString(36).substr(2, 9);
+Line 465
+<         
+>         
+Line 466
+<         // Send history
+>         const msg = {
+Line 467
+<         const messages = db.getMessages(roomId);
+>             id: msgId,
+Line 468
+<         socket.emit('history', messages);
+>             room_id: msgData.room,
+Line 469
+<         
+>             nickname: msgData.nickname,
+Line 470
+<         // Broadcast updated user list
+>             content: msgData.content,
+Line 471
+<         broadcastUserList(roomId);
+>             image_path: msgData.image_path || null,
+Line 472
+<         
+>             video_path: msgData.video_path || null,
+Line 473
+<         // ONLY send "User joined" if they weren't already in the room (e.g. fresh join)
+>             audio_path: msgData.audio_path || null,
+Line 474
+<         // If they were in `roomUsers` and we just canceled a timeout, it's a reconnect (F5), so stay silent.
+>             spoiler: msgData.spoiler || false,
+Line 475
+<         if (!existingUser) {
+>             type: msgData.type,
+Line 476
+<             io.to(roomId).emit('system', {
+>             timestamp: timestamp,
+Line 477
+<                 type: 'join',
+>             replyTo: msgData.replyTo || null
+Line 478
+<                 nickname: nickname,
+>         };
+Line 479
+<                 timestamp: Date.now()
+>         
+Line 480
+<             });
+>         db.addMessage({...msg});
+Line 481
+<             
+>         io.to(msgData.room).emit('message', msg);
+Line 482
+<             // Send room config to the joining user
+>     });
+Line 483
+<             const expiry = db.getRoomExpiry(roomId) || 24;
+> 
+Line 484
+<             socket.emit('roomConfig', { expiry });
+> 
+Line 485
+<         } else {
+>     socket.on('deleteMessage', (msgId) => {
+Line 486
+<             // Also send to reconnecting user
+>         const user = socketToUser[socket.id];
+Line 487
+<             const expiry = db.getRoomExpiry(roomId) || 24;
+>         const room = user ? user.roomId : null;
+Line 488
+<             socket.emit('roomConfig', { expiry });
+>         if (room) {
+Line 489
+<         }
+>             const deletedMsg = db.deleteMessage(msgId);
+Line 490
+<     });
+>             if (deletedMsg) {
+Line 491
+< 
+>                 // If it was media, delete the file
+Line 492
+<     // Message handler
+>                 if ((deletedMsg.type === 'image' && deletedMsg.image_path) || 
+Line 493
+<     socket.on('message', (msgData) => {
+>                     (deletedMsg.type === 'audio' && deletedMsg.audio_path) ||
+Line 494
+<         const timestamp = Date.now();
+>                     (deletedMsg.type === 'video' && deletedMsg.video_path)) {
+Line 495
+<         const msgId = timestamp + Math.random().toString(36).substr(2, 9);
+>                     const filePath = deletedMsg.type === 'image' ? deletedMsg.image_path : (deletedMsg.type === 'audio' ? deletedMsg.audio_path : deletedMsg.video_path);
+Line 496
+<         
+>                     deleteFileByUrl(filePath);
+Line 497
+<         const msg = {
+>                 }
+Line 498
+<             id: msgId,
+> 
+Line 499
+<             room_id: msgData.room,
+>                 io.to(room).emit('messageDeleted', msgId);
+Line 500
+<             nickname: msgData.nickname,
+>             }
+Line 501
+<             content: msgData.content,
+>         }
+Line 502
+<             image_path: msgData.image_path || null,
+>     });
+Line 503
+<             video_path: msgData.video_path || null,
+> 
+Line 504
+<             audio_path: msgData.audio_path || null,
+>     socket.on('clearRoom', () => {
+Line 505
+<             spoiler: msgData.spoiler || false,
+>         const user = socketToUser[socket.id];
+Line 506
+<             type: msgData.type,
+>         const room = user ? user.roomId : null;
+Line 507
+<             timestamp: timestamp,
+>         if (room && db.clearRoom(room)) {
+Line 508
+<             replyTo: msgData.replyTo || null
+>             io.to(room).emit('roomCleared');
+Line 509
+<         };
+>             io.to(room).emit('system', {
+Line 510
+<         
+>                 type: 'info',
+Line 511
+<         db.addMessage({...msg});
+>                 content: 'Chat history cleared.'
+Line 512
+<         io.to(msgData.room).emit('message', msg);
+>             });
+Line 513
+<     });
+>         }
+Line 514
+< 
+>     });
+Line 515
+< 
+> 
+Line 516
+<     socket.on('deleteMessage', (msgId) => {
+>     socket.on('clearUserMessages', () => {
+Line 517
+<         const user = socketToUser[socket.id];
+>         const user = socketToUser[socket.id];
+Line 518
+<         const room = user ? user.roomId : null;
+>         const room = user ? user.roomId : null;
+Line 519
+<         if (room) {
+>         const userId = user ? user.userId : null;
+Line 520
+<             const deletedMsg = db.deleteMessage(msgId);
+>         
+Line 521
+<             if (deletedMsg) {
+>         // user.roomId lookup is reliable, but nickname might need to be fetched from roomUsers
+Line 522
+<                 // If it was media, delete the file
+>         if (room && userId && roomUsers[room] && roomUsers[room][userId]) {
+Line 523
+<                 if ((deletedMsg.type === 'image' && deletedMsg.image_path) || 
+>             const nickname = roomUsers[room][userId].nickname;
+Line 524
+<                     (deletedMsg.type === 'audio' && deletedMsg.audio_path) ||
+>             if (db.deleteMessagesByNickname(room, nickname)) {
+Line 525
+<                     (deletedMsg.type === 'video' && deletedMsg.video_path)) {
+>                 io.to(room).emit('userMessagesCleared', nickname);
+Line 526
+<                     const filePath = deletedMsg.type === 'image' ? deletedMsg.image_path : (deletedMsg.type === 'audio' ? deletedMsg.audio_path : deletedMsg.video_path);
+>             }
+Line 527
+<                     deleteFileByUrl(filePath);
+>         }
+Line 528
+<                 }
+>     });
+Line 529
+< 
+>     
+Line 530
+<                 io.to(room).emit('messageDeleted', msgId);
+>     // Typing indicator
+Line 531
+<             }
+>     socket.on('typing', (isTyping) => {
+Line 532
+<         }
+>         const user = socketToUser[socket.id];
+Line 533
+<     });
+>         if (user) {
+Line 534
+< 
+>             const { roomId, userId } = user;
+Line 535
+<     socket.on('clearRoom', () => {
+>             const nickname = roomUsers[roomId] && roomUsers[roomId][userId] ? roomUsers[roomId][userId].nickname : null;
+Line 536
+<         const user = socketToUser[socket.id];
+>             if (nickname) {
+Line 537
+<         const room = user ? user.roomId : null;
+>                 socket.to(roomId).emit('userTyping', {
+Line 538
+<         if (room && db.clearRoom(room)) {
+>                     nickname: nickname,
+Line 539
+<             io.to(room).emit('roomCleared');
+>                     isTyping: isTyping
+Line 540
+<             io.to(room).emit('system', {
+>                 });
+Line 541
+<                 type: 'info',
+>             }
+Line 542
+<                 content: 'Chat history cleared.'
+>         }
+Line 543
+<             });
+>     });
+Line 544
+<         }
+> 
+Line 545
+<     });
+>     socket.on('markRead', (msgId) => {
+Line 546
+< 
+>         const user = socketToUser[socket.id];
+Line 547
+<     socket.on('clearUserMessages', () => {
+>         const room = user ? user.roomId : null;
+Line 548
+<         const user = socketToUser[socket.id];
+>         if (room) {
+Line 549
+<         const room = user ? user.roomId : null;
+>             // In a real app we would update DB
+Line 550
+<         const userId = user ? user.userId : null;
+>             // db.markMessageRead(msgId, user.nickname);
+Line 551
+<         
+>             io.to(room).emit('messageRead', { msgId, reader: user.nickname });
+Line 552
+<         // user.roomId lookup is reliable, but nickname might need to be fetched from roomUsers
+>         }
+Line 553
+<         if (room && userId && roomUsers[room] && roomUsers[room][userId]) {
+>     });
+Line 554
+<             const nickname = roomUsers[room][userId].nickname;
+> 
+Line 555
+<             if (db.deleteMessagesByNickname(room, nickname)) {
+>     // --- Translation Handler ---
+Line 556
+<                 io.to(room).emit('userMessagesCleared', nickname);
+>     socket.on('translateMessage', async (data) => {
+Line 557
+<             }
+>         const { msgId, text, sourceLang, targetLang: clientTargetLang } = data;
+Line 558
+<         }
+>         const user = socketToUser[socket.id];
+Line 559
+<     });
+>         
+Line 560
+<     
+>         console.log('=== TRANSLATION REQUEST ===');
+Line 561
+<     // Typing indicator
+>         console.log('Received data:', JSON.stringify(data));
+Line 562
+<     socket.on('typing', (isTyping) => {
+>         console.log('clientTargetLang:', clientTargetLang);
+Line 563
+<         const user = socketToUser[socket.id];
+>         
+Line 564
+<         if (user) {
+>         if (!user) return;
+Line 565
+<             const { roomId, userId } = user;
+>         
+Line 566
+<             const nickname = roomUsers[roomId] && roomUsers[roomId][userId] ? roomUsers[roomId][userId].nickname : null;
+>         const { roomId, userId } = user;
+Line 567
+<             if (nickname) {
+>         const userLang = roomUsers[roomId]?.[userId]?.lang;
+Line 568
+<                 socket.to(roomId).emit('userTyping', {
+>         // Use client-provided targetLang, fallback to user's language, then 'en'
+Line 569
+<                     nickname: nickname,
+>         const targetLang = clientTargetLang || userLang || 'en';
+Line 570
+<                     isTyping: isTyping
+>         
+Line 571
+<                 });
+>         console.log('userLang from roomUsers:', userLang);
+Line 572
+<             }
+>         console.log('FINAL targetLang:', targetLang);
+Line 573
+<         }
+>         
+Line 574
+<     });
+>         try {
+Line 575
+< 
+>             const translated = await translateText(text, sourceLang || 'auto', targetLang);
+Line 576
+<     socket.on('markRead', (msgId) => {
+>             socket.emit('translatedMessage', { 
+Line 577
+<         const user = socketToUser[socket.id];
+>                 msgId, 
+Line 578
+<         const room = user ? user.roomId : null;
+>                 translated,
+Line 579
+<         if (room) {
+>                 targetLang 
+Line 580
+<             // In a real app we would update DB
+>             });
+Line 581
+<             // db.markMessageRead(msgId, user.nickname);
+>         } catch (err) {
+Line 582
+<             io.to(room).emit('messageRead', { msgId, reader: user.nickname });
+>             console.error('Translation socket error:', err);
+Line 583
+<         }
+>             socket.emit('translatedMessage', { 
+Line 584
+<     });
+>                 msgId, 
+Line 585
+< 
+>                 translated: text, // Return original on error
+Line 586
+<     // --- Translation Handler ---
+>                 error: true 
+Line 587
+<     socket.on('translateMessage', async (data) => {
+>             });
+Line 588
+<         const { msgId, text, sourceLang, targetLang: clientTargetLang } = data;
+>         }
+Line 589
+<         const user = socketToUser[socket.id];
+>     });
+Line 590
+<         
+> 
+Line 591
+<         console.log('=== TRANSLATION REQUEST ===');
+> 
+Line 592
+<         console.log('Received data:', JSON.stringify(data));
+>     socket.on('setExpiry', (hours) => {
+Line 593
+<         console.log('clientTargetLang:', clientTargetLang);
+>         const user = socketToUser[socket.id];
+Line 594
+<         
+>         if (user && user.roomId) {
+Line 595
+<         if (!user) return;
+>              db.setRoomExpiry(user.roomId, hours);
+Line 596
+<         
+>              io.to(user.roomId).emit('roomConfig', { expiry: hours });
+Line 597
+<         const { roomId, userId } = user;
+>              // Send system notification to chat
+Line 598
+<         const userLang = roomUsers[roomId]?.[userId]?.lang;
+>              const nickname = roomUsers[user.roomId] && roomUsers[user.roomId][user.userId] 
+Line 599
+<         // Use client-provided targetLang, fallback to user's language, then 'en'
+>                  ? roomUsers[user.roomId][user.userId].nickname 
+Line 600
+<         const targetLang = clientTargetLang || userLang || 'en';
+>                  : 'Someone';
+Line 601
+<         
+>              io.to(user.roomId).emit('system', { 
+Line 602
+<         console.log('userLang from roomUsers:', userLang);
+>                  type: 'expiry', 
+Line 603
+<         console.log('FINAL targetLang:', targetLang);
+>                  nickname: nickname,
+Line 604
+<         
+>                  hours: hours,
+Line 605
+<         try {
+>                  timestamp: Date.now()
+Line 606
+<             const translated = await translateText(text, sourceLang || 'auto', targetLang);
+>              });
+Line 607
+<             socket.emit('translatedMessage', { 
+>         }
+Line 608
+<                 msgId, 
+>     });
+Line 609
+<                 translated,
+> 
+Line 610
+<                 targetLang 
+>     socket.on('disconnect', () => {
+Line 611
+<             });
+>         const user = socketToUser[socket.id];
+Line 612
+<         } catch (err) {
+>         if (user) {
+Line 613
+<             console.error('Translation socket error:', err);
+>             const { roomId, userId } = user;
+Line 614
+<             socket.emit('translatedMessage', { 
+>             
+Line 615
+<                 msgId, 
+>             // Start Grace Period
+Line 616
+<                 translated: text, // Return original on error
+>             // We do NOT remove them immediately. We wait.
+Line 617
+<                 error: true 
+>             disconnectTimeouts[userId] = setTimeout(() => {
+Line 618
+<             });
+>                 // If this runs, it means they didn't reconnect in time.
+Line 619
+<         }
+>                 // Now we actually remove them.
+Line 620
+<     });
+>                 
+Line 621
+< 
+>                 if (roomUsers[roomId] && roomUsers[roomId][userId]) {
+Line 622
+< 
+>                     const nickname = roomUsers[roomId][userId].nickname;
+Line 623
+<     socket.on('setExpiry', (hours) => {
+>                     
+Line 624
+<         const user = socketToUser[socket.id];
+>                     delete roomUsers[roomId][userId];
+Line 625
+<         if (user && user.roomId) {
+>                     if (Object.keys(roomUsers[roomId]).length === 0) {
+Line 626
+<              db.setRoomExpiry(user.roomId, hours);
+>                         delete roomUsers[roomId];
+Line 627
+<              io.to(user.roomId).emit('roomConfig', { expiry: hours });
+>                     } else {
+Line 628
+<              // Send system notification to chat
+>                         broadcastUserList(roomId);
+Line 629
+<              const nickname = roomUsers[user.roomId] && roomUsers[user.roomId][user.userId] 
+>                         io.to(roomId).emit('system', {
+Line 630
+<                  ? roomUsers[user.roomId][user.userId].nickname 
+>                             type: 'leave',
+Line 631
+<                  : 'Someone';
+>                             nickname: nickname,
+Line 632
+<              io.to(user.roomId).emit('system', { 
+>                             timestamp: Date.now()
+Line 633
+<                  type: 'expiry', 
+>                         });
+Line 634
+<                  nickname: nickname,
+>                     }
+Line 635
+<                  hours: hours,
+>                 }
+Line 636
+<                  timestamp: Date.now()
+>                 
+Line 637
+<              });
+>                 delete disconnectTimeouts[userId];
+Line 638
+<         }
+>             }, DISCONNECT_GRACE_PERIOD);
+Line 639
+<     });
+> 
+Line 640
+< 
+>             // Clean up socket mapping immediately though, as this specific socket is dead.
+Line 641
+<     socket.on('disconnect', () => {
+>             delete socketToUser[socket.id];
+Line 642
+<         const user = socketToUser[socket.id];
+>         }
+Line 643
+<         if (user) {
+>     });
+Line 644
+<             const { roomId, userId } = user;
+> });
+Line 645
+<             
+> 
+Line 646
+<             // Start Grace Period
+> // --- Cleanup Cron Job (runs every 5 minutes) ---
+Line 647
+<             // We do NOT remove them immediately. We wait.
+> cron.schedule('*/5 * * * *', () => {
+Line 648
+<             disconnectTimeouts[userId] = setTimeout(() => {
+>     const now = new Date();
+Line 649
+<                 // If this runs, it means they didn't reconnect in time.
+>     console.log(`[${now.toISOString()}] Running auto-deletion task...`);
+Line 650
+<                 // Now we actually remove them.
+>     console.log(`Default retention: ${RETENTION_MS / (60 * 60 * 1000)} hours`);
+Line 651
+<                 
+>     
+Line 652
+<                 if (roomUsers[roomId] && roomUsers[roomId][userId]) {
+>     try {
+Line 653
+<                     const nickname = roomUsers[roomId][userId].nickname;
+>         const deletedMessages = db.cleanup(RETENTION_MS);
+Line 654
+<                     
+>         
+Line 655
+<                     delete roomUsers[roomId][userId];
+>         if (deletedMessages.length > 0) {
+Line 656
+<                     if (Object.keys(roomUsers[roomId]).length === 0) {
+>             console.log(`Deleted ${deletedMessages.length} expired messages`);
+Line 657
+<                         delete roomUsers[roomId];
+>             
+Line 658
+<                     } else {
+>             // Delete associated files
+Line 659
+<                         broadcastUserList(roomId);
+>             deletedMessages.forEach(msg => {
+Line 660
+<                         io.to(roomId).emit('system', {
+>                 if ((msg.type === 'image' && msg.image_path) || 
+Line 661
+<                             type: 'leave',
+>                     (msg.type === 'audio' && msg.audio_path) ||
+Line 662
+<                             nickname: nickname,
+>                     (msg.type === 'video' && msg.video_path)) {
+Line 663
+<                             timestamp: Date.now()
+>                     const filePath = msg.type === 'image' ? msg.image_path : (msg.type === 'audio' ? msg.audio_path : msg.video_path);
+Line 664
+<                         });
+>                     deleteFileByUrl(filePath);
+Line 665
+<                     }
+>                 }
+Line 666
+<                 }
+>             });
+Line 667
+<                 
+>             
+Line 668
+<                 delete disconnectTimeouts[userId];
+>             // Notify connected clients in affected rooms to refresh messages
+Line 669
+<             }, DISCONNECT_GRACE_PERIOD);
+>             const affectedRooms = [...new Set(deletedMessages.map(m => m.room_id))];
+Line 670
+< 
+>             affectedRooms.forEach(roomId => {
+Line 671
+<             // Clean up socket mapping immediately though, as this specific socket is dead.
+>                 // Send updated message list to room
+Line 672
+<             delete socketToUser[socket.id];
+>                 const remainingMessages = db.getMessages(roomId);
+Line 673
+<         }
+>                 io.to(roomId).emit('history', remainingMessages);
+Line 674
+<     });
+>                 console.log(`Refreshed room ${roomId} (${remainingMessages.length} messages remaining)`);
+Line 675
+< });
+>             });
+Line 676
+< 
+>         } else {
+Line 677
+< // --- Cleanup Cron Job (runs every 5 minutes) ---
+>             console.log('No expired messages found');
+Line 678
+< cron.schedule('*/5 * * * *', () => {
+>         }
+Line 679
+<     const now = new Date();
+>     } catch (err) {
+Line 680
+<     console.log(`[${now.toISOString()}] Running auto-deletion task...`);
+>         console.error('Auto-deletion error:', err);
+Line 681
+<     console.log(`Default retention: ${RETENTION_MS / (60 * 60 * 1000)} hours`);
+>     }
+Line 682
+<     
+> });
+Line 683
+<     try {
+> 
+Line 684
+<         const deletedMessages = db.cleanup(RETENTION_MS);
+> // --- Start Server ---
+Line 685
+<         
+> // Use PORT env if provided, otherwise default to 3000
+Line 686
+<         if (deletedMessages.length > 0) {
+> const PORT = process.env.PORT || 3000;
+Line 687
+<             console.log(`Deleted ${deletedMessages.length} expired messages`);
+> 
+Line 688
+<             
+> log(`Attempting to start server on port ${PORT}...`);
+Line 689
+<             // Delete associated files
+> 
+Line 690
+<             deletedMessages.forEach(msg => {
+> server.listen(PORT, () => {
+Line 691
+<                 if ((msg.type === 'image' && msg.image_path) || 
+>     log(`✓ Server running on port ${PORT}`);
+Line 692
+<                     (msg.type === 'audio' && msg.audio_path) ||
+> });
+Line 693
+<                     (msg.type === 'video' && msg.video_path)) {
+> 
+Line 694
+<                     const filePath = msg.type === 'image' ? msg.image_path : (msg.type === 'audio' ? msg.audio_path : msg.video_path);
+> server.on('error', (err) => {
+Line 695
+<                     deleteFileByUrl(filePath);
+>     log(`✗ Server error: ${err.message}`);
+Line 696
+<                 }
+>     log(err.stack);
+Line 697
+<             });
+> });
+Line 698
+<             
+> 
+Line 699
+<             // Notify connected clients in affected rooms to refresh messages
+> } catch (err) {
+Line 700
+<             const affectedRooms = [...new Set(deletedMessages.map(m => m.room_id))];
+>     // This catches any errors during module loading or initialization
+Line 701
+<             affectedRooms.forEach(roomId => {
+>     log(`✗ FATAL ERROR: ${err.message}`);
+Line 702
+<                 // Send updated message list to room
+>     log(err.stack);
+Line 703
+<                 const remainingMessages = db.getMessages(roomId);
+>     process.exit(1);
+Line 704
+<                 io.to(roomId).emit('history', remainingMessages);
+> }
+Line 705
+<                 console.log(`Refreshed room ${roomId} (${remainingMessages.length} messages remaining)`);
+> 
+Line 706
+<             });
+> undefined
+Line 707
+<         } else {
+> undefined
+Line 708
+<             console.log('No expired messages found');
+> undefined
+Line 709
+<         }
+> undefined
+Line 710
+<     } catch (err) {
+> undefined
+Line 711
+<         console.error('Auto-deletion error:', err);
+> undefined
+Line 712
+<     }
+> undefined
+Line 713
+< });
+> undefined
+Line 714
+< 
+> undefined
+Line 715
+< // --- Start Server ---
+> undefined
+Line 716
+< // Use PORT env if provided, otherwise default to 3000
+> undefined
+Line 717
+< const PORT = process.env.PORT || 3000;
+> undefined
+Line 718
+< 
+> undefined
+Line 719
+< log(`Attempting to start server on port ${PORT}...`);
+> undefined
+Line 720
+< 
+> undefined
+Line 721
+< server.listen(PORT, () => {
+> undefined
+Line 722
+<     log(`✓ Server running on port ${PORT}`);
+> undefined
+Line 723
+< });
+> undefined
+Line 724
+< 
+> undefined
+Line 725
+< server.on('error', (err) => {
+> undefined
+Line 726
+<     log(`✗ Server error: ${err.message}`);
+> undefined
+Line 727
+<     log(err.stack);
+> undefined
+Line 728
+< });
+> undefined
+Line 729
+< 
+> undefined
+Line 730
+< } catch (err) {
+> undefined
+Line 731
+<     // This catches any errors during module loading or initialization
+> undefined
+Line 732
+<     log(`✗ FATAL ERROR: ${err.message}`);
+> undefined
+Line 733
+<     log(err.stack);
+> undefined
+Line 734
+<     process.exit(1);
+> undefined
+Line 735
+< }
+> undefined
+Line 736
+< 
+> undefined

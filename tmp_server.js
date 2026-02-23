@@ -1,4 +1,4 @@
-// --- Startup Logging for cPanel Debug ---
+﻿// --- Startup Logging for cPanel Debug ---
 console.error('=== SERVER.JS STARTING ==='); // This should appear in stderr.log
 console.error('Current directory:', __dirname);
 const fs = require('fs');
@@ -20,33 +20,33 @@ log('Loading modules...');
 
 try {
     const express = require('express');
-    log('✓ express loaded');
+    log('Ô£ô express loaded');
     
     const http = require('http');
-    log('✓ http loaded');
+    log('Ô£ô http loaded');
     
     const { Server } = require('socket.io');
-    log('✓ socket.io loaded');
+    log('Ô£ô socket.io loaded');
     
     const multer = require('multer');
-    log('✓ multer loaded');
+    log('Ô£ô multer loaded');
     
     const cron = require('node-cron');
-    log('✓ node-cron loaded');
+    log('Ô£ô node-cron loaded');
     
     const compression = require('compression');
-    log('✓ compression loaded');
+    log('Ô£ô compression loaded');
     
     const helmet = require('helmet');
-    log('✓ helmet loaded');
+    log('Ô£ô helmet loaded');
     
     log('Loading database...');
     const db = require('./database');
-    log('✓ database loaded');
+    log('Ô£ô database loaded');
     // The database module is now loaded outside the try block for key initialization
     // log('Loading database...');
     // const db = require('./database');
-    // log('✓ database loaded');
+    // log('Ô£ô database loaded');
     
     log('All modules loaded successfully!');
 
@@ -720,17 +720,17 @@ const PORT = process.env.PORT || 3000;
 log(`Attempting to start server on port ${PORT}...`);
 
 server.listen(PORT, () => {
-    log(`✓ Server running on port ${PORT}`);
+    log(`Ô£ô Server running on port ${PORT}`);
 });
 
 server.on('error', (err) => {
-    log(`✗ Server error: ${err.message}`);
+    log(`Ô£ù Server error: ${err.message}`);
     log(err.stack);
 });
 
 } catch (err) {
     // This catches any errors during module loading or initialization
-    log(`✗ FATAL ERROR: ${err.message}`);
+    log(`Ô£ù FATAL ERROR: ${err.message}`);
     log(err.stack);
     process.exit(1);
 }
