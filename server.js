@@ -463,8 +463,10 @@ io.on('connection', (socket) => {
         
         // Check if room has password
         const passwordHash = db.getRoomPassword(roomId);
+        console.log(`[JOIN] Room: ${roomId}, User: ${nickname}, HasPassword: ${!!passwordHash}`);
         if (passwordHash) {
             // Room is locked — ask for password
+            console.log(`[JOIN] Password required for room ${roomId}, sending passwordRequired to ${nickname}`);
             socket.emit('passwordRequired', { roomId });
             // Store pending join data on socket
             socket._pendingJoin = { roomId, nickname, userId, userLang };

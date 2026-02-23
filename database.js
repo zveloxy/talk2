@@ -172,6 +172,8 @@ class SimpleDB {
     }
 
     getRoomPassword(roomId) {
+        // Always read fresh from disk (critical for multi-process envs like cPanel)
+        this.cache = null;
         const db = this._read();
         if (db.rooms && db.rooms[roomId] && db.rooms[roomId].passwordHash) {
             return db.rooms[roomId].passwordHash;
