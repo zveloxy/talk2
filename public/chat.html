@@ -18,13 +18,6 @@
             });
         }
     </script>
-    <script>
-        // Apply saved theme immediately to prevent flash
-        (function() {
-            var t = localStorage.getItem('talk2_theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', t);
-        })();
-    </script>
 </head>
 <body>
     <div id="app">
@@ -90,9 +83,6 @@
                 </button>
                 <button id="sound-toggle-btn" class="icon-btn" title="Bildirim Sesi">
                     <i class="fas fa-volume-up"></i>
-                </button>
-                <button id="theme-toggle-btn" class="icon-btn" title="Tema Değiştir">
-                    <i class="fas fa-moon"></i>
                 </button>
                 <div class="lang-dropdown" id="lang-dropdown">
                     <button class="lang-dropdown-btn" id="lang-dropdown-btn">
@@ -289,6 +279,6 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
-    <script src="/client.js?v=62"></script>
+    <script src="/client.js?v=63"></script>
 </body>
 </html>

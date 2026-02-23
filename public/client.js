@@ -1478,29 +1478,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     
-    // Theme Toggle
-    const themeToggleBtn = document.getElementById('theme-toggle-btn');
-    function updateThemeIcon() {
-        if (!themeToggleBtn) return;
-        const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
-        themeToggleBtn.innerHTML = isDark ? '<i class="fas fa-moon"></i>' : '<i class="fas fa-sun"></i>';
-    }
-    // Apply saved theme
-    const savedTheme = localStorage.getItem('talk2_theme') || 'dark';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    updateThemeIcon();
-    
-    if (themeToggleBtn) {
-        themeToggleBtn.addEventListener('click', () => {
-            const current = document.documentElement.getAttribute('data-theme') || 'dark';
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('talk2_theme', next);
-            updateThemeIcon();
-            showToast(next === 'dark' ? '🌙 Karanlık Tema' : '☀️ Aydınlık Tema');
-        });
-    }
-    
     // Auto-Translate Toggle
     autoTranslateBtn = document.getElementById('auto-translate-btn');
     if (autoTranslateBtn) {
