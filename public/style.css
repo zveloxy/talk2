@@ -1496,6 +1496,16 @@ body {
     font-style: italic;
 }
 
+/* Lock button states */
+#lock-room-btn.locked {
+    color: #f59e0b;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+#lock-room-btn.locked:hover {
+    color: #fbbf24;
+}
+
 /* Reply Button on Messages */
 .reply-msg-btn {
     background: rgba(255, 255, 255, 0.1);

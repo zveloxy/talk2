@@ -1844,15 +1844,16 @@ socket.on('roomConfig', (config) => {
     const lockBtn = document.getElementById('lock-room-btn');
     if (lockBtn) {
         lockBtn.innerHTML = roomHasPassword ? '<i class="fas fa-lock"></i>' : '<i class="fas fa-lock-open"></i>';
+        lockBtn.classList.toggle('locked', roomHasPassword);
     }
 });
 
 // Password required — show password modal
 socket.on('passwordRequired', () => {
     const overlay = document.getElementById('password-overlay');
-    if (overlay) overlay.classList.remove('hidden');
-    // Hide nickname modal
-    if (modal) modal.classList.add('hidden');
+    const nicknameOverlay = document.getElementById('nickname-overlay');
+    if (overlay) overlay.style.display = 'flex';
+    if (nicknameOverlay) nicknameOverlay.style.display = 'none';
 });
 
 socket.on('passwordWrong', () => {
@@ -1881,10 +1882,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // Close password overlay on successful join (history event means we joined)
-    const origHistoryHandler = socket.listeners('history')[0];
     socket.on('history', () => {
         const overlay = document.getElementById('password-overlay');
-        if (overlay) overlay.classList.add('hidden');
+        if (overlay) overlay.style.display = 'none';
     });
     
     // Lock button — set/manage room password
